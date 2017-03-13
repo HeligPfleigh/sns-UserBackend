@@ -1,1 +1,2 @@
-- step 1: write TDD test
+- step 1: write TDD tests
+- step 2: write more tests
