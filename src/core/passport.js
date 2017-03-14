@@ -15,7 +15,7 @@
 
 import passport from 'passport';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
-import { User, UserLogin, UserClaim, UserProfile } from '../data/models';
+// import { User, UserLogin, UserClaim, UserProfile } from '../data/models';
 import { auth as config } from '../config';
 
 /**
@@ -29,10 +29,11 @@ passport.use(new FacebookStrategy({
   passReqToCallback: true,
 }, (req, accessToken, refreshToken, profile, done) => {
   /* eslint-disable no-underscore-dangle */
-  const loginName = 'facebook';
-  const claimType = 'urn:facebook:access_token';
+  // const loginName = 'facebook';
+  // const claimType = 'urn:facebook:access_token';
   const fooBar = async () => {
     if (req.user) {
+      /*
       const userLogin = await UserLogin.findOne({
         attributes: ['name', 'key'],
         where: { name: loginName, key: profile.id },
@@ -68,7 +69,10 @@ passport.use(new FacebookStrategy({
           email: user.email,
         });
       }
+
+      */
     } else {
+      /*
       const users = await User.findAll({
         attributes: ['id', 'email'],
         where: { '$logins.name$': loginName, '$logins.key$': profile.id },
@@ -117,6 +121,7 @@ passport.use(new FacebookStrategy({
           });
         }
       }
+      */
     }
   };
 
