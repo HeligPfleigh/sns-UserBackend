@@ -7,6 +7,7 @@
  * LICENSE.txt file in the root directory of this source tree.
  */
 
-// import User from './User';
+import User from './UserModel';
 
+export default User;
 // export { User };
