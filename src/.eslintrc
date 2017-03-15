@@ -1,6 +1,8 @@
 {
   "rules": {
     "new-cap": 0,
-    "no-console": "warn"
+    "no-console": "warn",
+    "no-param-reassign": 0,
+    "no-plusplus": "off"
   }
 }
