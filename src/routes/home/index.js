@@ -13,7 +13,7 @@ import Layout from '../../components/Layout';
 
 export default {
 
-  path: '/',
+  path: '/home',
 
   async action() {
     return {

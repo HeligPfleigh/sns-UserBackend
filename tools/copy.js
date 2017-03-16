@@ -29,8 +29,9 @@ async function copy() {
       },
     }, null, 2)),
     // copyFile('LICENSE.txt', 'build/LICENSE.txt'),
-    copyDir('node_modules/bootstrap/dist/css', 'build/public/bootstrap/css'),
-    copyDir('node_modules/bootstrap/dist/fonts', 'build/public/bootstrap/fonts'),
+    copyDir('node_modules/bootstrap/dist/css', 'build/public/libs/bootstrap/css'),
+    copyDir('node_modules/bootstrap/dist/fonts', 'build/public/libs/bootstrap/fonts'),
+    copyDir('node_modules/font-awesome', 'build/public/libs/font-awesome'),
     copyDir('public', 'build/public'),
   ]);
 

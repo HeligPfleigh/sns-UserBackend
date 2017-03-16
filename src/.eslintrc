@@ -3,6 +3,9 @@
     "new-cap": 0,
     "no-console": "warn",
     "no-param-reassign": 0,
-    "no-plusplus": "off"
+    "no-plusplus": "off",
+    "react/self-closing-comp": "off",
+    "jsx-a11y/href-no-hash": "off",
+    "css-modules/no-unused-class": "off"
   }
 }
