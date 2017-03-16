@@ -25,6 +25,7 @@
     "express-graphql": "^0.6.3",
     "express-jwt": "^5.1.0",
     "fastclick": "^1.0.6",
+    "font-awesome": "^4.7.0",
     "graphql": "^0.9.1",
     "graphql-tag": "^1.2.4",
     "history": "^4.5.1",
