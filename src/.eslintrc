@@ -7,5 +7,6 @@
     "react/self-closing-comp": "off",
     "jsx-a11y/href-no-hash": "off",
     "css-modules/no-unused-class": "off"
+    // "max-len": "off"
   }
 }
