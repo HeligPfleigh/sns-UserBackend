@@ -67,7 +67,7 @@ class Login extends React.Component {
           <div className={s.social_login}>
             <h3 className="hidden">...or login with:</h3>
             <div className={s.social_login_buttons}>
-              <a className={`btn ${s.btn_link_login} ${s.btn_link_login_facebook}`} href="#">
+              <a className={`btn ${s.btn_link_login} ${s.btn_link_login_facebook}`} href="/login/facebook">
                 <i className="fa fa-facebook"></i> Login Facebook
               </a>
               {/**
