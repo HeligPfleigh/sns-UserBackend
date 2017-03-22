@@ -34,6 +34,6 @@ const NotificationSchema = new Schema({
 // https://github.com/drudge/mongoosetimestamp
 NotificationSchema.plugin(timestamp);
 
-const Notification = mongoose.model('Notification', NotificationSchema, 'Notification');
+const NotificationModel = mongoose.model('Notification', NotificationSchema, 'Notification');
 
-export default Notification;
+export default NotificationModel;

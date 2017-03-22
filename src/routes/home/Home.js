@@ -58,6 +58,10 @@ class Home extends React.Component {
         <div className={s.container}>
           <h1>React.js News</h1>
           <div>{ buttonsInstance }</div>
+          <a href="/logout">
+            logout
+          </a>
+          {/**
           {loading ? 'Loading...' : news.map(item => (
             <article key={item.link} className={s.newsItem}>
               <h1 className={s.newsTitle}><a href={item.link}>{item.title}</a></h1>
@@ -68,6 +72,7 @@ class Home extends React.Component {
               />
             </article>
           ))}
+          */}
         </div>
       </div>
     );

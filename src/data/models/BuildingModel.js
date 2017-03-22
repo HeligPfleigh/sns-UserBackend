@@ -50,6 +50,6 @@ const BuildingSchema = new Schema({
 // https://github.com/drudge/mongoose-timestamp
 BuildingSchema.plugin(timestamp);
 
-const Building = mongoose.model('Building', BuildingSchema, 'Building');
+const BuildingModel = mongoose.model('Building', BuildingSchema, 'Building');
 
-export default Building;
+export default BuildingModel;

@@ -23,6 +23,6 @@ const CommentSchema = new Schema({
 // https://github.com/drudge/mongoose-timestamp
 CommentSchema.plugin(timestamp);
 
-const Comment = mongoose.model('Comment', CommentSchema, 'Comment');
+const CommentModel = mongoose.model('Comment', CommentSchema, 'Comment');
 
-export default Comment;
+export default CommentModel;

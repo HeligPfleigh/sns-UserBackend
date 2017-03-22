@@ -23,6 +23,6 @@ const FollowsRelationSchema = new Schema({
 // https://github.com/drudge/mongoose-timestamp
 FollowsRelationSchema.plugin(timestamp);
 
-const FollowsRelation = mongoose.model('FollowsRelation', FollowsRelationSchema, 'FollowsRelation');
+const FollowsRelationModel = mongoose.model('FollowsRelation', FollowsRelationSchema, 'FollowsRelation');
 
-export default FollowsRelation;
+export default FollowsRelationModel;

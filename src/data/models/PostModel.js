@@ -30,6 +30,6 @@ const PostSchema = new Schema({
 // https://github.com/drudge/mongoosetimestamp
 PostSchema.plugin(timestamp);
 
-const Post = mongoose.model('Post', PostSchema, 'Post');
+const PostModel = mongoose.model('Post', PostSchema, 'Post');
 
-export default Post;
+export default PostModel;

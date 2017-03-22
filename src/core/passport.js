@@ -14,9 +14,24 @@
  */
 
 import passport from 'passport';
+import qs from 'qs';
+import moment from 'moment';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 // import { User, UserLogin, UserClaim, UserProfile } from '../data/models';
 import { auth as config } from '../config';
+import { UserModel } from '../data/models';
+import fetch from './fetch';
+
+export async function getLongTermToken(accessToken) {
+  const longlivedTokenRequest = await fetch(`https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=${config.facebook.id}&fb_exchange_token=${accessToken}&client_secret=${config.facebook.secret}`);
+  const longlivedTokenObject = qs.parse(await longlivedTokenRequest.text());
+  // long-lived tokens will expire in about 60 days
+  // so we want to refresh it every 50 days
+  return {
+    tokenExpire: moment().add(50, 'days').toDate(),
+    accessToken: longlivedTokenObject.access_token,
+  };
+}
 
 /**
  * Sign in with Facebook.
@@ -25,108 +40,42 @@ passport.use(new FacebookStrategy({
   clientID: config.facebook.id,
   clientSecret: config.facebook.secret,
   callbackURL: '/login/facebook/return',
-  profileFields: ['name', 'email', 'link', 'locale', 'timezone'],
+  profileFields: ['name', 'email', 'link', 'locale', 'timezone', 'gender'],
   passReqToCallback: true,
 }, (req, accessToken, refreshToken, profile, done) => {
   /* eslint-disable no-underscore-dangle */
   // const loginName = 'facebook';
   // const claimType = 'urn:facebook:access_token';
-  console.log('Token: ');
-  console.log(accessToken);
   const fooBar = async () => {
-    if (req.user) {
-      done(null);
-      /*
-      const userLogin = await UserLogin.findOne({
-        attributes: ['name', 'key'],
-        where: { name: loginName, key: profile.id },
+    const longlivedToken = await getLongTermToken(accessToken);
+    let user = await UserModel.findOne({
+      'emails.address': profile._json.email,
+    });
+    if (!user) {
+      user = await UserModel.create({
+        emails: {
+          address: profile._json.email,
+          verified: true,
+        },
+        username: profile._json.email.replace(/@.*$/, ''),
+        profile: {
+          gender: profile._json.gender,
+          lastName: profile._json.last_name,
+          firstName: profile._json.first_name,
+          picture: `https://graph.facebook.com/${profile.id}/picture?type=large`,
+        },
+        roles: ['user'],
+        services: {
+          facebook: longlivedToken,
+        },
       });
-      if (userLogin) {
-        // There is already a Facebook account that belongs to you.
-        // Sign in with that account or delete it, then link it with your current account.
-        done();
-      } else {
-        const user = await User.create({
-          id: req.user.id,
-          email: profile._json.email,
-          logins: [
-            { name: loginName, key: profile.id },
-          ],
-          claims: [
-            { type: claimType, value: profile.id },
-          ],
-          profile: {
-            displayName: profile.displayName,
-            gender: profile._json.gender,
-            picture: `https://graph.facebook.com/${profile.id}/picture?type=large`,
-          },
-        }, {
-          include: [
-            { model: UserLogin, as: 'logins' },
-            { model: UserClaim, as: 'claims' },
-            { model: UserProfile, as: 'profile' },
-          ],
-        });
-        done(null, {
-          id: user.id,
-          email: user.email,
-        });
-      }
-
-      */
-    } else {
-      done(null);
-      /*
-      const users = await User.findAll({
-        attributes: ['id', 'email'],
-        where: { '$logins.name$': loginName, '$logins.key$': profile.id },
-        include: [
-          {
-            attributes: ['name', 'key'],
-            model: UserLogin,
-            as: 'logins',
-            required: true,
-          },
-        ],
-      });
-      if (users.length) {
-        done(null, users[0]);
-      } else {
-        let user = await User.findOne({ where: { email: profile._json.email } });
-        if (user) {
-          // There is already an account using this email address. Sign in to
-          // that account and link it with Facebook manually from Account Settings.
-          done(null);
-        } else {
-          user = await User.create({
-            email: profile._json.email,
-            emailConfirmed: true,
-            logins: [
-              { name: loginName, key: profile.id },
-            ],
-            claims: [
-              { type: claimType, value: accessToken },
-            ],
-            profile: {
-              displayName: profile.displayName,
-              gender: profile._json.gender,
-              picture: `https://graph.facebook.com/${profile.id}/picture?type=large`,
-            },
-          }, {
-            include: [
-              { model: UserLogin, as: 'logins' },
-              { model: UserClaim, as: 'claims' },
-              { model: UserProfile, as: 'profile' },
-            ],
-          });
-          done(null, {
-            id: user.id,
-            email: user.email,
-          });
-        }
-      }
-      */
     }
+    done(null, {
+      id: user._id,
+      profile: user.profile,
+      email: user.emails.address,
+      roles: user.roles,
+    });
   };
 
   fooBar().catch(done);
