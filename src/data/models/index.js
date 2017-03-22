@@ -9,7 +9,22 @@
   /* eslint-disable prefer-default-export */
 
 import UserModel from './UserModel';
+import FriendsRelationModel from './FriendsRelationModel';
+import FollowsRelationModel from './FollowsRelationModel';
+
+import PostModel from './PostModel';
+import CommentModel from './CommentModel';
+import NotificationModel from './NotificationModel';
+import BuildingModel from './BuildingModel';
+import ApartmentModel from './ApartmentModel';
 
 export {
   UserModel,
+  FriendsRelationModel,
+  FollowsRelationModel,
+  PostModel,
+  CommentModel,
+  NotificationModel,
+  BuildingModel,
+  ApartmentModel,
 };
