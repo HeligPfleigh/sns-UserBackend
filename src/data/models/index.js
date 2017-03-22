@@ -8,6 +8,28 @@
  */
 
 import User from './UserModel';
+import FriendsRelation from './FriendsRelationModel';
+import FollowsRelation from './FollowsRelationModel';
 
-export default User;
-// export { User };
+import PostType from './PostTypeModel';
+import Post from './PostModel';
+import Comment from './CommentModel';
+
+import NotificationType from './NotificationTypeModel';
+import Notification from './NotificationModel';
+
+import Building from './BuildingModel';
+import Apartment from './ApartmentModel';
+
+export {
+  User,
+  FriendsRelation,
+  FollowsRelation,
+  PostType,
+  Post,
+  Comment,
+  NotificationType,
+  Notification,
+  Building,
+  Apartment,
+};
