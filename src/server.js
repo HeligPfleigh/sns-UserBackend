@@ -79,6 +79,12 @@ app.get('/login/facebook/return',
   },
 );
 
+app.get('/logout', (req, res) => {
+// app.post('/logout', (req, res) => {
+  res.clearCookie('id_token');
+  res.redirect('/');
+});
+
 //
 // Register API middleware
 // -----------------------------------------------------------------------------
