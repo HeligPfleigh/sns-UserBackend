@@ -31,8 +31,11 @@ passport.use(new FacebookStrategy({
   /* eslint-disable no-underscore-dangle */
   // const loginName = 'facebook';
   // const claimType = 'urn:facebook:access_token';
+  console.log('Token: ');
+  console.log(accessToken);
   const fooBar = async () => {
     if (req.user) {
+      done(null);
       /*
       const userLogin = await UserLogin.findOne({
         attributes: ['name', 'key'],
@@ -72,6 +75,7 @@ passport.use(new FacebookStrategy({
 
       */
     } else {
+      done(null);
       /*
       const users = await User.findAll({
         attributes: ['id', 'email'],
