@@ -9,6 +9,7 @@
 
 import React from 'react';
 import Layout from '../../components/Layout';
+import { selectUser } from '../../selectors';
 
 const title = 'Admin Page';
 const isAdmin = false;
@@ -17,8 +18,10 @@ export default {
 
   path: '/admin',
 
-  async action() {
-    if (!isAdmin) {
+  async action(context, a2) {
+    const { store } = context;
+
+    if (!selectUser(store)) {
       return { redirect: '/login' };
     }
 

@@ -77,7 +77,7 @@ class Login extends React.Component {
               <a className={`btn ${s.btn_link_login} ${s.btn_link_login_google_plus}`} href="#">
                 <i className="fa fa-google-plus"></i> Google Plus
               </a>
-                */}
+              */}
             </div>
           </div>
           {/** </div> */}

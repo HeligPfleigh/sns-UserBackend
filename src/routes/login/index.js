@@ -9,14 +9,21 @@
 
 import React from 'react';
 import Login from './Login';
+import { selectUser } from '../../selectors';
 
 const title = 'Log In';
 
 export default {
 
-  path: '/',
+  path: '/login',
 
-  action() {
+  action(context) {
+    const { store } = context;
+
+    if (selectUser(store)) {
+      return { redirect: '/' };
+    }
+
     return {
       title,
       component: <Login title={title} />,

@@ -7,6 +7,10 @@ mongoose.Promise = global.Promise;
 const { Schema } = mongoose;
 // const { Types: { ObjectId } } = Schema;
 
+function rolesvalidator(v) {
+  return v.every(val => !!~['user'].indexOf(val));
+}
+
 const EmailSchema = new Schema({
   address: {
     type: String,
@@ -28,7 +32,12 @@ const UserSchema = new Schema({
   },
   emails: EmailSchema,
   profile: Schema.Types.Mixed,
-
+  services: Schema.Types.Mixed,
+  roles: {
+    required: true,
+    type: [String],
+    validate: rolesvalidator,
+  },
 });
 
 // indexes
@@ -39,6 +48,6 @@ const UserSchema = new Schema({
 // plugins
 UserSchema.plugin(timestamps);
 
-const User = mongoose.model('User', UserSchema, 'User');
+const UserModel = mongoose.model('User', UserSchema);
 
-export default User;
+export default UserModel;

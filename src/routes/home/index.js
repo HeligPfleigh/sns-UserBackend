@@ -10,12 +10,19 @@
 import React from 'react';
 import Home from './Home';
 import Layout from '../../components/Layout';
+import { selectUser } from '../../selectors';
 
 export default {
 
-  path: '/home',
+  path: '/',
 
-  async action() {
+  async action(context) {
+    const { store } = context;
+
+    if (!selectUser(store)) {
+      return { redirect: '/login' };
+    }
+
     return {
       title: 'React Starter Kit',
       component: <Layout><Home /></Layout>,

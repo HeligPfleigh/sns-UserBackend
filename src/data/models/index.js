@@ -6,8 +6,10 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE.txt file in the root directory of this source tree.
  */
+  /* eslint-disable prefer-default-export */
 
-import User from './UserModel';
+import UserModel from './UserModel';
 
-export default User;
-// export { User };
+export {
+  UserModel,
+};
