@@ -15,7 +15,7 @@ const post = {
   resolve: ({ request }, { _id }) => {
     return new Promise(async (resolve, reject) => {
       try {
-        const r = PostsModel().findOne({_id});
+        const r = PostsModel.findOne({_id});
         resolve(r);
       }
       catch (e) {

@@ -9,7 +9,7 @@ import {
 const me = {
   type: UserSchemas,
   resolve({ request }) {
-    return UsersModel().findOne({_id: request.user.id});
+    return UsersModel.findOne({_id: request.user.id});
   },
 };
 

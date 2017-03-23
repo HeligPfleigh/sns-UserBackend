@@ -20,7 +20,7 @@ const removeFriend = {
       user: request.user.id,
       friend: _id
     });
-    return UsersModel().findOne({
+    return UsersModel.findOne({
       _id
     });
   },

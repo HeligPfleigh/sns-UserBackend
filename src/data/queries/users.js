@@ -13,7 +13,7 @@ console.warn('implement paging users');
 const users = {
   type: new GraphQLList(UserSchemas),
   resolve({ request }) {
-    return UsersModel().find({});
+    return UsersModel.find({});
   },
 };
 

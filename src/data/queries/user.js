@@ -12,7 +12,7 @@ const user = {
     _id: { type: StringType },
   },
   resolve({ request }, {_id}) {
-    return UsersModel().findOne({_id});
+    return UsersModel.findOne({_id});
   },
 };
 
