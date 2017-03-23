@@ -47,7 +47,7 @@ class Home extends React.Component {
   };
 
   render() {
-    const { data: { loading, feeds } } = this.props;
+    const { data: { loading, feeds }, loadMoreRows } = this.props;
     console.log(feeds.edges, 'feeds.edges');
     return (
       <div className={s.root}>
@@ -60,6 +60,7 @@ class Home extends React.Component {
               <Post key={k} data={item} />
             ))}
           </div>}
+          <button onClick={loadMoreRows}>Load More</button>
         </div>
       </div>
     );
