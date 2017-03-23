@@ -11,68 +11,56 @@ import React, { PropTypes } from 'react';
 import { graphql, compose } from 'react-apollo';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import { Button, ButtonToolbar } from 'react-bootstrap';
-import newsQuery from './news.graphql';
+import gql from 'graphql-tag';
+import Post from '../../components/Post';
 import s from './Home.css';
+
+const homePageQuery = gql`query homePageQuery ($cursor: String) {
+  feeds (cursor: $cursor) {
+    edges {
+      _id,
+      message,
+      user {
+        _id,
+        username,
+        profile {
+          picture,
+          firstName,
+          lastName,
+          gender
+        }
+      }
+    }
+    pageInfo {
+      endCursor,
+      hasNextPage
+    }
+  }
+}
+`;
 
 class Home extends React.Component {
   static propTypes = {
     data: PropTypes.shape({
       loading: PropTypes.bool.isRequired,
-      news: PropTypes.arrayOf(PropTypes.shape({
-        title: PropTypes.string.isRequired,
-        link: PropTypes.string.isRequired,
-        content: PropTypes.string,
-      })),
     }).isRequired,
   };
 
   render() {
-    // Sample using react-bootstrap
-    const buttonsInstance = (
-      <ButtonToolbar>
-        {/* Standard button */}
-        <Button>Default</Button>
-
-        {/* Provides extra visual weight and identifies the primary action in a set of buttons */}
-        <Button bsStyle="primary">Primary</Button>
-
-        {/* Indicates a successful or positive action */}
-        <Button bsStyle="success">Success</Button>
-
-        {/* Contextual button for informational alert messages */}
-        <Button bsStyle="info">Info</Button>
-
-        {/* Indicates caution should be taken with this action */}
-        <Button bsStyle="warning">Warning</Button>
-
-        {/* Indicates a dangerous or potentially negative action */}
-        <Button bsStyle="danger">Danger</Button>
-
-        {/* Deemphasize a button by making it look like a link while maintaining button behavior */}
-        <Button bsStyle="link">Link</Button>
-      </ButtonToolbar>
-    );
-    const { data: { loading, news } } = this.props;
+    const { data: { loading, feeds }, loadMoreRows } = this.props;
+    console.log(feeds.edges, 'feeds.edges');
     return (
       <div className={s.root}>
         <div className={s.container}>
-          <h1>React.js News</h1>
-          <div>{ buttonsInstance }</div>
-          <a href="/logout">
-            logout
-          </a>
-          {/**
-          {loading ? 'Loading...' : news.map(item => (
-            <article key={item.link} className={s.newsItem}>
-              <h1 className={s.newsTitle}><a href={item.link}>{item.title}</a></h1>
-              <div
-                className={s.newsDesc}
-                // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{ __html: item.content }}
-              />
-            </article>
-          ))}
-          */}
+          <h1>My feeds</h1>
+          <a href="/logout"> logout </a>
+          {loading && <h1 style={{textAlign: 'center'}}>LOADING</h1>}
+          {feeds && feeds.edges && <div>
+            {feeds.edges.map((item, k) => (
+              <Post key={k} data={item} />
+            ))}
+          </div>}
+          <button onClick={loadMoreRows}>Load More</button>
         </div>
       </div>
     );
@@ -81,5 +69,37 @@ class Home extends React.Component {
 
 export default compose(
   withStyles(s),
-  graphql(newsQuery),
+  graphql(homePageQuery, {
+    options: (props) => {
+      return {
+        variables:{
+          cursor: null,
+        },
+      };
+    },
+    props: ({ ownProps, data }) => {
+      const  { fetchMore } = data;
+      const loadMoreRows = () => {
+        return fetchMore({
+          variables:{
+            cursor: data.feeds.pageInfo.endCursor,
+          },
+          updateQuery:(previousResult, { fetchMoreResult })=> {
+            const newEdges = fetchMoreResult.data.feeds.edges;
+            const pageInfo = fetchMoreResult.data.feeds.pageInfo;
+            return {
+              feeds:{
+                edges:[...previousResult.feeds.edges, ...newEdges],
+                pageInfo
+              }
+            };
+          }
+        });
+      };
+      return {
+        data,
+        loadMoreRows
+      };
+    }
+  }),
 )(Home);

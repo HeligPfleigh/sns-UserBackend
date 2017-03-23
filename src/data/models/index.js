@@ -8,23 +8,23 @@
  */
   /* eslint-disable prefer-default-export */
 
-import UserModel from './UserModel';
+import UsersModel from './UsersModel';
 import FriendsRelationModel from './FriendsRelationModel';
 import FollowsRelationModel from './FollowsRelationModel';
 
-import PostModel from './PostModel';
-import CommentModel from './CommentModel';
-import NotificationModel from './NotificationModel';
-import BuildingModel from './BuildingModel';
-import ApartmentModel from './ApartmentModel';
+import PostsModel from './PostsModel';
+import CommentsModel from './CommentsModel';
+import NotificationsModel from './NotificationsModel';
+import BuildingsModel from './BuildingsModel';
+import ApartmentsModel from './ApartmentsModel';
 
 export {
-  UserModel,
+  UsersModel,
   FriendsRelationModel,
   FollowsRelationModel,
-  PostModel,
-  CommentModel,
-  NotificationModel,
-  BuildingModel,
-  ApartmentModel,
+  PostsModel,
+  CommentsModel,
+  NotificationsModel,
+  BuildingsModel,
+  ApartmentsModel,
 };

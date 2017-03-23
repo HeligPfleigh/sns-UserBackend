@@ -19,7 +19,7 @@ import moment from 'moment';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 // import { User, UserLogin, UserClaim, UserProfile } from '../data/models';
 import { auth as config } from '../config';
-import { UserModel } from '../data/models';
+import { UsersModel } from '../data/models';
 import fetch from './fetch';
 
 export async function getLongTermToken(accessToken) {
@@ -48,11 +48,11 @@ passport.use(new FacebookStrategy({
   // const claimType = 'urn:facebook:access_token';
   const fooBar = async () => {
     const longlivedToken = await getLongTermToken(accessToken);
-    let user = await UserModel.findOne({
+    let user = await UsersModel.findOne({
       'emails.address': profile._json.email,
     });
     if (!user) {
-      user = await UserModel.create({
+      user = await UsersModel.create({
         emails: {
           address: profile._json.email,
           verified: true,

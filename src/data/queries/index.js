@@ -1,9 +1,13 @@
-import me from './me';
+import post from './post';
+import feeds from './feeds';
 import user from './user';
-import news from './news';
+import users from './users';
+import me from './me';
 
 export default {
-  me,
+  post,
+  feeds,
   user,
-  news,
+  users,
+  me,
 };
