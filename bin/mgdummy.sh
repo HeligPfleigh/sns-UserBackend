@@ -2,6 +2,7 @@
 import mongoose from 'mongoose';
 import isFunction from 'lodash/isfunction';
 import { data as users } from './users';
+import { data as posts } from './posts';
 
 const databaseUrl = process.env.DATABASE_URL || 'mongodb://localhost/sns_test';
 const logger = console;
@@ -9,9 +10,15 @@ const logger = console;
 connect(databaseUrl, {}, async (connection) => {
   try {
     const UsersModel = connection.db.collection('users');
+    const PostsModel = connection.db.collection('posts');
     await connection.dropDatabase();
     for (let i = 0, length = users.length; i < length; i++){
+      logger.info(`insert user id : ${users[i]._id}`);
       await UsersModel.insert(users[i]);
+    }
+    for (let i = 0, length = posts.length; i < length; i++){
+      logger.info(`insert posts id : ${posts[i]._id}`);
+      await PostsModel.insert(posts[i]);
     }
     process.exit(0);
   }
@@ -63,89 +70,3 @@ function connect (uri, options, cb) {
 
   return connect;
 }
-
-/**
-import path from 'path';
-import nconf from 'nconf';
-import fs from 'fs';
-import fixtures from './fixtures';
-import logger from '../src/server/logger';
-import {
-  UserModel,
-  BizManagerAccountModel,
-  LocalbizModel,
-  CityModel,
-  CharacteristicModel,
-  CategoryModel,
-  ServingModel,
-  DistrictModel,
-  PhotoModel,
-  ReviewsModel,
-  EventsModel,
-  LocalBizUpdateRequestModel,
-  ConfigModel,
-} from '../src/server/models';
-
-nconf.env().argv();
-const env = nconf.get('NODE_ENV') || 'development';
-
-let instance = null;
-
-function relativePath(...p) {
-  p.unshift(__dirname);
-  return path.join(...p);
-}
-
-
-
-// Mongo
-let primaryData = null;
-function connectPrimaryData (uri, options, isFixture = false) {
-  if(!primaryData) {
-    const db = nconf.get('db');
-    uri = db ? db.uri : uri;
-    options = db ? db.options : options;
-    primaryData = connect(uri, options, function () {
-      fixtures(primaryData);
-    });
-    UserModel(primaryData);
-    BizManagerAccountModel(primaryData);
-    LocalbizModel(primaryData);
-    CityModel(primaryData);
-    CharacteristicModel(primaryData);
-    CategoryModel(primaryData);
-    ServingModel(primaryData);
-    DistrictModel(primaryData);
-    PhotoModel(primaryData);
-    ReviewsModel(primaryData);
-    LocalBizUpdateRequestModel(primaryData);
-    ConfigModel(primaryData);
-  }
-  return primaryData;
-}
-
-(async function () {
-  try {
-    let f = 'development.json';
-    if (env === 'production') {
-      logger.warn('we dont insert dummy data on production, dude !!!');
-      process.exit(0);
-    }
-    if (env === 'staging') {
-      f = 'staging.json';
-    }
-    if (env === 'tests') {
-      f = 'tests.json';
-    }
-    nconf.file({
-      file: relativePath('..', 'config', `${f}`)
-    }).defaults({});
-
-    connectPrimaryData();
-  }
-  catch(e) {
-    logger.warn(e.message);
-    process.exit(0);
-  }
-})();
-*/
