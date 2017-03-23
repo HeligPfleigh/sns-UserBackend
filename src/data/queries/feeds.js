@@ -8,6 +8,21 @@ import {
   PostsModel,
   FriendsRelationModel as FriendsModel,
 } from '../models';
+import mongoose from 'mongoose';
+const { Types: { ObjectId } } = mongoose;
+
+function toObjectId(idStr) {
+  let id = null;
+  try {
+    id = ObjectId(idStr);
+  } catch (err) {}
+  return id;
+}
+
+function isObjectId (id) {
+  return id instanceof ObjectId;
+}
+
 
 const feeds = {
   type: FeedsResultItemConnectionSchemas,
@@ -20,12 +35,13 @@ const feeds = {
     let friendListByIds = await FriendsModel.find({user: userId}).select('friend _id');
     friendListByIds = friendListByIds.map((v) => v.friend);
     friendListByIds.push(userId);
+    friendListByIds = friendListByIds.map(toObjectId);
     const edgesAndPageInfoPromise = new Promise((resolve,reject) => {
       let edgesArray = []
       let edges = null;
       if (cursor) {
         edges = PostsModel.find({
-          owner: friendListByIds,
+          user: {$in: friendListByIds },
           _id: {
             $lt: cursor
           },
@@ -35,7 +51,7 @@ const feeds = {
       }
       else {
         edges = PostsModel.find({
-          owner: friendListByIds,
+          user: {$in: friendListByIds },
         })
         .limit(limit)
         .sort({createdAt: -1}).cursor();
@@ -54,7 +70,7 @@ const feeds = {
         let hasNextPageFlag = new Promise((resolve,reject) => {
           if (endCursor){
             PostsModel.find({
-              owner: friendListByIds,
+              user: {$in: friendListByIds },
               _id: {
                 $lte: endCursor
               }

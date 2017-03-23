@@ -18,11 +18,10 @@ const PostSchemas = new ObjectType({
   interfaces: [PostInterface],
   fields: {
     _id: { type: new NonNull(ID) },
-    title: { type: StringType },
-    done: { type: Boolean },
-    owner: {
+    message: { type: StringType },
+    user: {
       type: UserInterface,
-      resolve: (todo) => UsersModel().findOne({_id: todo.owner}),
+      resolve: (post) => UsersModel.findOne({_id: post.user}),
     }
   },
 });

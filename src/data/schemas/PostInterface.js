@@ -13,12 +13,9 @@ const PostInterface = new GraphQLInterfaceType({
     _id: {
       type: new GraphQLNonNull(GraphQLID),
     },
-    title: {
+    message: {
       type: GraphQLString
     },
-    done: {
-      type: GraphQLBoolean
-    }
   }),
   resolveType: (obj) => {
     return 'PostSchemas';

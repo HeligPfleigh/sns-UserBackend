@@ -9,6 +9,15 @@ const ProfileSchemas = new GraphQLObjectType({
   fields: () => ({
     picture: {
       type: GraphQLString,
+    },
+    firstName: {
+      type: GraphQLString,
+    },
+    lastName: {
+      type: GraphQLString,
+    },
+    gender: {
+      type: GraphQLString,
     }
   })
 });
