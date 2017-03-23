@@ -14,7 +14,7 @@ import ProfileSchemas from './ProfileSchemas';
 import {
   PostsModel,
   UsersModel,
-  FriendsModel,
+  FriendsRelationModel as FriendsModel,
 } from '../models';
 
 const UserSchemas = new GraphQLObjectType({
