@@ -225,6 +225,7 @@
     "render": "babel-node tools/run render",
     "serve": "babel-node tools/run runServer",
     "start": "babel-node tools/run start",
-    "mgdummy": "./bin/mgdummy.sh"
+    "mexport": "COLLECTIONS=\"users\" DPATH=bin ./bin/mexports.sh",
+    "mimport": "mongo sns_test --eval 'db.dropDatabase()' && COLLECTIONS=\"users\" DPATH=bin ./bin/mimport.sh"
   }
 }
