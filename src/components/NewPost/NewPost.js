@@ -3,14 +3,15 @@ import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import s from './NewPost.css';
 import { FormControl, Button } from 'react-bootstrap'
 
-const NewPost = () => (
+const NewPost = ({handleChange, onSubmit}) => (
     <form>
         <FormControl
         type="text"
         label="Text"
         placeholder="Enter text"
+        onChange={handleChange}
         />
-        <Button>
+        <Button onClick={onSubmit} >
             Submit
         </Button>
     </form>
