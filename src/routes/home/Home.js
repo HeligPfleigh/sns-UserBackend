@@ -13,6 +13,7 @@ import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import { Button, ButtonToolbar } from 'react-bootstrap';
 import gql from 'graphql-tag';
 import Post from '../../components/Post';
+import NewPost from '../../components/NewPost';
 import s from './Home.css';
 
 const homePageQuery = gql`query homePageQuery ($cursor: String) {
@@ -55,6 +56,7 @@ class Home extends React.Component {
           <h1>My feeds</h1>
           <a href="/logout"> logout </a>
           {loading && <h1 style={{textAlign: 'center'}}>LOADING</h1>}
+          <NewPost />
           {feeds && feeds.edges && <div>
             {feeds.edges.map((item, k) => (
               <Post key={k} data={item} />
