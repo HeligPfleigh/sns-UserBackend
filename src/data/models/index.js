@@ -6,7 +6,25 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE.txt file in the root directory of this source tree.
  */
+  /* eslint-disable prefer-default-export */
 
-// import User from './User';
+import UsersModel from './UsersModel';
+import FriendsRelationModel from './FriendsRelationModel';
+import FollowsRelationModel from './FollowsRelationModel';
 
-// export { User };
+import PostsModel from './PostsModel';
+import CommentsModel from './CommentsModel';
+import NotificationsModel from './NotificationsModel';
+import BuildingsModel from './BuildingsModel';
+import ApartmentsModel from './ApartmentsModel';
+
+export {
+  UsersModel,
+  FriendsRelationModel,
+  FollowsRelationModel,
+  PostsModel,
+  CommentsModel,
+  NotificationsModel,
+  BuildingsModel,
+  ApartmentsModel,
+};

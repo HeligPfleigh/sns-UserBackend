@@ -30,7 +30,11 @@ import routes from './routes';
 import assets from './assets.json'; // eslint-disable-line import/no-unresolved
 import configureStore from './store/configureStore';
 import { setRuntimeVariable } from './actions/runtime';
-import { port, auth } from './config';
+import { port, auth, databaseUrl } from './config';
+import Mongoose from './data/mongoose';
+
+// Create connect database
+Mongoose.connect(databaseUrl, {});
 
 const app = express();
 
@@ -74,6 +78,12 @@ app.get('/login/facebook/return',
     res.redirect('/');
   },
 );
+
+app.get('/logout', (req, res) => {
+// app.post('/logout', (req, res) => {
+  res.clearCookie('id_token');
+  res.redirect('/');
+});
 
 //
 // Register API middleware

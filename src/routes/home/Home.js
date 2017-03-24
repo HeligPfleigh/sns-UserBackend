@@ -10,37 +10,106 @@
 import React, { PropTypes } from 'react';
 import { graphql, compose } from 'react-apollo';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
-import newsQuery from './news.graphql';
+// import { Button, ButtonToolbar } from 'react-bootstrap';
+import gql from 'graphql-tag';
+import update from 'immutability-helper';
+import Post from '../../components/Post';
+import NewPost from '../../components/NewPost';
 import s from './Home.css';
+
+const homePageQuery = gql`query homePageQuery ($cursor: String) {
+  feeds (cursor: $cursor) {
+    edges {
+      _id,
+      message,
+      user {
+        _id,
+        username,
+        profile {
+          picture,
+          firstName,
+          lastName,
+          gender
+        }
+      }
+    }
+    pageInfo {
+      endCursor,
+      hasNextPage
+    }
+  }
+  me {
+    _id,
+    username,
+    profile {
+      picture,
+      firstName,
+      lastName,
+      gender
+    }
+  }
+}
+`;
+
+const createNewPost = gql`mutation createNewPost ($message: String!) {
+  createNewPost(message: $message) {
+    _id,
+    message,
+    user {
+      _id,
+      username,
+      profile {
+        picture,
+        firstName,
+        lastName,
+        gender
+      }
+    }
+  }
+}`;
 
 class Home extends React.Component {
   static propTypes = {
     data: PropTypes.shape({
       loading: PropTypes.bool.isRequired,
-      news: PropTypes.arrayOf(PropTypes.shape({
-        title: PropTypes.string.isRequired,
-        link: PropTypes.string.isRequired,
-        content: PropTypes.string,
-      })),
     }).isRequired,
+    createNewPost: PropTypes.func.isRequired,
+    loadMoreRows: PropTypes.func.isRequired,
   };
 
+  state = {
+    value: '',
+  }
+
+  onSubmit = () => {
+    this.props.createNewPost(this.state.value);
+    this.setState({ value: '' });
+  }
+
+  handleChange = (e) => {
+    this.setState({ value: e.target.value });
+  }
+
+
   render() {
-    const { data: { loading, news } } = this.props;
+    const { data: { loading, feeds }, loadMoreRows } = this.props;
     return (
       <div className={s.root}>
         <div className={s.container}>
-          <h1>React.js News</h1>
-          {loading ? 'Loading...' : news.map(item => (
-            <article key={item.link} className={s.newsItem}>
-              <h1 className={s.newsTitle}><a href={item.link}>{item.title}</a></h1>
-              <div
-                className={s.newsDesc}
-                // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{ __html: item.content }}
-              />
-            </article>
-          ))}
+          <h1>My feeds</h1>
+          <a href="/logout"> logout </a>
+          {loading && <h1 style={{ textAlign: 'center' }}>LOADING</h1>}
+          <NewPost
+            value={this.state.value}
+            handleChange={this.handleChange}
+            onSubmit={this.onSubmit}
+          />
+          {feeds && feeds.edges && <div>
+            {feeds.edges.map(item => (
+              <Post key={item._id} data={item} />
+            ))}
+          </div>}
+          <button onClick={loadMoreRows}>Load More</button>
         </div>
       </div>
     );
@@ -49,5 +118,67 @@ class Home extends React.Component {
 
 export default compose(
   withStyles(s),
-  graphql(newsQuery),
+  graphql(homePageQuery, {
+    options: props => ({
+      variables: {
+        ...props,
+        cursor: null,
+      },
+    }),
+    props: ({ data }) => {
+      const { fetchMore } = data;
+      const loadMoreRows = () => fetchMore({
+        variables: {
+          cursor: data.feeds.pageInfo.endCursor,
+        },
+        updateQuery: (previousResult, { fetchMoreResult }) => {
+          const newEdges = fetchMoreResult.data.feeds.edges;
+          const pageInfo = fetchMoreResult.data.feeds.pageInfo;
+          return {
+            feeds: {
+              edges: [...previousResult.feeds.edges, ...newEdges],
+              pageInfo,
+            },
+          };
+        },
+      });
+      return {
+        data,
+        loadMoreRows,
+      };
+    },
+  }),
+  graphql(createNewPost, {
+    props: ({ ownProps, mutate }) => ({
+      createNewPost: message => mutate({
+        variables: { message },
+        optimisticResponse: {
+          __typename: 'Mutation',
+          createNewPost: {
+            __typename: 'PostSchemas',
+            _id: 'TENPORARY_ID_OF_THE_POST_OPTIMISTIC_UI',
+            message,
+            user: {
+              __typename: 'UserSchemas',
+              _id: ownProps.data.me._id,
+              username: ownProps.data.me.username,
+              profile: ownProps.data.me.profile,
+            },
+          },
+        },
+        updateQueries: {
+          homePageQuery: (previousResult, { mutationResult }) => {
+            const newPost = mutationResult.data.createNewPost;
+            return update(previousResult, {
+              feeds: {
+                edges: {
+                  $unshift: [newPost],
+                },
+              },
+            });
+          },
+        },
+      }),
+    }),
+  }),
 )(Home);
