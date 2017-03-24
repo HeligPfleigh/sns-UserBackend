@@ -85,6 +85,7 @@ class Home extends React.Component {
 
   onSubmit = (e) => {
     this.props.createNewPost(this.state.value);
+    this.setState({ value: '' });
   }
 
   render() {
@@ -95,7 +96,7 @@ class Home extends React.Component {
           <h1>My feeds</h1>
           <a href="/logout"> logout </a>
           {loading && <h1 style={{textAlign: 'center'}}>LOADING</h1>}
-          <NewPost handleChange={this.handleChange} onSubmit={this.onSubmit}/>
+          <NewPost value={this.state.value} handleChange={this.handleChange} onSubmit={this.onSubmit}/>
           {feeds && feeds.edges && <div>
             {feeds.edges.map((item, k) => (
               <Post key={k} data={item} />
