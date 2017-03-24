@@ -78,7 +78,7 @@ const feeds = {
               (count > 0) ? _resolve(true) : _resolve(false);
             });
           } else {
-            resolve(false);
+            _resolve(false);
           }
         });
 
