@@ -29,6 +29,7 @@
     "graphql": "^0.9.1",
     "graphql-tag": "^1.2.4",
     "history": "^4.5.1",
+    "immutability-helper": "^2.1.2",
     "isomorphic-style-loader": "^1.1.0",
     "jsonwebtoken": "^7.2.1",
     "lodash": "^4.17.4",
@@ -210,7 +211,7 @@
     ]
   },
   "scripts": {
-    "lint:js": "eslint src tools",
+    "lint:js": "eslint src tools --fix",
     "lint:css": "stylelint \"src/**/*.{css,less,scss,sss}\"",
     "lint:staged": "lint-staged",
     "lint": "yarn run lint:js && yarn run lint:css",

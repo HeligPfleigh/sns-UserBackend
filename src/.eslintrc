@@ -10,6 +10,7 @@
     "no-bitwise": ["error", { "allow": ["~"] }],
     "no-underscore-dangle": "off",
     "no-unused-expressions": ["error", { "allowTernary": true }]
+    // "import/prefer-default-export": "off",
     // "max-len": "off"
   }
 }

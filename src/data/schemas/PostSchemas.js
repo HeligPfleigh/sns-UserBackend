@@ -20,9 +20,7 @@ const PostSchemas = new ObjectType({
     message: { type: StringType },
     user: {
       type: UserInterface,
-      resolve: (post) => {
-        UsersModel.findOne({ _id: post.user });
-      },
+      resolve: post => UsersModel.findOne({ _id: post.user }),
     },
   },
 });

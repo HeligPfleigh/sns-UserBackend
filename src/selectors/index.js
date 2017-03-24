@@ -1,6 +1,7 @@
 /**
  * Homepage selectors
  */
+/* eslint-disable import/prefer-default-export*/
 
 import { createSelector } from 'reselect';
 
@@ -13,3 +14,5 @@ const selectUser = createSelector(
 export {
   selectUser,
 };
+
+/* eslint-enable import/prefer-default-export*/
