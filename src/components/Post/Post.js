@@ -6,7 +6,6 @@ import { Image } from 'react-bootstrap'
 const Post = ({data: {_id, message, user}}) => (
     <div className={s.title}>
         <hr />
-        {`_id: ${_id}`} <br />
         {`message: ${message}`}<br />
         <div>
             user<br />
