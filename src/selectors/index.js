@@ -4,10 +4,10 @@
 
 import { createSelector } from 'reselect';
 
-const getState = (store) => store.getState();
+const getState = store => store.getState();
 const selectUser = createSelector(
   getState,
-  (state) => state.user
+  state => state.user,
 );
 
 export {

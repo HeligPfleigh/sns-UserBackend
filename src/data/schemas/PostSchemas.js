@@ -3,7 +3,6 @@ import {
   GraphQLID as ID,
   GraphQLString as StringType,
   GraphQLNonNull as NonNull,
-  GraphQLBoolean as Boolean,
 } from 'graphql';
 
 import UserInterface from './UserInterface';
@@ -21,8 +20,10 @@ const PostSchemas = new ObjectType({
     message: { type: StringType },
     user: {
       type: UserInterface,
-      resolve: (post) => UsersModel.findOne({_id: post.user}),
-    }
+      resolve: (post) => {
+        UsersModel.findOne({ _id: post.user });
+      },
+    },
   },
 });
 

@@ -54,7 +54,7 @@ class Home extends React.Component {
         <div className={s.container}>
           <h1>My feeds</h1>
           <a href="/logout"> logout </a>
-          {loading && <h1 style={{textAlign: 'center'}}>LOADING</h1>}
+          {loading && <h1 style={{ textAlign: 'center' }}>LOADING</h1>}
           {feeds && feeds.edges && <div>
             {feeds.edges.map((item, k) => (
               <Post key={k} data={item} />
@@ -70,36 +70,32 @@ class Home extends React.Component {
 export default compose(
   withStyles(s),
   graphql(homePageQuery, {
-    options: (props) => {
-      return {
-        variables:{
-          cursor: null,
-        },
-      };
-    },
+    options: props => ({
+      variables: {
+        cursor: null,
+      },
+    }),
     props: ({ ownProps, data }) => {
-      const  { fetchMore } = data;
-      const loadMoreRows = () => {
-        return fetchMore({
-          variables:{
-            cursor: data.feeds.pageInfo.endCursor,
-          },
-          updateQuery:(previousResult, { fetchMoreResult })=> {
-            const newEdges = fetchMoreResult.data.feeds.edges;
-            const pageInfo = fetchMoreResult.data.feeds.pageInfo;
-            return {
-              feeds:{
-                edges:[...previousResult.feeds.edges, ...newEdges],
-                pageInfo
-              }
-            };
-          }
-        });
-      };
+      const { fetchMore } = data;
+      const loadMoreRows = () => fetchMore({
+        variables: {
+          cursor: data.feeds.pageInfo.endCursor,
+        },
+        updateQuery: (previousResult, { fetchMoreResult }) => {
+          const newEdges = fetchMoreResult.data.feeds.edges;
+          const pageInfo = fetchMoreResult.data.feeds.pageInfo;
+          return {
+            feeds: {
+              edges: [...previousResult.feeds.edges, ...newEdges],
+              pageInfo,
+            },
+          };
+        },
+      });
       return {
         data,
-        loadMoreRows
+        loadMoreRows,
       };
-    }
+    },
   }),
 )(Home);

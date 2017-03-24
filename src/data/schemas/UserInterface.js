@@ -2,7 +2,7 @@ import {
   GraphQLString,
   GraphQLInterfaceType,
   GraphQLNonNull,
-  GraphQLID
+  GraphQLID,
 } from 'graphql';
 
 import ProfileSchemas from './ProfileSchemas';
@@ -15,15 +15,16 @@ const UserInterface = new GraphQLInterfaceType({
       type: new GraphQLNonNull(GraphQLID),
     },
     username: {
-      type: GraphQLString
+      type: GraphQLString,
     },
-    profile:{
+    profile: {
       type: ProfileSchemas,
     },
   }),
-  resolveType: (obj) => {
-    return 'UserSchemas';
-  }
+  resolveType: () => {
+    const result = 'UserSchemas';
+    return result;
+  },
 });
 
 export default UserInterface;

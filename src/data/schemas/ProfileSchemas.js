@@ -18,8 +18,8 @@ const ProfileSchemas = new GraphQLObjectType({
     },
     gender: {
       type: GraphQLString,
-    }
-  })
+    },
+  }),
 });
 
 export default ProfileSchemas;

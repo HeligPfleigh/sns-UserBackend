@@ -1,8 +1,6 @@
 import {
   GraphQLObjectType as ObjectType,
-  GraphQLID as ID,
   GraphQLString as StringType,
-  GraphQLNonNull as NonNull,
   GraphQLBoolean as Boolean,
 } from 'graphql';
 
