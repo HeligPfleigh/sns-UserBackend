@@ -1,6 +1,3 @@
-import {
-  GraphQLString as StringType,
-} from 'graphql';
 import UserSchemas from '../schemas/UserSchemas';
 import {
   UsersModel,
@@ -9,7 +6,7 @@ import {
 const me = {
   type: UserSchemas,
   resolve({ request }) {
-    return UsersModel.findOne({_id: request.user.id});
+    return UsersModel.findOne({ _id: request.user.id });
   },
 };
 

@@ -1,9 +1,5 @@
 import {
-  GraphQLObjectType as ObjectType,
-  GraphQLID as ID,
   GraphQLString as StringType,
-  GraphQLNonNull as NonNull,
-  GraphQLBoolean as Boolean,
 } from 'graphql';
 
 import UserSchemas from '../../schemas/UserSchemas';
@@ -14,15 +10,20 @@ const addFriend = {
   args: {
     _id: { type: StringType },
   },
-  resolve: async ({ request }, { _id }) => {
-    console.warn('handing error');
-    const r = await FriendsRelationModel.create({
-      user: request.user.id,
-      friend: _id
+  resolve: ({ request }, { _id }) => {
+    const result = new Promise(async (resolve, reject) => {
+      try {
+        await FriendsRelationModel.create({
+          user: request.user.id,
+          friend: _id,
+        });
+        resolve(UsersModel.findOne({ _id }));
+      } catch (e) {
+        reject(e);
+      }
     });
-    return UsersModel.findOne({
-      _id
-    });
+
+    return result;
   },
 };
 

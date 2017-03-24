@@ -1,9 +1,8 @@
 import {
   GraphQLString,
-  GraphQLBoolean,
   GraphQLInterfaceType,
   GraphQLNonNull,
-  GraphQLID
+  GraphQLID,
 } from 'graphql';
 
 const PostInterface = new GraphQLInterfaceType({
@@ -14,12 +13,13 @@ const PostInterface = new GraphQLInterfaceType({
       type: new GraphQLNonNull(GraphQLID),
     },
     message: {
-      type: GraphQLString
+      type: GraphQLString,
     },
   }),
-  resolveType: (obj) => {
-    return 'PostSchemas';
-  }
+  resolveType: () => {
+    const result = 'PostSchemas';
+    return result;
+  },
 });
 
 export default PostInterface;

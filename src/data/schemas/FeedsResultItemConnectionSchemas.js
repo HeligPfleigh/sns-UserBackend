@@ -1,10 +1,10 @@
 import {
   GraphQLObjectType as ObjectType,
-  GraphQLID as ID,
-  GraphQLString as StringType,
-  GraphQLNonNull as NonNull,
-  GraphQLBoolean as Boolean,
-  GraphQLList
+  // GraphQLID as ID,
+  // GraphQLString as StringType,
+  // GraphQLNonNull as NonNull,
+  // GraphQLBoolean as Boolean,
+  GraphQLList,
 } from 'graphql';
 
 import PageInfoSchemas from './PageInfoSchemas';
@@ -14,11 +14,11 @@ const FeedsResultItemConnectionSchemas = new ObjectType({
   name: 'FeedsResultItemConnectionSchemas',
   fields: {
     pageInfo: {
-      type: PageInfoSchemas
+      type: PageInfoSchemas,
     },
     edges: {
-      type: new GraphQLList(PostSchemas)
-    }
+      type: new GraphQLList(PostSchemas),
+    },
   },
 });
 

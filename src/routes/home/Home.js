@@ -10,12 +10,12 @@
 import React, { PropTypes } from 'react';
 import { graphql, compose } from 'react-apollo';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
-import { Button, ButtonToolbar } from 'react-bootstrap';
+// import { Button, ButtonToolbar } from 'react-bootstrap';
 import gql from 'graphql-tag';
+import update from 'immutability-helper';
 import Post from '../../components/Post';
 import NewPost from '../../components/NewPost';
 import s from './Home.css';
-import update from 'immutability-helper'
 
 const homePageQuery = gql`query homePageQuery ($cursor: String) {
   feeds (cursor: $cursor) {
@@ -73,20 +73,23 @@ class Home extends React.Component {
     data: PropTypes.shape({
       loading: PropTypes.bool.isRequired,
     }).isRequired,
+    createNewPost: PropTypes.func.isRequired,
+    loadMoreRows: PropTypes.func.isRequired,
   };
-  
+
   state = {
-    value: ''
+    value: '',
+  }
+
+  onSubmit = () => {
+    this.props.createNewPost(this.state.value);
+    this.setState({ value: '' });
   }
 
   handleChange = (e) => {
     this.setState({ value: e.target.value });
   }
 
-  onSubmit = (e) => {
-    this.props.createNewPost(this.state.value);
-    this.setState({ value: '' });
-  }
 
   render() {
     const { data: { loading, feeds }, loadMoreRows } = this.props;
@@ -95,11 +98,15 @@ class Home extends React.Component {
         <div className={s.container}>
           <h1>My feeds</h1>
           <a href="/logout"> logout </a>
-          {loading && <h1 style={{textAlign: 'center'}}>LOADING</h1>}
-          <NewPost value={this.state.value} handleChange={this.handleChange} onSubmit={this.onSubmit}/>
+          {loading && <h1 style={{ textAlign: 'center' }}>LOADING</h1>}
+          <NewPost
+            value={this.state.value}
+            handleChange={this.handleChange}
+            onSubmit={this.onSubmit}
+          />
           {feeds && feeds.edges && <div>
-            {feeds.edges.map((item, k) => (
-              <Post key={k} data={item} />
+            {feeds.edges.map(item => (
+              <Post key={item._id} data={item} />
             ))}
           </div>}
           <button onClick={loadMoreRows}>Load More</button>
@@ -112,37 +119,34 @@ class Home extends React.Component {
 export default compose(
   withStyles(s),
   graphql(homePageQuery, {
-    options: (props) => {
-      return {
-        variables:{
-          cursor: null,
+    options: props => ({
+      variables: {
+        ...props,
+        cursor: null,
+      },
+    }),
+    props: ({ data }) => {
+      const { fetchMore } = data;
+      const loadMoreRows = () => fetchMore({
+        variables: {
+          cursor: data.feeds.pageInfo.endCursor,
         },
-      };
-    },
-    props: ({ ownProps, data }) => {
-      const  { fetchMore } = data;
-      const loadMoreRows = () => {
-        return fetchMore({
-          variables:{
-            cursor: data.feeds.pageInfo.endCursor,
-          },
-          updateQuery:(previousResult, { fetchMoreResult })=> {
-            const newEdges = fetchMoreResult.data.feeds.edges;
-            const pageInfo = fetchMoreResult.data.feeds.pageInfo;
-            return {
-              feeds:{
-                edges:[...previousResult.feeds.edges, ...newEdges],
-                pageInfo
-              }
-            };
-          }
-        });
-      };
+        updateQuery: (previousResult, { fetchMoreResult }) => {
+          const newEdges = fetchMoreResult.data.feeds.edges;
+          const pageInfo = fetchMoreResult.data.feeds.pageInfo;
+          return {
+            feeds: {
+              edges: [...previousResult.feeds.edges, ...newEdges],
+              pageInfo,
+            },
+          };
+        },
+      });
       return {
         data,
-        loadMoreRows
+        loadMoreRows,
       };
-    }
+    },
   }),
   graphql(createNewPost, {
     props: ({ ownProps, mutate }) => ({
@@ -159,7 +163,7 @@ export default compose(
               _id: ownProps.data.me._id,
               username: ownProps.data.me.username,
               profile: ownProps.data.me.profile,
-            }
+            },
           },
         },
         updateQueries: {
