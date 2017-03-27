@@ -14,13 +14,13 @@
 }
 
 .root {
-  background: #373277;
+  background: #263E49;
   color: #fff;
 }
 
 .container {
   margin: 0 auto;
-  padding: 20px 0;
+  padding: 8px 0;
   max-width: var(--max-content-width);
 }
 
@@ -31,7 +31,7 @@
 }
 
 .brandTxt {
-  margin-left: 10px;
+  margin-left: 0px;
 }
 
 .nav {
