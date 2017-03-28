@@ -1,0 +1,1 @@
+{"_id":{"$oid":"58da34097162a29dcf21f350"},"createdAt":{"$date":"2017-03-28T09:59:38.004Z"},"updatedAt":{"$date":"2017-03-28T09:59:38.004Z"},"number":"23","building":{"$oid":"58da279f0ff5af8c8be59c36"},"user":{"$oid":"58d397f736055edc21c18452"},"isOwner":true,"__v":0}

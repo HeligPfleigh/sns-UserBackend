@@ -62,25 +62,4 @@ BuildingSchema.index({ location: '2dsphere' });
 
 const BuildingModel = mongoose.model('Building', BuildingSchema);
 
-setTimeout(async () => {
-  await BuildingModel.remove({});
-  if (await BuildingModel.count() === 0) {
-    await BuildingModel.create({
-      name: 'Vinhomes Riverside',
-      address: {
-        country: 'vn',
-        city: 'Ha Noi',
-        state: 'Long Bien',
-        street: 'No.7, Bang Lang 1 Street'
-      },
-      location: {
-        type:"Point",
-        coordinates:[105.7976544,21.0714764]
-      },
-      description: 'Vingroup Joint Stock Company'
-    });
-  }
-  console.log(await BuildingModel.find({}));
-}, 0);
-
 export default BuildingModel;
