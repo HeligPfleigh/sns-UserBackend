@@ -11,12 +11,14 @@ import UserInterface from './UserInterface';
 import PostSchemas from './PostSchemas';
 import ProfileSchemas from './ProfileSchemas';
 import BuildingSchemas from './BuildingSchemas';
+import ApartmentsSchemas from './ApartmentsSchemas';
 
 import {
   PostsModel,
   UsersModel,
   FriendsRelationModel as FriendsModel,
   BuildingsModel,
+  ApartmentsModel,
 } from '../models';
 
 const UserSchemas = new GraphQLObjectType({
@@ -42,6 +44,10 @@ const UserSchemas = new GraphQLObjectType({
     building: {
       type: new GraphQLList(BuildingSchemas),
       resolve: user => BuildingsModel.find({ _id: user.building }),
+    },
+    apartments: {
+      type: new GraphQLList(ApartmentsSchemas),
+      resolve: user => ApartmentsModel.find({ user: user._id }),
     },
     friends: {
       type: new GraphQLList(UserSchemas),
