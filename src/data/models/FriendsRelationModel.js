@@ -13,7 +13,14 @@ const FriendsRelationSchema = new Schema({
     type: ObjectId,
     ref: 'User',
   },
-  isFriend: {
+  status: {
+    type: String,
+    required: true,
+    trim: true,
+    enum: ['NONE', 'PENDING', 'ACCEPTED', 'REJECTED', 'BLOCKED'],
+    default: 'NONE',
+  },
+  isSubscribe: {
     type: Boolean,
     default: false,
     required: true,
