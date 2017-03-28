@@ -30,17 +30,4 @@ ApartmentSchema.plugin(timestamp);
 
 const ApartmentModel = mongoose.model('Apartment', ApartmentSchema);
 
-setTimeout(async () => {
-  await ApartmentModel.remove({});
-  if (await ApartmentModel.count() === 0) {
-    await ApartmentModel.create({
-      number: 23,
-      building: '58da279f0ff5af8c8be59c36',
-      user: '58d397f736055edc21c18452',
-      isOwner: true,
-    });
-  }
-  console.log(await ApartmentModel.find({}));
-}, 0);
-
 export default ApartmentModel;

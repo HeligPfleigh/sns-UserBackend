@@ -10,17 +10,7 @@ const post = {
   args: {
     _id: { type: StringType },
   },
-  resolve: ({ request }, { _id }) => {
-    const result = new Promise(async (resolve, reject) => {
-      try {
-        resolve(PostsModel.findOne({ _id }));
-      } catch (e) {
-        reject(e);
-      }
-    });
-
-    return result;
-  },
+  resolve: ({ request }, { _id }) => PostsModel.findOne({ _id }),
 };
 
 export default post;
