@@ -9,7 +9,8 @@
     "css-modules/no-unused-class": "off",
     "no-bitwise": ["error", { "allow": ["~"] }],
     "no-underscore-dangle": "off",
-    "no-unused-expressions": ["error", { "allowTernary": true }]
+    "no-unused-expressions": ["error", { "allowTernary": true }],
+    "no-useless-constructor": "off"
     // "import/prefer-default-export": "off",
     // "max-len": "off"
   }
