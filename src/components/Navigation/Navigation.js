@@ -8,22 +8,46 @@
  */
 
 import React from 'react';
-import cx from 'classnames';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import s from './Navigation.css';
 import Link from '../Link';
 
 class Navigation extends React.Component {
+  static defaultProps = {
+    isMobile: false,
+  }
+
+  static propTypes = {
+    isMobile: React.PropTypes.bool.isRequired,
+  }
+
+  constructor(props) {
+    super(props);
+  }
+
   render() {
+    const { isMobile } = this.props;
     return (
-      <div className={s.root} role="navigation">
-        <Link className={s.link} to="/admin">Admin</Link>
-        <Link className={s.link} to="/about">About</Link>
-        <Link className={s.link} to="/contact">Contact</Link>
-        <span className={s.spacer}> | </span>
-        <Link className={s.link} to="/login">Log in</Link>
-        <span className={s.spacer}>or</span>
-        <Link className={cx(s.link, s.highlight)} to="/register">Sign up</Link>
+      <div className={isMobile === false ? s.root : s.navbarSecond} role="navigation">
+        <Link className={isMobile === false ? s.link : s.navLink} to="/admin">
+          <i className="fa fa-home fa-lg"></i>
+          {isMobile === false ? <span>Trang chủ</span> : ''}
+        </Link>
+
+        <Link className={isMobile === false ? s.link : s.navLink} to="/about">
+          <i className="fa fa-users fa-lg"></i>
+          {isMobile === false ? <span>Nhóm</span> : ''}
+        </Link>
+
+        <Link className={isMobile === false ? s.link : s.navLink} to="/admin">
+          <i className="fa fa-comments fa-lg"></i>
+          {isMobile === false ? <span>Tinh nhắn</span> : ''}
+        </Link>
+
+        <Link className={isMobile === false ? s.link : s.navLink} to="/contact">
+          <i className="fa fa-bell fa-lg"></i>
+          {isMobile === false ? <span>Thông báo</span> : ''}
+        </Link>
       </div>
     );
   }

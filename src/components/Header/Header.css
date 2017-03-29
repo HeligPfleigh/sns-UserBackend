@@ -19,41 +19,54 @@
 }
 
 .container {
-  margin: 0 auto;
-  padding: 8px 0;
-  max-width: var(--max-content-width);
+  margin: 0px auto;
+  max-width: var(--max-header-width);
+  min-width: var(--min-web-content-width);
 }
 
 .brand {
+  float:left;
+  margin: 4px 0 0;
   color: color(var(--brand-color) lightness(+10%));
   text-decoration: none;
   font-size: 1.75em; /* ~28px */
 }
 
 .brandTxt {
-  margin-left: 0px;
+  margin-left: 5px;
 }
 
-.nav {
-  float: right;
-  margin-top: 6px;
+.leftFix {
+  padding-left: 5px;
 }
 
-.banner {
-  text-align: center;
+.inline {
+  display: inline;
 }
 
-.bannerTitle {
-  margin: 0;
-  padding: 10px;
-  font-weight: normal;
-  font-size: 4em;
-  line-height: 1em;
+/**************** Style Mobile ****************/
+.navRoot {
+  padding-bottom: 12px;
+  background: #e7e7e7;
+  color: #fff;
 }
 
-.bannerDesc {
-  padding: 0;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 1.25em;
-  margin: 0;
+.navMobile {
+  margin: 0px 15px;
+  padding: 1px 0px;
+  background: #263E49;
+  max-width: var(--max-content-width);
+  min-width: var(--min-mobile-content-width);
+}
+
+.navControl {
+  background-color: #fff;
+}
+
+.brandMobile {
+  float:left;
+  margin: 3px 0 0;
+  color: color(var(--brand-color) lightness(+10%));
+  text-decoration: none;
+  font-size: 1.75em; /* ~28px */
 }

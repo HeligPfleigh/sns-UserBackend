@@ -9,14 +9,23 @@
 
 .root {
   float: right;
-  margin: 6px 0 0;
+  margin: 8px 0px 4px;
 }
 
 .link {
   display: inline-block;
-  padding: 3px 8px;
+  padding: 0px 8px;
   text-decoration: none;
-  font-size: 1.125em; /* ~18px */
+  font-size: 0.9em;
+  text-align: center;
+}
+
+.link > i {
+  vertical-align: middle;
+}
+
+.link > span {
+  display: block;
 }
 
 .link,
@@ -26,21 +35,23 @@
 }
 
 .link:hover {
+  text-decoration: none;
   color: rgba(255, 255, 255, 1);
 }
 
-.highlight {
-  margin-right: 8px;
-  margin-left: 8px;
-  border-radius: 3px;
-  background: rgba(0, 0, 0, 0.15);
-  color: #fff;
+/*********** Style mobile ***************/
+.navbarSecond {
+  margin: 8px 0px 4px;
 }
 
-.highlight:hover {
-  background: rgba(0, 0, 0, 0.3);
+.navLink {
+  display: inline-block;
+  padding: 0px 39px;
+  text-decoration: none;
+  font-size: 0.9em;
+  text-align: center;
 }
 
-.spacer {
-  color: rgba(255, 255, 255, 0.3);
+.rightFix {
+  padding-right: 8px;
 }
