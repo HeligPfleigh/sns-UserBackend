@@ -10,8 +10,6 @@
 
 import UsersModel from './UsersModel';
 import FriendsRelationModel from './FriendsRelationModel';
-import FollowsRelationModel from './FollowsRelationModel';
-
 import PostsModel from './PostsModel';
 import CommentsModel from './CommentsModel';
 import NotificationsModel from './NotificationsModel';
@@ -21,7 +19,6 @@ import ApartmentsModel from './ApartmentsModel';
 export {
   UsersModel,
   FriendsRelationModel,
-  FollowsRelationModel,
   PostsModel,
   CommentsModel,
   NotificationsModel,

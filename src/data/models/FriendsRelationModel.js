@@ -13,7 +13,14 @@ const FriendsRelationSchema = new Schema({
     type: ObjectId,
     ref: 'User',
   },
-  isFriend: {
+  status: {
+    type: String,
+    required: true,
+    trim: true,
+    enum: ['NONE', 'PENDING', 'ACCEPTED', 'REJECTED', 'BLOCKED'],
+    default: 'NONE',
+  },
+  isSubscribe: {
     type: Boolean,
     default: false,
     required: true,
@@ -23,6 +30,6 @@ const FriendsRelationSchema = new Schema({
 // https://github.com/drudge/mongoose-timestamp
 FriendsRelationSchema.plugin(timestamp);
 
-const FriendsRelation = mongoose.model('FriendsRelation', FriendsRelationSchema, 'FriendsRelation');
+const FriendsRelation = mongoose.model('FriendsRelation', FriendsRelationSchema);
 
 export default FriendsRelation;

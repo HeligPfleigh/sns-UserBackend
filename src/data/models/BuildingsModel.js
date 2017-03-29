@@ -30,8 +30,10 @@ const AddressSchema = new Schema({
 });
 
 const LocationSchema = new Schema({
-  lat: Number,
-  lon: Number,
+  type : { type: String, default: 'Point' },
+  coordinates: [
+    { type: "Number" }
+  ]
 }, {
   _id: false,
 });
@@ -42,14 +44,22 @@ const BuildingSchema = new Schema({
     required: true,
     trim: true,
   },
-  address: AddressSchema,
-  location: LocationSchema,
+  address: {
+    type: AddressSchema,
+    required: true,
+  },
+  location: {
+    type: LocationSchema,
+    required: true,
+  },
   description: String,
 });
 
 // https://github.com/drudge/mongoose-timestamp
 BuildingSchema.plugin(timestamp);
 
-const BuildingModel = mongoose.model('Building', BuildingSchema, 'Building');
+BuildingSchema.index({ location: '2dsphere' });
+
+const BuildingModel = mongoose.model('Building', BuildingSchema);
 
 export default BuildingModel;

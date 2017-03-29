@@ -28,6 +28,6 @@ const ApartmentSchema = new Schema({
 // https://github.com/drudge/mongoose-timestamp
 ApartmentSchema.plugin(timestamp);
 
-const ApartmentModel = mongoose.model('Apartment', ApartmentSchema, 'Apartment');
+const ApartmentModel = mongoose.model('Apartment', ApartmentSchema);
 
 export default ApartmentModel;

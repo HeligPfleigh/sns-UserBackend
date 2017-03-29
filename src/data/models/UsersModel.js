@@ -5,7 +5,7 @@ import timestamps from 'mongoose-timestamp';
 mongoose.Promise = global.Promise;
 
 const { Schema } = mongoose;
-// const { Types: { ObjectId } } = Schema;
+const { Types: { ObjectId } } = Schema;
 
 function rolesvalidator(v) {
   return v.every(val => !!~['user'].indexOf(val));
@@ -38,6 +38,10 @@ const UserSchema = new Schema({
     type: [String],
     validate: rolesvalidator,
   },
+  building: {
+    type: ObjectId,
+    ref: 'Building',
+  }
 });
 
 // indexes
