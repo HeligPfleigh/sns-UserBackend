@@ -12,7 +12,6 @@ import { graphql, compose } from 'react-apollo';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import gql from 'graphql-tag';
 import { Image } from 'react-bootstrap';
-import update from 'immutability-helper';
 import s from './FriendSuggestions.css';
 
 const UsersList = ({ users, addFriend }) => (
