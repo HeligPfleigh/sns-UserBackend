@@ -1,0 +1,6 @@
+{
+  "name": "NavRight",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./NavRight.js"
+}
