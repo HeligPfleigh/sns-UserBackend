@@ -1,0 +1,44 @@
+/**
+ * React Starter Kit (https://www.reactstarterkit.com/)
+ *
+ * Copyright © 2014-present Kriasoft, LLC. All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE.txt file in the root directory of this source tree.
+ */
+
+.root {
+  margin: 3px 0px;
+  padding: 4px 0 0 12px;
+  display: inline-block;
+}
+
+.formWidth {
+  width: 390px;
+}
+
+input.searchQuery {
+  padding-left:26px;
+}
+
+form.formSearch {
+  position: relative;
+}
+
+form.formSearch:before {
+  display: block;
+  content: "\e003";
+  font-family: 'Glyphicons Halflings';
+  position: absolute;
+  top:8px;
+  left:8px;
+  opacity: .5;
+  color: #263E49;
+}
+
+/********* Style Mobile ***********/
+.mSearchRoot {
+  margin: 10px 0px;
+  padding: 4px 0 0 12px;
+  display: inline-block;
+}
