@@ -13,7 +13,9 @@ import withStyles from 'isomorphic-style-loader/lib/withStyles';
 // import { Button, ButtonToolbar } from 'react-bootstrap';
 import gql from 'graphql-tag';
 import update from 'immutability-helper';
+import MediaQuery from 'react-responsive';
 import Post from '../../components/Post';
+import FriendSuggestions from '../../components/FriendSuggestions';
 import NewPost from '../../components/NewPost';
 import s from './Home.css';
 
@@ -98,6 +100,9 @@ class Home extends React.Component {
         <div className={s.container}>
           <h1>My feeds</h1>
           <a href="/logout"> logout </a>
+          <MediaQuery query="(min-device-width: 641px)" values={{ deviceWidth: 700 }}>
+            <FriendSuggestions />
+          </MediaQuery>
           {loading && <h1 style={{ textAlign: 'center' }}>LOADING</h1>}
           <NewPost
             value={this.state.value}

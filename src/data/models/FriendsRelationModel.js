@@ -30,6 +30,6 @@ const FriendsRelationSchema = new Schema({
 // https://github.com/drudge/mongoose-timestamp
 FriendsRelationSchema.plugin(timestamp);
 
-const FriendsRelation = mongoose.model('FriendsRelation', FriendsRelationSchema, 'FriendsRelation');
+const FriendsRelation = mongoose.model('FriendsRelation', FriendsRelationSchema);
 
 export default FriendsRelation;
