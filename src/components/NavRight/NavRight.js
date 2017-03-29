@@ -11,20 +11,15 @@ import React from 'react';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import s from './NavRight.css';
 
-class SearchBox extends React.Component {
+const NavRight = () => (
+  <span>
+    <span className={s.menuRight}>
+      <i className="fa fa-bars fa-2x" aria-hidden="true"></i>
+    </span>
+    <span className={s.navRight}>
+      <i className="fa fa-user-circle fa-2x" aria-hidden="true"></i>
+    </span>
+  </span>
+);
 
-  render() {
-    return (
-      <span>
-        <span className={s.menuRight}>
-          <i className="fa fa-bars fa-2x" aria-hidden="true"></i>
-        </span>
-        <span className={s.navRight}>
-          <i className="fa fa-user-circle fa-2x" aria-hidden="true"></i>
-        </span>
-      </span>
-    );
-  }
-}
-
-export default withStyles(s)(SearchBox);
+export default withStyles(s)(NavRight);
