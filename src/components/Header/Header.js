@@ -24,7 +24,7 @@ class Header extends React.Component {
     return (
       <Grid bsClass="navbar-fixed-top " className={s.root}>
         <Row className={s.container}>
-          <Col lg={6} md={6} sm={8} xs={8} className={s.nowrap}>
+          <Col lg={6} md={6} sm={8} xs={7} className={s.nowrap}>
             <Button bsStyle="danger" className={s.brand}>HX</Button>
             <MediaQuery query="(min-width: 992px)">
               <SearchBox />
@@ -38,7 +38,7 @@ class Header extends React.Component {
               <Navigation />
             </Col>
           </MediaQuery>
-          <Col lg={2} md={2} sm={4} xs={4} className={s.navRightWrap}>
+          <Col lg={2} md={2} sm={4} xs={5} className={s.navRightWrap}>
             <NavRight />
           </Col>
         </Row>
