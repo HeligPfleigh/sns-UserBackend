@@ -9,23 +9,45 @@
 
 import React from 'react';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
+import { Grid, Row, Col, Button } from 'react-bootstrap';
+import MediaQuery from 'react-responsive';
+
 import s from './Header.css';
-import Link from '../Link';
+import SearchBox from '../SearchBox';
 import Navigation from '../Navigation';
+import NavRight from '../NavRight';
 // import logoUrl from './logo-small.png';
 // import logoUrl2x from './logo-small@2x.png';
 
 class Header extends React.Component {
   render() {
     return (
-      <div className={`navbar-fixed-top ${s.root}`}>
-        <div className={s.container}>
-          <Navigation />
-          <Link className={s.brand} to="/">
-            <span className={` btn btn-danger ${s.brandTxt}`}>SNS</span>
-          </Link>
-        </div>
-      </div>
+      <Grid bsClass="navbar-fixed-top " className={s.root}>
+        <Row className={s.container}>
+          <Col lg={6} md={6} sm={7} xs={7} className={s.nowrap}>
+            <Button bsStyle="danger" className={s.brand}>HX</Button>
+            <MediaQuery query="(min-width: 992px)">
+              <SearchBox />
+            </MediaQuery>
+            <MediaQuery query="(max-width: 992px)">
+              <SearchBox isMobile />
+            </MediaQuery>
+          </Col>
+          <MediaQuery query="(min-width: 992px)">
+            <Col lg={4} md={4} className={s.navControl}>
+              <Navigation />
+            </Col>
+          </MediaQuery>
+          <Col lg={2} md={2} sm={5} xs={5} className={s.navRightWrap}>
+            <NavRight />
+          </Col>
+        </Row>
+        <MediaQuery query="(max-width: 992px)">
+          <Row className={`${s.container} ${s.navControl}`}>
+            <Navigation isMobile />
+          </Row>
+        </MediaQuery>
+      </Grid>
     );
   }
 }

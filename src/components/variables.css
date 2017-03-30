@@ -18,13 +18,16 @@
    * Layout
    * ======================================================================== */
 
+  --max-header-width: 1010px;
   --max-content-width: 1000px;
+  --min-web-content-width: 864px;
+  --min-mobile-content-width: 375px;
 
   /*
    * Media queries breakpoints
    * ======================================================================== */
 
-  --screen-xs-min: 480px;  /* Extra small screen / phone */
+  --screen-xs-min: 375px;  /* Extra small screen / phone */
   --screen-sm-min: 768px;  /* Small screen / tablet */
   --screen-md-min: 992px;  /* Medium screen / desktop */
   --screen-lg-min: 1200px; /* Large screen / wide desktop */

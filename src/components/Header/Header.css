@@ -13,47 +13,65 @@
   --brand-color: #61dafb;
 }
 
-.root {
-  background: #263E49;
-  color: #fff;
-}
-
-.container {
-  margin: 0 auto;
-  padding: 8px 0;
-  max-width: var(--max-content-width);
-}
-
 .brand {
-  color: color(var(--brand-color) lightness(+10%));
-  text-decoration: none;
-  font-size: 1.75em; /* ~28px */
+  /*padding: 5px;*/
+  /*margin: -2px 0 0 -8px;*/
+  font-size: 1.2em;
 }
 
-.brandTxt {
-  margin-left: 0px;
+.inline {
+  display: inline;
 }
 
-.nav {
-  float: right;
-  margin-top: 6px;
+.nowrap {
+  white-space: nowrap;
 }
 
-.banner {
-  text-align: center;
+@media (min-width: 992px) and (max-width: 4000px) {
+  .root {
+    background: #263E49;
+    color: #fff;
+  }
+
+  .container {
+    margin: -1px auto;
+    max-width: var(--max-header-width);
+    /*min-width: var(--min-web-content-width);*/
+  }
+
+  .navRightWrap {
+    width: 10%;
+    float: right;
+    padding: 0 10px 0 0;
+  }
+
+  .navControl {
+    width: 40%;
+    padding-right: 0px;
+  }
 }
 
-.bannerTitle {
-  margin: 0;
-  padding: 10px;
-  font-weight: normal;
-  font-size: 4em;
-  line-height: 1em;
-}
+/**************** Style Mobile ****************/
+@media (max-width: 992px) {
+  .root {
+    padding-bottom: 12px;
+    background: #e7e7e7;
+    color: #fff;
+  }
 
-.bannerDesc {
-  padding: 0;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 1.25em;
-  margin: 0;
+  .container {
+    margin: 0px 15px;
+    padding: 1px 0px;
+    background: #263E49;
+  }
+
+  .navControl {
+    background-color: #fff;
+  }
+
+  .navRightWrap {
+    width: 35%;
+    float: right;
+    padding: 0 10px 0 0;
+  }
 }
