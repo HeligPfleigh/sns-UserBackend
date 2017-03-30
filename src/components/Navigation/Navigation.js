@@ -21,10 +21,6 @@ class Navigation extends React.Component {
     isMobile: React.PropTypes.bool.isRequired,
   }
 
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     const { isMobile } = this.props;
     return (

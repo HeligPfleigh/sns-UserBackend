@@ -9,7 +9,7 @@
 
 .root {
   float: right;
-  margin: 8px 0px 4px;
+  margin: 10px 0px 4px;
 }
 
 .link {
@@ -41,17 +41,11 @@
 
 /*********** Style mobile ***************/
 .navbarSecond {
-  margin: 8px 0px 4px;
+  margin: 8px 5%;
+  display: flex;
+  justify-content: space-between;
 }
 
 .navLink {
-  display: inline-block;
-  padding: 0px 39px;
-  text-decoration: none;
-  font-size: 0.9em;
-  text-align: center;
-}
-
-.rightFix {
-  padding-right: 8px;
+  color: #b6b6b6;
 }

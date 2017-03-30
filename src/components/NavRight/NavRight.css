@@ -10,13 +10,13 @@
 /***********Style Navbar Right*************/
 .navRight {
   float: right;
-  margin: 0px auto;
+  /*margin: 0px auto;*/
   padding: 10px;
 }
 
 .menuRight {
   border-left: 1px solid #fff;
   float: right;
-  margin: 0px auto;
+  margin-right: -6px;
   padding: 10px;
 }

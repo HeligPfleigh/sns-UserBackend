@@ -43,9 +43,8 @@ class SearchBox extends React.Component {
     const { isMobile, showForm } = this.state;
 
     if (!isMobile || showForm === true) {
-      const styleMobile = isMobile === false ? s.formWidth : '';
       return (
-        <div className={`${s.root} ${styleMobile}`} onBlur={this.onBlur}>
+        <div className={s.root} onBlur={this.onBlur}>
           <form className={s.formSearch}>
             <input
               autoFocus

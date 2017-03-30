@@ -8,48 +8,46 @@
  */
 
 import React from 'react';
-import MediaQuery from 'react-responsive';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
+import { Grid, Row, Col, Button } from 'react-bootstrap';
+import MediaQuery from 'react-responsive';
+
 import s from './Header.css';
-import Link from '../Link';
+import SearchBox from '../SearchBox';
 import Navigation from '../Navigation';
 import NavRight from '../NavRight';
-import SearchBox from '../SearchBox';
 // import logoUrl from './logo-small.png';
 // import logoUrl2x from './logo-small@2x.png';
 
 class Header extends React.Component {
   render() {
     return (
-      <span>
-        <MediaQuery query="(min-device-width: 768px)">
-          <div className={`navbar-fixed-top ${s.root}`}>
-            <div className={s.container}>
-              <Link className={s.brand} to="/">
-                <div className={`hidden-lg hidden-md col-sm-1 col-xs-1 ${s.leftFix}`}></div>
-                <span className={` btn btn-danger ${s.brandTxt}`}>SNS</span>
-              </Link>
-              <SearchBox isMobile={false} />
-              <NavRight />
-              <Navigation isMobile={false} />
-            </div>
-          </div>
+      <Grid bsClass="navbar-fixed-top " className={s.root}>
+        <Row className={s.container}>
+          <Col lg={6} md={6} sm={8} xs={8} className={s.nowrap}>
+            <Button bsStyle="danger" className={s.brand}>HX</Button>
+            <MediaQuery query="(min-width: 992px)">
+              <SearchBox />
+            </MediaQuery>
+            <MediaQuery query="(max-width: 992px)">
+              <SearchBox isMobile />
+            </MediaQuery>
+          </Col>
+          <MediaQuery query="(min-width: 992px)">
+            <Col lg={4} md={4} className={s.navControl}>
+              <Navigation />
+            </Col>
+          </MediaQuery>
+          <Col lg={2} md={2} sm={4} xs={4} className={s.navRightWrap}>
+            <NavRight />
+          </Col>
+        </Row>
+        <MediaQuery query="(max-width: 992px)">
+          <Row className={`${s.container} ${s.navControl}`}>
+            <Navigation isMobile />
+          </Row>
         </MediaQuery>
-        <MediaQuery query="(max-device-width: 768px)">
-          <div className={`navbar-fixed-top ${s.navRoot}`}>
-            <div className={s.navMobile}>
-              <Link className={s.brandMobile} to="/">
-                <span className={`btn btn-danger ${s.brandTxt}`}>SNS</span>
-              </Link>
-              <SearchBox isMobile={!false} />
-              <NavRight />
-            </div>
-            <div className={`${s.navMobile} ${s.navControl}`}>
-              <Navigation isMobile={!false} />
-            </div>
-          </div>
-        </MediaQuery>
-      </span>
+      </Grid>
     );
   }
 }
