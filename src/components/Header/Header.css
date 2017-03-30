@@ -13,6 +13,17 @@
   --brand-color: #61dafb;
 }
 
+.root {
+    background: #263E49;
+    color: #fff;
+  }
+
+  .container {
+    margin: -1px auto;
+    max-width: var(--max-header-width);
+    /*min-width: var(--min-web-content-width);*/
+  }
+
 .brand {
   /*padding: 5px;*/
   /*margin: -2px 0 0 -8px;*/
@@ -28,17 +39,6 @@
 }
 
 @media (min-width: 992px) and (max-width: 4000px) {
-  .root {
-    background: #263E49;
-    color: #fff;
-  }
-
-  .container {
-    margin: -1px auto;
-    max-width: var(--max-header-width);
-    /*min-width: var(--min-web-content-width);*/
-  }
-
   .navRightWrap {
     width: 10%;
     float: right;
@@ -53,18 +53,6 @@
 
 /**************** Style Mobile ****************/
 @media (max-width: 992px) {
-  .root {
-    padding-bottom: 12px;
-    background: #e7e7e7;
-    color: #fff;
-  }
-
-  .container {
-    margin: 0px 15px;
-    padding: 1px 0px;
-    background: #263E49;
-  }
-
   .navControl {
     background-color: #fff;
   }
