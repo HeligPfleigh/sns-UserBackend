@@ -1,3 +1,57 @@
-.title {
-  color: #000;
+.postPanel {
+  border: 1px solid #cfcfcf;
+  background-color: #fff;
+  padding: 5px;
+  margin-bottom: 15px;
+}
+
+.postHeader {
+  /*height: 25px;*/
+  width: 90%;
+}
+
+.postHeaderLeft {
+  width: 90%;
+  float: left;
+}
+
+.postHeaderLeft img {
+  width: 45px;
+  height: 45px;
+  margin: 4px 10px 0 6px;
+}
+
+.postHeaderLeft a {
+  color: black;
+}
+
+.postHeaderRight {
+  width: 10%;
+  display: inline-block;
+  padding: 6px 9px;
+  text-align: right;
+}
+
+.postContent, .postStatistic {
+  margin: 10px;
+}
+
+.postStatistic a {
+  color: #cfcfcf;
+  padding-right: 10px;
+}
+
+.postControl {
+  margin: 0px 10px;
+  padding: 10px 0;
+  border-top: 1px solid #cfcfcf;
+}
+
+.postControl a {
+  padding-right: 5%;
+  color: gray;
+}
+
+.postControl i {
+  color: #cfcfcf;
 }
