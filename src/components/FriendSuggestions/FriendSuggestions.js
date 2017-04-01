@@ -11,16 +11,25 @@ import React, { PropTypes } from 'react';
 import { graphql, compose } from 'react-apollo';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import gql from 'graphql-tag';
-import { Image } from 'react-bootstrap';
+import { Button, Image, Col, Clearfix } from 'react-bootstrap';
 import s from './FriendSuggestions.css';
 
 const UsersList = ({ users, addFriend }) => (
   <div>
     {users.map(user => (
-      <div key={user._id}>
-        <Image src={user.profile.picture} rounded /><br />
-        <button onClick={addFriend(user._id)}> add friend </button>
-      </div>
+      <Col className={s.suggestFriendItem} key={user._id}>
+        <div className={s.friendItemLeft}>
+          <a href="#"><Image src={user.profile.picture} circle /></a>
+        </div>
+        <div className={s.friendItemRight}>
+          <a href="#"><strong>{`${user.profile.firstName} ${user.profile.lastName}`}</strong></a>
+          <br />
+          <Button bsSize="xsmall" onClick={addFriend(user._id)}>
+            <i className="fa fa-user-plus" aria-hidden="true"></i>&nbsp; Kết bạn
+          </Button>
+        </div>
+        <Clearfix />
+      </Col>
     ))}
   </div>
 );
@@ -38,6 +47,8 @@ const friendSuggestionsQuery = gql`query friendSuggestionsQuery {
     friendSuggestions {
       _id
       profile {
+        firstName
+        lastName
         picture
       }
     }
@@ -70,10 +81,10 @@ class FriendSuggestions extends React.Component {
   render() {
     const { data: { loading, me } } = this.props;
     return (
-      <div>
+      <Col className={s.friendSuggestion}>
         {loading && <h1 style={{ textAlign: 'center' }}>LOADING</h1>}
         {!loading && me && <UsersList addFriend={this.addFriend} users={me.friendSuggestions} />}
-      </div>
+      </Col>
     );
   }
 }
