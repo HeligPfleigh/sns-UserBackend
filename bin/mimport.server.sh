@@ -3,7 +3,7 @@
 mimport ()
 {
   if [ -e $DPATH/data/$1.json ] ; then
-    mongoimport --host localhost:27017 --db sns_test --collection $1 --drop --file $DPATH/data/$1.json
+    mongoimport --host ds133290.mlab.com:33290 --username admin --password admin123 --db sns --collection $1 --drop --file $DPATH/data/$1.json
   else
     echo 'not found ' + $DPATH/data/$1.json
   fi

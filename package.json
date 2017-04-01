@@ -228,6 +228,10 @@
     "serve": "babel-node tools/run runServer",
     "start": "babel-node tools/run start",
     "mexport": "COLLECTIONS=\"users posts buildings apartments\" DPATH=bin ./bin/mexports.sh",
-    "mimport": "mongo sns_test --eval 'db.dropDatabase()' && COLLECTIONS=\"users posts buildings apartments\" DPATH=bin ./bin/mimport.sh"
+    "mimport": "mongo sns_test --eval 'db.dropDatabase()' && COLLECTIONS=\"users posts buildings apartments\" DPATH=bin ./bin/mimport.sh",
+    "prod.export": "COLLECTIONS=\"users posts buildings apartments\" DPATH=bin ./bin/mexports.server.sh",
+    "prod.import": "COLLECTIONS=\"users posts buildings apartments\" DPATH=bin ./bin/mimport.server.sh",
+    "dev.to.prod": "npm run mexport && npm run prod.import",
+    "prod.to.dev": "npm run prod.export && npm run mimport"
   }
 }
