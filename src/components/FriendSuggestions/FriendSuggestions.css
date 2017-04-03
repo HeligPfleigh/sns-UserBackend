@@ -1,0 +1,38 @@
+.friendSuggestion {
+  float: right;
+  width: 27%;
+  padding: 5px;
+  margin-bottom: 15px;
+  /*text-align: right;*/
+  border: 1px solid #cfcfcf;
+  background-color: #fff;
+}
+
+.suggestFriendItem {
+  margin: 10px 0px;
+}
+
+.suggestFriendItem img {
+  width: 55px;
+  height: 55px;
+  margin: 4px 10px 0 6px;
+}
+
+.friendItemLeft {
+  float: left;
+  width: 25%;
+}
+
+.friendItemRight {
+  float: right;
+  width: 75%;
+  padding: 5px;
+  line-height: 23.5px;
+}
+
+/**************** Style Mobile ****************/
+@media (max-width: 992px) {
+  .friendSuggestion {
+    display: none;
+  }
+}

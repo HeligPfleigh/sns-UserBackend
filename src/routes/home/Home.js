@@ -10,7 +10,7 @@
 import React, { PropTypes } from 'react';
 import { graphql, compose } from 'react-apollo';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
-// import { Button, ButtonToolbar } from 'react-bootstrap';
+import { Row, Col } from 'react-bootstrap';
 import gql from 'graphql-tag';
 import update from 'immutability-helper';
 import MediaQuery from 'react-responsive';
@@ -97,25 +97,30 @@ class Home extends React.Component {
     const { data: { loading, feeds }, loadMoreRows } = this.props;
     return (
       <div className={s.root}>
-        <div className={s.container}>
-          <h1>My feeds</h1>
-          <a href="/logout"> logout </a>
-          <MediaQuery query="(min-device-width: 641px)" values={{ deviceWidth: 700 }}>
+        <Row className={s.container}>
+          <Col>
+            <h1>My feeds</h1>
+            <a href="/logout"> logout </a>
+          </Col>
+          <Col className={s.feedsContent}>
+            {loading && <h1 style={{ textAlign: 'center' }}>LOADING</h1>}
+            <NewPost
+              value={this.state.value}
+              handleChange={this.handleChange}
+              onSubmit={this.onSubmit}
+            />
+            {feeds && feeds.edges && <div>
+              {feeds.edges.map(item => (
+                <Post key={item._id} data={item} />
+              ))}
+            </div>}
+            <button onClick={loadMoreRows}>Load More</button>
+          </Col>
+
+          <MediaQuery query="(min-width: 992px)">
             <FriendSuggestions />
           </MediaQuery>
-          {loading && <h1 style={{ textAlign: 'center' }}>LOADING</h1>}
-          <NewPost
-            value={this.state.value}
-            handleChange={this.handleChange}
-            onSubmit={this.onSubmit}
-          />
-          {feeds && feeds.edges && <div>
-            {feeds.edges.map(item => (
-              <Post key={item._id} data={item} />
-            ))}
-          </div>}
-          <button onClick={loadMoreRows}>Load More</button>
-        </div>
+        </Row>
       </div>
     );
   }
