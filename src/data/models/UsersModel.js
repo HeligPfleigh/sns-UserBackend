@@ -41,7 +41,7 @@ const UserSchema = new Schema({
   building: {
     type: ObjectId,
     ref: 'Building',
-  }
+  },
 });
 
 // indexes

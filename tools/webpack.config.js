@@ -11,6 +11,7 @@ import path from 'path';
 import webpack from 'webpack';
 import AssetsPlugin from 'assets-webpack-plugin';
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
+import ExtractTextPlugin from 'extract-text-webpack-plugin';
 import pkg from '../package.json';
 
 const isDebug = !process.argv.includes('--release');
@@ -104,6 +105,19 @@ const config = {
           },
         ],
       },
+      { test: /\.scss$/,
+        use: [
+          'isomorphic-style-loader',
+          'css-loader',
+          {
+            loader: 'postcss-loader?pack=sass',
+            options: {
+              plugins: () => [require('autoprefixer')],
+            },
+          },
+          'sass-loader',
+        ],
+      },
       {
         test: /\.md$/,
         loader: path.resolve(__dirname, './lib/markdown-loader.js'),
@@ -134,7 +148,6 @@ const config = {
       },
     ],
   },
-
   // Don't attempt to continue if there are any errors.
   bail: !isDebug,
 
@@ -164,7 +177,7 @@ const clientConfig = {
   target: 'web',
 
   entry: {
-    client: ['babel-polyfill', './src/client.js'],
+    client: ['babel-polyfill', './src/client.js', `bootstrap-loader${isDebug ? '' : '/extractStyles'}`],
   },
 
   output: {
@@ -189,7 +202,7 @@ const clientConfig = {
       filename: 'assets.json',
       prettyPrint: true,
     }),
-
+    new ExtractTextPlugin({ filename: 'vendor.bootstrap.css', disable: isDebug, allChunks: true }),
     // Move modules that occur in multiple entry chunks to a new entry chunk (the commons chunk).
     // http://webpack.github.io/docs/list-of-plugins.html#commonschunkplugin
     new webpack.optimize.CommonsChunkPlugin({
