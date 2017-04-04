@@ -53,7 +53,23 @@ const UserSchemas = new GraphQLObjectType({
     friends: {
       type: new GraphQLList(UserSchemas),
       resolve: async (user) => {
-        let friendListByIds = await FriendsModel.find({ user: user._id }).select('friend _id');
+        let friendListByIds = await FriendsModel.find({
+          user: user._id,
+          status: 'ACCEPTED',
+        }).select('friend _id');
+        friendListByIds = friendListByIds.map(v => v.friend);
+        return UsersModel.find({
+          _id: { $in: friendListByIds },
+        });
+      },
+    },
+    friendRequests: {
+      type: new GraphQLList(UserSchemas),
+      resolve: async (user) => {
+        let friendListByIds = await FriendsModel.find({
+          user: user._id,
+          status: 'PENDING',
+        }).select('friend _id');
         friendListByIds = friendListByIds.map(v => v.friend);
         return UsersModel.find({
           _id: { $in: friendListByIds },
