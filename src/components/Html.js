@@ -22,17 +22,19 @@ class Html extends React.Component {
     scripts: PropTypes.arrayOf(PropTypes.string.isRequired),
     // eslint-disable-next-line react/forbid-prop-types
     state: PropTypes.object,
+    cssVendors: PropTypes.arrayOf,
     children: PropTypes.string.isRequired,
   };
 
   static defaultProps = {
     styles: [],
+    cssVendors: [],
     scripts: [],
     state: null,
   };
 
   render() {
-    const { title, description, styles, scripts, state, children } = this.props;
+    const { title, description, styles, cssVendors, scripts, state, children } = this.props;
     return (
       <html className="no-js" lang="en">
         <head>
@@ -42,8 +44,9 @@ class Html extends React.Component {
           <meta name="description" content={description} />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-          <link rel="stylesheet" href="/libs/bootstrap/css/bootstrap.min.css" />
-          <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css" />
+          {cssVendors.map(link =>
+            <link key={link} rel="stylesheet" type="text/css" href={link} />,
+          )}
           {styles.map(style =>
             <style
               key={style.id}

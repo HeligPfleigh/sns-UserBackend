@@ -158,6 +158,9 @@ app.get('*', async (req, res, next) => {
       assets.vendor.js,
       assets.client.js,
     ];
+    if (assets.vendor.css) {
+      data.cssVendors = [assets.vendor.css];
+    }
 
     // Furthermore invoked actions will be ignored, client will not receive them!
     if (__DEV__) {

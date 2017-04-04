@@ -1,7 +1,7 @@
 /**
  * React Starter Kit (https://www.reactstarterkit.com/)
  *
- * Copyright Â© 2014-present Kriasoft, LLC. All rights reserved.
+ * Copyright © 2014-present Kriasoft, LLC. All rights reserved.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE.txt file in the root directory of this source tree.
@@ -29,8 +29,8 @@ export const auth = {
 
   // https://developers.facebook.com/
   facebook: {
-    id: process.env.FACEBOOK_APP_ID || '678961598943405',
-    secret: process.env.FACEBOOK_APP_SECRET || '06a4ac09ae386fa9779547a6de5c0dd3',
+   id: process.env.FACEBOOK_APP_ID || '678961598943405',
+   secret: process.env.FACEBOOK_APP_SECRET || '06a4ac09ae386fa9779547a6de5c0dd3',
   },
 
   // https://cloud.google.com/console/project
