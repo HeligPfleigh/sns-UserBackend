@@ -12,26 +12,29 @@ import { graphql, compose } from 'react-apollo';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import { Row, Col, Button } from 'react-bootstrap';
 import gql from 'graphql-tag';
+import update from 'immutability-helper';
 import s from './Friends.css';
 
-const UsersList23 = ({ users, acceptFriend, rejectFriend }) => (
+update.extend('$unset', (_idsToRemove, original) => original.filter(v => _idsToRemove.indexOf(v._id) === -1));
+
+const UsersList = ({ users, acceptFriend, rejectFriend }) => (
   <div>
     {users.map(user => (
       <Col key={user._id}>
         <strong>{`${user.profile.firstName} ${user.profile.lastName}`}</strong>
-        <Button onClick={acceptFriend(user._id)}>Accept</Button>
-        <Button onClick={rejectFriend(user._id)}>Reject</Button>
+        <Button onClick={acceptFriend && acceptFriend(user._id)}>Accept</Button>
+        <Button onClick={rejectFriend && rejectFriend(user._id)}>Reject</Button>
       </Col>
     ))}
   </div>
 );
 
-UsersList23.propTypes = {
+UsersList.propTypes = {
   users: PropTypes.arrayOf(PropTypes.shape({
     _id: PropTypes.string,
   })).isRequired,
-  acceptFriend: PropTypes.func.isRequired,
-  rejectFriend: PropTypes.func.isRequired,
+  acceptFriend: PropTypes.func,
+  rejectFriend: PropTypes.func,
 };
 
 const friendsPageQuery = gql`query friendsPageQuery {
@@ -63,17 +66,24 @@ const friendsPageQuery = gql`query friendsPageQuery {
 }
 `;
 
+const acceptFriend = gql`mutation acceptFriend ($userId: String!) {
+  acceptFriend(userId: $userId) {
+    _id,
+  }
+}`;
+
 class Friends extends React.Component {
   static propTypes = {
     title: PropTypes.string.isRequired,
     data: PropTypes.shape({
       loading: PropTypes.bool.isRequired,
     }).isRequired,
+    acceptFriend: PropTypes.func.isRequired,
   };
 
   acceptFriend = id => (evt) => {
     evt.preventDefault();
-    alert(id);
+    this.props.acceptFriend(id);
   }
 
   rejectFriend = id => (evt) => {
@@ -89,9 +99,9 @@ class Friends extends React.Component {
           <h1>{this.props.title}</h1>
           {loading && <h1 style={{ textAlign: 'center' }}>LOADING</h1>}
           <h1> Friends </h1>
-          { me && me.friends && <UsersList23 users={me.friends} /> }
+          { me && me.friends && <UsersList users={me.friends} /> }
           <h1> Friend Requests </h1>
-          { me && me.friendRequests && <UsersList23
+          { me && me.friendRequests && <UsersList
             users={me.friendRequests}
             acceptFriend={this.acceptFriend}
             rejectFriend={this.rejectFriend}
@@ -104,5 +114,27 @@ class Friends extends React.Component {
 
 export default compose(
   withStyles(s),
-  graphql(friendsPageQuery, {}),
+  graphql(friendsPageQuery),
+  graphql(acceptFriend, {
+    props: ({ mutate }) => ({
+      acceptFriend: userId => mutate({
+        variables: { userId },
+        updateQueries: {
+          friendsPageQuery: (previousResult, { mutationResult }) => {
+            const newFriend = mutationResult.data.acceptFriend;
+            return update(previousResult, {
+              me: {
+                friends: {
+                  $unshift: [newFriend],
+                },
+                friendRequests: {
+                  $unset: [newFriend._id],
+                },
+              },
+            });
+          },
+        },
+      }),
+    }),
+  }),
 )(Friends);
