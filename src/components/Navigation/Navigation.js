@@ -30,7 +30,7 @@ class Navigation extends React.Component {
           {isMobile === false ? <span>Trang chủ</span> : ''}
         </Link>
 
-        <Link className={isMobile === false ? s.link : s.navLink} to="/about">
+        <Link className={isMobile === false ? s.link : s.navLink} to="/friends">
           <i className="fa fa-users fa-lg"></i>
           {isMobile === false ? <span>Nhóm</span> : ''}
         </Link>

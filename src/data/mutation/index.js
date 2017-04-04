@@ -1,11 +1,11 @@
 import createNewPost from './posts/createNewPost';
-import addFriend from './users/addFriend';
-import removeFriend from './users/removeFriend';
+import acceptFriend from './friends/acceptFriend';
+import rejectFriend from './friends/rejectFriend';
 import sendFriendRequest from './users/sendFriendRequest';
 
 export default {
   createNewPost,
-  addFriend,
-  removeFriend,
+  acceptFriend,
+  rejectFriend,
   sendFriendRequest,
 };
