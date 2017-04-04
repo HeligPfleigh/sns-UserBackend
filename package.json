@@ -21,6 +21,8 @@
     "classnames": "^2.2.5",
     "cookie-parser": "^1.4.3",
     "core-js": "^2.4.1",
+    "draft-js": "^0.10.0",
+    "draft-js-export-html": "^0.5.2",
     "express": "^4.14.1",
     "express-graphql": "^0.6.3",
     "express-jwt": "^5.1.0",

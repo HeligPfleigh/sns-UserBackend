@@ -1,3 +1,26 @@
-.title {
-  color: #000;
+.newPostPanel {
+  border: 1px solid #cfcfcf;
+  background-color: #fff;
+  padding: 5px;
+  margin-bottom: 15px;
+}
+
+.newPostEditor {
+  margin: 10px;
+}
+
+.newPostControl {
+  margin: 0px 10px;
+  padding: 10px 0;
+  border-top: 1px solid #cfcfcf;
+}
+
+button.addPhoto, button.addPhoto:hover, button.addPhoto:active {
+  padding-left: 0px;
+  color: gray;
+  text-decoration: none;
+}
+
+.newPostControl i {
+  color: #cfcfcf;
 }
