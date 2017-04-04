@@ -10,6 +10,8 @@
 /* eslint-disable global-require */
 
 // The top-level (parent) route
+import { requireAuth } from '../utils/role';
+
 export default {
 
   path: '/',
@@ -17,6 +19,7 @@ export default {
   // Keep in mind, routes are evaluated in order
   children: [
     require('./home').default,
+    requireAuth(require('./friend').default),
     require('./contact').default,
     require('./login').default,
     require('./register').default,

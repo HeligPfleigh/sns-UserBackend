@@ -30,10 +30,10 @@ const AddressSchema = new Schema({
 });
 
 const LocationSchema = new Schema({
-  type : { type: String, default: 'Point' },
+  type: { type: String, default: 'Point' },
   coordinates: [
-    { type: "Number" }
-  ]
+    { type: 'Number' },
+  ],
 }, {
   _id: false,
 });
