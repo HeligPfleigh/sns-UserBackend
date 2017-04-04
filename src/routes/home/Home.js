@@ -107,7 +107,7 @@ class Home extends React.Component {
             <NewPost
               value={this.state.value}
               handleChange={this.handleChange}
-              onSubmit={this.onSubmit}
+              createNewPost={this.props.createNewPost}
             />
             {feeds && feeds.edges && <div>
               {feeds.edges.map(item => (

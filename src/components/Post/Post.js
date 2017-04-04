@@ -1,5 +1,7 @@
 import React, { PropTypes } from 'react';
-import { Image, Row, Col, Clearfix } from 'react-bootstrap';
+import { Image, Col, Clearfix } from 'react-bootstrap';
+import { convertFromRaw } from 'draft-js';
+import { stateToHTML } from 'draft-js-export-html';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import s from './Post.css';
 
@@ -18,9 +20,10 @@ const Post = ({ data: { _id, message, user } }) => (
       <i className="fa fa-angle-down fa-lg" aria-hidden="true"></i>
     </Col>
     <Clearfix />
-    <Col className={s.postContent}>
-      {`message: ${message}`}
-    </Col>
+    <Col
+      className={s.postContent}
+      dangerouslySetInnerHTML={{ __html: stateToHTML(convertFromRaw(JSON.parse(message))) }}
+    />
     <Col className={s.postStatistic}>
       <a href="#">16 Thích</a>
       <a href="#">6 Bình luận</a>
