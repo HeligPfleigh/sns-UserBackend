@@ -12,6 +12,7 @@ const createNewPost = {
   },
   resolve: ({ request }, { message }) => new Promise(async (resolve, reject) => {
     try {
+      JSON.parse(message);
       const r = await PostsModel.create({
         message,
         user: request.user.id,
