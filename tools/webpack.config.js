@@ -108,12 +108,14 @@ const config = {
       { test: /\.scss$/,
         use: [
           'isomorphic-style-loader',
-          'css-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              modules: true,
+            },
+          },
           {
             loader: 'postcss-loader?pack=sass',
-            options: {
-              plugins: () => [require('autoprefixer')],
-            },
           },
           'sass-loader',
         ],

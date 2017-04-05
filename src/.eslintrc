@@ -10,7 +10,8 @@
     "no-bitwise": ["error", { "allow": ["~"] }],
     "no-underscore-dangle": "off",
     "no-unused-expressions": ["error", { "allowTernary": true }],
-    "jsx-a11y/no-static-element-interactions": "off"
+    "react/forbid-prop-types": 0,
+    "max-len": 0
     // "import/prefer-default-export": "off",
     // "max-len": "off"
   }
