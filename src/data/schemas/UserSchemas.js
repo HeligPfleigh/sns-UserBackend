@@ -5,7 +5,6 @@ import {
   GraphQLInt,
   GraphQLID,
   GraphQLNonNull,
-  GraphQLBoolean,
 } from 'graphql';
 
 import UserInterface from './UserInterface';

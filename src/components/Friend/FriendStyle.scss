@@ -1,16 +1,50 @@
+@import "../../theme/resources.scss";
 .friend {
   display: flex;
   align-items: center;
   padding: 1em;
-  justify-content: space-between;
+  .friendAvata {
+    cursor: pointer;
+    img {
+      border-radius: 50%;
+      width: 68px;
+      height: 68px;
+      vertical-align: middle;
+    }
+  }
   .friendInfo {
     display: flex;
     align-items: center;
-    .friendAvata {
-      background: white;
+    justify-content: space-between; 
+    width: 100%;
+    padding-left: 1em;
+    @include media-breakpoint-down(sm) {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .friendName {
+      display: flex;
+      flex-direction: column;
+    }
+    :global .btn {
+      font-weight: 500;
     }
   }
-  global .test{
-    display: flex;
+}
+.friendList {
+  font-family: 'Roboto';
+  margin-top: 3em;
+  background: white;
+  border: 2px solid #dedede;
+  >ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    li {
+      border-bottom: 1px solid #dedede;
+    }
+    li:last-child {
+      border-bottom: none;
+    }
   }
 }
