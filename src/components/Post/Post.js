@@ -5,7 +5,7 @@ import { stateToHTML } from 'draft-js-export-html';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import s from './Post.css';
 
-const Post = ({ data: { _id, message, user } }) => (
+const Post = ({ data: { _id, message, totalLikes, totalComments, user } }) => (
   <div className={s.postPanel}>
     <Col className={s.postHeaderLeft}>
       <span className="hide">{_id}</span>
@@ -25,8 +25,8 @@ const Post = ({ data: { _id, message, user } }) => (
       dangerouslySetInnerHTML={{ __html: stateToHTML(convertFromRaw(JSON.parse(message))) }}
     />
     <Col className={s.postStatistic}>
-      <a href="#">16 Thích</a>
-      <a href="#">6 Bình luận</a>
+      <a href="#">{ totalLikes } Thích</a>
+      <a href="#">{ totalComments } Bình luận</a>
     </Col>
     <Col className={s.postControl}>
       <a href="#">
