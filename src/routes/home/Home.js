@@ -132,7 +132,7 @@ class Home extends React.Component {
             </InfiniteScroll>
           </Col>
 
-          <MediaQuery query="(min-width: 992px)">
+          <MediaQuery minDeviceWidth={992} values={{ deviceWidth: 1600 }}>
             <FriendSuggestions />
           </MediaQuery>
         </Row>

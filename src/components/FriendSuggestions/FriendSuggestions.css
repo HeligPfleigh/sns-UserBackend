@@ -1,3 +1,7 @@
+.friendSuggestionHide {
+  display: none;
+}
+
 .friendSuggestion {
   float: right;
   width: 27%;
