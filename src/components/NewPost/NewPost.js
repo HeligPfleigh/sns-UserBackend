@@ -94,16 +94,19 @@ class NewPost extends React.Component {
     });
   }
 
+  focus = () => this.editor.focus();
+
   render() {
     const { editorState, isSubmit } = this.state;
     return (
       <div className={s.newPostPanel}>
         <Col className={s.newPostEditor}>
-          <div style={styles.editor}>
+          <div style={styles.editor} onClick={this.focus}>
             <Editor
               editorState={editorState}
               onChange={this.onChange}
               placeholder="Chia sẻ bài viết, ảnh hoặc cập nhật"
+              ref={(editor) => { this.editor = editor; }}
               spellCheck
             />
           </div>

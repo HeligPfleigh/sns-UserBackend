@@ -14,6 +14,8 @@ import { Row, Col } from 'react-bootstrap';
 import gql from 'graphql-tag';
 import update from 'immutability-helper';
 import MediaQuery from 'react-responsive';
+import InfiniteScroll from 'react-infinite-scroller';
+
 import Post from '../../components/Post';
 import FriendSuggestions from '../../components/FriendSuggestions';
 import NewPost from '../../components/NewPost';
@@ -70,6 +72,22 @@ const createNewPost = gql`mutation createNewPost ($message: String!) {
   }
 }`;
 
+const FeedList = ({ feeds }) => (
+  <div>
+    {feeds.map(item => (
+      <Post key={item._id} data={item} />
+    ))}
+  </div>
+);
+
+FeedList.propTypes = {
+  feeds: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string.isRequired,
+    }),
+  ).isRequired,
+};
+
 class Home extends React.Component {
   static propTypes = {
     data: PropTypes.shape({
@@ -88,13 +106,9 @@ class Home extends React.Component {
     this.setState({ value: '' });
   }
 
-  handleChange = (e) => {
-    this.setState({ value: e.target.value });
-  }
-
-
   render() {
     const { data: { loading, feeds }, loadMoreRows } = this.props;
+    const { pageInfo: { hasNextPage } } = feeds;
     return (
       <div className={s.root}>
         <Row className={s.container}>
@@ -109,12 +123,13 @@ class Home extends React.Component {
               handleChange={this.handleChange}
               createNewPost={this.props.createNewPost}
             />
-            {feeds && feeds.edges && <div>
-              {feeds.edges.map(item => (
-                <Post key={item._id} data={item} />
-              ))}
-            </div>}
-            <button onClick={loadMoreRows}>Load More</button>
+            <InfiniteScroll
+              loadMore={loadMoreRows}
+              hasMore={hasNextPage}
+              loader={<div className="loader">Loading ...</div>}
+            >
+              <FeedList feeds={feeds.edges} />
+            </InfiniteScroll>
           </Col>
 
           <MediaQuery query="(min-width: 992px)">
