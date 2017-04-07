@@ -6,7 +6,7 @@ import update from 'immutability-helper';
 import { Grid, Row, Col } from 'react-bootstrap';
 import Loading from '../../components/Loading';
 import FriendList from '../../components/Friend/FriendList';
-import { PENDDING } from '../../constants';
+import { PENDING, NONE, ACCEPTED, REJECTED } from '../../constants';
 import s from './Friends.scss';
 
 const friendsPageQuery = gql`query friendsPageQuery {
@@ -34,21 +34,29 @@ const friendsPageQuery = gql`query friendsPageQuery {
         lastName
       }
     }
+    friendSuggestions {
+      _id
+      profile {
+        picture,
+        firstName,
+        lastName
+      }
+    }
   }
 }
 `;
 
-const acceptFriend = gql`mutation acceptFriend ($userId: String!) {
-  acceptFriend(userId: $userId) {
+const friendAction = gql`mutation friendAction ($userId: String!, $cmd: String!) {
+  friendAction(userId: $userId, cmd: $cmd) {
     _id,
   }
 }`;
 
 @graphql(friendsPageQuery)
-@graphql(acceptFriend, { name: 'acceptFriend' })
+@graphql(friendAction, { name: 'friendAction' })
 class Friends extends React.Component {
   static propTypes = {
-    acceptFriend: PropTypes.func.isRequired,
+    friendAction: PropTypes.func.isRequired,
     data: PropTypes.shape({
       loading: PropTypes.bool.isRequired,
     }).isRequired,
@@ -57,22 +65,29 @@ class Friends extends React.Component {
     super();
     update.extend('$unset', (_idsToRemove, original) => original.filter(v => _idsToRemove.indexOf(v._id) === -1));
   }
-  handleAccept = (userId) => {
-    this.props.acceptFriend({
-      variables: { userId },
-      updateQueries: {
-        friendsPageQuery: (previousResult, { mutationResult }) => {
-          const newFriend = mutationResult.data.acceptFriend;
-          return update(previousResult, {
-            me: {
-              friends: {
-                $unshift: [newFriend],
+  handleFriendAction = (userId, cmd) => {
+    this.props.friendAction({
+      variables: { userId, cmd },
+      ...cmd === PENDING && {
+        refetchQueries: [{
+          query: friendsPageQuery,
+        }],
+      },
+      ...(cmd === ACCEPTED || cmd === REJECTED) && {
+        updateQueries: {
+          friendsPageQuery: (previousResult, { mutationResult }) => {
+            const newFriend = mutationResult.data.friendAction;
+            return update(previousResult, {
+              me: {
+                friends: {
+                  $unshift: [newFriend],
+                },
+                friendRequests: {
+                  $unset: [newFriend._id],
+                },
               },
-              friendRequests: {
-                $unset: [newFriend._id],
-              },
-            },
-          });
+            });
+          },
         },
       },
     });
@@ -86,7 +101,13 @@ class Friends extends React.Component {
           <Col md={8} xs={12}>
             {
               me && me.friendRequests &&
-              <FriendList friends={me.friendRequests} friendType={PENDDING} handleAccept={this.handleAccept} />
+              <FriendList friends={me.friendRequests} friendType={PENDING} handleFriendAction={this.handleFriendAction} />
+            }
+          </Col>
+          <Col md={4} xs={12}>
+            {
+              me && me.friendSuggestions &&
+              <FriendList friends={me.friendSuggestions} friendType={NONE} handleFriendAction={this.handleFriendAction} />
             }
           </Col>
         </Row>

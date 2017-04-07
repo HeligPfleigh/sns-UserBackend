@@ -6,7 +6,7 @@ export const POST_TYPES = ['STATUS', 'EVENT'];
 
 export const NOTIFY_TYPES = ['LIKES', 'COMMENTS', 'NEW_POST'];
 
-export const PENDDING = 'PENDDING';
+export const PENDING = 'PENDING';
 export const ACCEPTED = 'ACCEPTED';
 export const REJECTED = 'REJECTED';
 export const BLOCKED = 'BLOCKED';

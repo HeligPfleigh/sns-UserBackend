@@ -1,19 +1,17 @@
 import React, { PropTypes } from 'react';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import { Button, ButtonToolbar } from 'react-bootstrap';
-import { PENDDING, NONE } from '../../constants';
+import { PENDING, NONE, ACCEPTED, REJECTED } from '../../constants';
 import s from './FriendStyle.scss';
 
 class Friend extends React.Component {
   static propTypes = {
     friend: PropTypes.object.isRequired,
-    handleAccept: PropTypes.func,
-    handleReject: PropTypes.func,
-    handleAddFriend: PropTypes.func,
+    handleFriendAction: PropTypes.func,
     friendType: PropTypes.string.isRequired,
   }
   render() {
-    const { friend, handleAccept, handleReject, handleAddFriend, friendType } = this.props;
+    const { friend, handleFriendAction, friendType } = this.props;
     return (
       <div className={s.friend}>
         <div className={s.friendAvata}>
@@ -25,16 +23,19 @@ class Friend extends React.Component {
             <span>10 other mutual friends</span>
           </div>
           {
-            friendType === PENDDING &&
+            friendType === PENDING &&
             <ButtonToolbar>
-              <Button onClick={() => handleAccept(friend._id)} bsStyle="primary">Confirm</Button>
-              <Button onClick={() => handleReject(friend._id)} >Delete Request</Button>
+              <Button onClick={() => handleFriendAction(friend._id, ACCEPTED)} bsStyle="primary">Confirm</Button>
+              <Button onClick={() => handleFriendAction(friend._id, REJECTED)} >Delete Request</Button>
             </ButtonToolbar>
           }
           {
             friendType === NONE &&
-            <ButtonToolbar>
-              <Button onClick={() => handleAddFriend(friend._id)} bsStyle="primary">Add Friend</Button>
+            <ButtonToolbar className={s.addFriend}>
+              <Button onClick={() => handleFriendAction(friend._id, PENDING)} bsStyle="primary" bsSize="xsmall">
+                <i className="fa fa-user-plus" />
+                Add Friend
+              </Button>
             </ButtonToolbar>
           }
         </div>

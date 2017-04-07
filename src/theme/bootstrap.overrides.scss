@@ -1,16 +1,4 @@
+@import url(http://fonts.googleapis.com/css?family=Roboto:400italic,700italic,400,500,700);
 $fa-font-path: "~font-awesome/fonts";
 @import "~font-awesome/scss/font-awesome";
 @import "./variables.scss";
-
-@font-face {
-  font-family: 'Roboto';
-  font-style: normal;
-  src: url('./fonts/Roboto-Regular.ttf');
-}
-
-@font-face {
-  font-family: 'Roboto';
-  font-style: normal;
-  font-weight: 500;
-  src: url('./fonts/Roboto-Medium.ttf');
-}

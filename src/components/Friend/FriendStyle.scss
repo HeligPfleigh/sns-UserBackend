@@ -14,6 +14,7 @@
   }
   .friendInfo {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between; 
     width: 100%;
@@ -25,9 +26,31 @@
     .friendName {
       display: flex;
       flex-direction: column;
+      >span:first-child {
+        font-weight: 500;
+      }
     }
     :global .btn {
       font-weight: 500;
+    }
+    :global .btn-primary{
+      background: #283e4a;
+      &:hover {
+        background: #312d4c;
+      }
+    }
+  }
+  .addFriend {
+    width: 100%;
+    :global .fa {
+      padding-right: 0.2em;
+    }
+    :global .btn {
+      background: #f1f8fc;
+      color: #4c4c4c;
+      &:hover {
+        background: white;
+      }
     }
   }
 }
@@ -36,6 +59,10 @@
   margin-top: 3em;
   background: white;
   border: 2px solid #dedede;
+  >h4 {
+    padding: 0.5em 0 0  1em;
+    font-size: 14px;
+  }
   >ul {
     margin: 0;
     padding: 0;
