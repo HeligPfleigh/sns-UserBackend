@@ -72,6 +72,22 @@ const createNewPost = gql`mutation createNewPost ($message: String!) {
   }
 }`;
 
+const FeedList = ({ feeds }) => (
+  <div>
+    {feeds.map(item => (
+      <Post key={item._id} data={item} />
+    ))}
+  </div>
+);
+
+FeedList.propTypes = {
+  feeds: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string.isRequired,
+    }),
+  ).isRequired,
+};
+
 class Home extends React.Component {
   static propTypes = {
     data: PropTypes.shape({
@@ -91,7 +107,6 @@ class Home extends React.Component {
   }
 
   render() {
-    console.log('render');
     const { data: { loading, feeds }, loadMoreRows } = this.props;
     const { pageInfo: { hasNextPage } } = feeds;
     return (
@@ -113,11 +128,7 @@ class Home extends React.Component {
               hasMore={hasNextPage}
               loader={<div className="loader">Loading ...</div>}
             >
-              {feeds && feeds.edges && <div>
-                {feeds.edges.map(item => (
-                  <Post key={item._id} data={item} />
-                ))}
-              </div>}
+              <FeedList feeds={feeds.edges} />
             </InfiniteScroll>
           </Col>
 
