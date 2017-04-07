@@ -14,6 +14,8 @@ import { Row, Col } from 'react-bootstrap';
 import gql from 'graphql-tag';
 import update from 'immutability-helper';
 import MediaQuery from 'react-responsive';
+import InfiniteScroll from 'react-infinite-scroller';
+
 import Post from '../../components/Post';
 import FriendSuggestions from '../../components/FriendSuggestions';
 import NewPost from '../../components/NewPost';
@@ -88,13 +90,10 @@ class Home extends React.Component {
     this.setState({ value: '' });
   }
 
-  handleChange = (e) => {
-    this.setState({ value: e.target.value });
-  }
-
-
   render() {
+    console.log('render');
     const { data: { loading, feeds }, loadMoreRows } = this.props;
+    const { pageInfo: { hasNextPage } } = feeds;
     return (
       <div className={s.root}>
         <Row className={s.container}>
@@ -109,12 +108,17 @@ class Home extends React.Component {
               handleChange={this.handleChange}
               createNewPost={this.props.createNewPost}
             />
-            {feeds && feeds.edges && <div>
-              {feeds.edges.map(item => (
-                <Post key={item._id} data={item} />
-              ))}
-            </div>}
-            <button onClick={loadMoreRows}>Load More</button>
+            <InfiniteScroll
+              loadMore={loadMoreRows}
+              hasMore={hasNextPage}
+              loader={<div className="loader">Loading ...</div>}
+            >
+              {feeds && feeds.edges && <div>
+                {feeds.edges.map(item => (
+                  <Post key={item._id} data={item} />
+                ))}
+              </div>}
+            </InfiniteScroll>
           </Col>
 
           <MediaQuery query="(min-width: 992px)">
