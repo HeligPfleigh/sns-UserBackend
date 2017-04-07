@@ -80,24 +80,12 @@ class FriendSuggestions extends React.Component {
 
   render() {
     const { data: { loading, me } } = this.props;
-    const hasFriendSuggest = me.friendSuggestions.length > 0;
+    const hasFriendSuggest = me && me.friendSuggestions && me.friendSuggestions.length > 0;
     return (
-      <span>
-        {
-          hasFriendSuggest &&
-          <Col className={s.friendSuggestion}>
-            {
-              loading && <h1 style={{ textAlign: 'center' }}>LOADING</h1>
-            }
-            {
-              !loading && me && <UsersList
-                addFriend={this.addFriend}
-                users={me.friendSuggestions}
-              />
-            }
-          </Col>
-        }
-      </span>
+      <Col className={hasFriendSuggest ? s.friendSuggestion : s.friendSuggestionHide}>
+        {loading && <h1 style={{ textAlign: 'center' }}>LOADING</h1>}
+        {!loading && me && <UsersList addFriend={this.addFriend} users={me.friendSuggestions} />}
+      </Col>
     );
   }
 }
