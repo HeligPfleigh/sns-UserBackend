@@ -8,12 +8,17 @@ const CommentSchema = new Schema({
   user: {
     type: ObjectId,
     ref: 'User',
+    required: true,
   },
   post: {
     type: ObjectId,
     ref: 'Post',
+    required: true,
   },
-  message: Schema.Types.Mixed,
+  message: {
+    type: Schema.Types.Mixed,
+    required: true,
+  },
   reply: [{
     type: ObjectId,
     ref: 'Commment',
@@ -23,6 +28,6 @@ const CommentSchema = new Schema({
 // https://github.com/drudge/mongoose-timestamp
 CommentSchema.plugin(timestamp);
 
-const CommentModel = mongoose.model('Comment', CommentSchema, 'Comment');
+const CommentModel = mongoose.model('Comment', CommentSchema);
 
 export default CommentModel;

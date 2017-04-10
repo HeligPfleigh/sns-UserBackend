@@ -21,21 +21,28 @@ import FriendSuggestions from '../../components/FriendSuggestions';
 import NewPost from '../../components/NewPost';
 import s from './Home.css';
 
+const post = gql`
+  fragment PostView on PostSchemas {
+    _id,
+    message,
+    user {
+      _id,
+      username,
+      profile {
+        picture,
+        firstName,
+        lastName
+      }
+    },
+    totalLikes,
+    totalComments,
+  }
+`;
+
 const homePageQuery = gql`query homePageQuery ($cursor: String) {
   feeds (cursor: $cursor) {
     edges {
-      _id,
-      message,
-      user {
-        _id,
-        username,
-        profile {
-          picture,
-          firstName,
-          lastName,
-          gender
-        }
-      }
+      ...PostView
     }
     pageInfo {
       endCursor,
@@ -48,29 +55,19 @@ const homePageQuery = gql`query homePageQuery ($cursor: String) {
     profile {
       picture,
       firstName,
-      lastName,
-      gender
+      lastName
     }
   }
 }
+${post}
 `;
 
 const createNewPost = gql`mutation createNewPost ($message: String!) {
   createNewPost(message: $message) {
-    _id,
-    message,
-    user {
-      _id,
-      username,
-      profile {
-        picture,
-        firstName,
-        lastName,
-        gender
-      }
-    }
+    ...PostView
   }
-}`;
+}
+${post}`;
 
 const FeedList = ({ feeds }) => (
   <div>
@@ -189,6 +186,8 @@ export default compose(
               username: ownProps.data.me.username,
               profile: ownProps.data.me.profile,
             },
+            totalLikes: 0,
+            totalComments: 0,
           },
         },
         updateQueries: {
