@@ -23,6 +23,7 @@ const PostSchema = new Schema({
   likes: [{
     type: ObjectId,
     ref: 'User',
+    default: [],
   }],
   message: Schema.Types.Mixed,
 });
