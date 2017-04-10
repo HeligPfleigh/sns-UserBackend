@@ -36,6 +36,7 @@ const post = gql`
     },
     totalLikes,
     totalComments,
+    isLiked,
   }
 `;
 
@@ -69,10 +70,17 @@ const createNewPost = gql`mutation createNewPost ($message: String!) {
 }
 ${post}`;
 
-const FeedList = ({ feeds }) => (
+const likePost = gql`mutation likePost ($postId: String!) {
+  likePost(postId: $postId) {
+    ...PostView
+  }
+}
+${post}`;
+
+const FeedList = ({ feeds, likePostEvent }) => (
   <div>
     {feeds.map(item => (
-      <Post key={item._id} data={item} />
+      <Post key={item._id} data={item} likePostEvent={likePostEvent} />
     ))}
   </div>
 );
@@ -83,6 +91,7 @@ FeedList.propTypes = {
       _id: PropTypes.string.isRequired,
     }),
   ).isRequired,
+  likePostEvent: PropTypes.func.isRequired,
 };
 
 class Home extends React.Component {
@@ -92,16 +101,8 @@ class Home extends React.Component {
     }).isRequired,
     createNewPost: PropTypes.func.isRequired,
     loadMoreRows: PropTypes.func.isRequired,
+    likePost: PropTypes.func.isRequired,
   };
-
-  state = {
-    value: '',
-  }
-
-  onSubmit = () => {
-    this.props.createNewPost(this.state.value);
-    this.setState({ value: '' });
-  }
 
   render() {
     const { data: { loading, feeds }, loadMoreRows } = this.props;
@@ -115,17 +116,13 @@ class Home extends React.Component {
           </Col>
           <Col className={s.feedsContent}>
             {loading && <h1 style={{ textAlign: 'center' }}>LOADING</h1>}
-            <NewPost
-              value={this.state.value}
-              handleChange={this.handleChange}
-              createNewPost={this.props.createNewPost}
-            />
+            <NewPost createNewPost={this.props.createNewPost} />
             <InfiniteScroll
               loadMore={loadMoreRows}
               hasMore={hasNextPage}
               loader={<div className="loader">Loading ...</div>}
             >
-              <FeedList feeds={feeds.edges} />
+              <FeedList feeds={feeds.edges} likePostEvent={this.props.likePost} />
             </InfiniteScroll>
           </Col>
 
@@ -188,6 +185,7 @@ export default compose(
             },
             totalLikes: 0,
             totalComments: 0,
+            isLiked: false,
           },
         },
         updateQueries: {
@@ -197,6 +195,26 @@ export default compose(
               feeds: {
                 edges: {
                   $unshift: [newPost],
+                },
+              },
+            });
+          },
+        },
+      }),
+    }),
+  }),
+  graphql(likePost, {
+    props: ({ mutate }) => ({
+      likePost: postId => mutate({
+        variables: { postId },
+        updateQueries: {
+          homePageQuery: (previousResult, { mutationResult }) => {
+            const updatedPost = mutationResult.data.likePost;
+            const index = previousResult.feeds.edges.findIndex(item => item._id === updatedPost._id);
+            return update(previousResult, {
+              feeds: {
+                edges: {
+                  $splice: [[index, 1, updatedPost]],
                 },
               },
             });
