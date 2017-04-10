@@ -59,6 +59,7 @@ const feeds = {
       }
 
       edges.on('data', (res) => {
+        res.likes.indexOf(userId) !== -1 ? res.isLiked = true : res.isLiked = false;
         edgesArray.push(res);
       });
 

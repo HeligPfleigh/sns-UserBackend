@@ -4,6 +4,7 @@ import {
   GraphQLString as StringType,
   GraphQLNonNull as NonNull,
   GraphQLInt as Int,
+  GraphQLBoolean as BooleanType,
 } from 'graphql';
 
 import UserInterface from './UserInterface';
@@ -33,6 +34,9 @@ const PostSchemas = new ObjectType({
       resolve: post => CommentsModel.count({
         post: post._id,
       }),
+    },
+    isLiked: {
+      type: BooleanType,
     },
   },
 });
