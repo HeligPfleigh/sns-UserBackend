@@ -68,6 +68,7 @@ const config = {
             ...isDebug ? [] : ['react-optimize'],
           ],
           plugins: [
+            'transform-decorators-legacy',
             // Adds component stack to warning messages
             // https://github.com/babel/babel/tree/master/packages/babel-plugin-transform-react-jsx-source
             ...isDebug ? ['transform-react-jsx-source'] : [],
@@ -108,11 +109,17 @@ const config = {
       { test: /\.scss$/,
         use: [
           'isomorphic-style-loader',
-          'css-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              modules: true,
+              localIdentName: isDebug ? '[name]-[local]-[hash:base64:5]' : '[hash:base64:5]',
+            },
+          },
           {
             loader: 'postcss-loader?pack=sass',
             options: {
-              plugins: () => [require('autoprefixer')],
+              config: './tools/postcss.config.js',
             },
           },
           'sass-loader',

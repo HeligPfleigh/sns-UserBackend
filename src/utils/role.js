@@ -4,8 +4,8 @@ export default role => (route) => {
     async action(param) {
       const { store } = param;
       const state = store.getState();
-      if (!state.user || !state.user.role || state.user.role.length < 0
-          || state.user.role.indexOf(role) < 0) {
+      if (!state.user || !state.user.roles || state.user.roles.length < 0
+          || state.user.roles.indexOf(role) < 0) {
         return {
           redirect: '/login',
         };

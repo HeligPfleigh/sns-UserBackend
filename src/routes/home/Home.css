@@ -9,6 +9,11 @@
 
 @import '../../components/variables.css';
 
+.friendSuggestion {
+  float: right;
+  width: 27%;
+  margin-bottom: 15px;
+}
 .root {
   padding-left: 20px;
   padding-right: 20px;

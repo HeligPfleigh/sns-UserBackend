@@ -22,7 +22,7 @@ class Html extends React.Component {
     scripts: PropTypes.arrayOf(PropTypes.string.isRequired),
     // eslint-disable-next-line react/forbid-prop-types
     state: PropTypes.object,
-    cssVendors: PropTypes.arrayOf,
+    cssVendors: PropTypes.array,
     children: PropTypes.string.isRequired,
   };
 
@@ -44,7 +44,7 @@ class Html extends React.Component {
           <meta name="description" content={description} />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-          {cssVendors.map(link =>
+          {cssVendors && cssVendors.map(link =>
             <link key={link} rel="stylesheet" type="text/css" href={link} />,
           )}
           {styles.map(style =>

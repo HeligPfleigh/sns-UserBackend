@@ -5,14 +5,15 @@ import {
   GraphQLInt,
   GraphQLID,
   GraphQLNonNull,
-  GraphQLBoolean,
 } from 'graphql';
+import _ from 'lodash';
 
 import UserInterface from './UserInterface';
 import PostSchemas from './PostSchemas';
 import ProfileSchemas from './ProfileSchemas';
 import BuildingSchemas from './BuildingSchemas';
 import ApartmentsSchemas from './ApartmentsSchemas';
+import { PENDING, ACCEPTED } from '../../constants';
 
 import {
   PostsModel,
@@ -55,7 +56,7 @@ const UserSchemas = new GraphQLObjectType({
       resolve: async (user) => {
         let friendListByIds = await FriendsModel.find({
           user: user._id,
-          status: 'ACCEPTED',
+          status: ACCEPTED,
         }).select('friend _id');
         friendListByIds = friendListByIds.map(v => v.friend);
         return UsersModel.find({
@@ -67,10 +68,10 @@ const UserSchemas = new GraphQLObjectType({
       type: new GraphQLList(UserSchemas),
       resolve: async (user) => {
         let friendListByIds = await FriendsModel.find({
-          user: user._id,
-          status: 'PENDING',
-        }).select('friend _id');
-        friendListByIds = friendListByIds.map(v => v.friend);
+          friend: user._id,
+          status: PENDING,
+        }).select('user _id');
+        friendListByIds = friendListByIds.map(v => v.user);
         return UsersModel.find({
           _id: { $in: friendListByIds },
         });
@@ -79,11 +80,14 @@ const UserSchemas = new GraphQLObjectType({
     friendSuggestions: {
       type: new GraphQLList(UserSchemas),
       resolve: async (user) => {
-        let friendListByIds = await FriendsModel.find({ user: user._id }).select('friend _id');
-        friendListByIds = friendListByIds.map(v => v.friend);
-        friendListByIds.push(user._id);
+        const currentFriends = await FriendsModel.find().or([{ user: user._id }, { friend: user._id }]).select('user friend _id');
+        const ninIds = _.reduce(currentFriends, (result, item) => {
+          result.push(item.user);
+          result.push(item.friend);
+          return result;
+        }, []);
         let usersId = await ApartmentsModel.find({
-          user: { $nin: friendListByIds },
+          user: { $nin: ninIds },
           building: user.building,
         }).select('user _id').limit(5);
         usersId = usersId.map(v => v.user);
