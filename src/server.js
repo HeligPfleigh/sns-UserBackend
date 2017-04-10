@@ -32,6 +32,7 @@ import configureStore from './store/configureStore';
 import { setRuntimeVariable } from './actions/runtime';
 import { port, auth, databaseUrl } from './config';
 import Mongoose from './data/mongoose';
+import chat from './core/chat';
 
 // Create connect database
 Mongoose.connect(databaseUrl, {});
@@ -112,6 +113,7 @@ app.get('*', async (req, res, next) => {
     }, {
       cookie: req.headers.cookie,
       apolloClient,
+      chat,
     });
 
     store.dispatch(setRuntimeVariable({
@@ -135,6 +137,7 @@ app.get('*', async (req, res, next) => {
       store,
       // Apollo Client for use with react-apollo
       client: apolloClient,
+      chat,
     };
 
     const route = await UniversalRouter.resolve(routes, {

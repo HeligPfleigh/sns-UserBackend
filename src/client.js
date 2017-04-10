@@ -19,6 +19,7 @@ import configureStore from './store/configureStore';
 import { updateMeta } from './core/DOMUtils';
 import { ErrorReporter, deepForceUpdate } from './core/devUtils';
 import createApolloClient from './core/createApolloClient';
+import chat from './core/chat';
 
 const apolloClient = createApolloClient();
 
@@ -36,7 +37,8 @@ const context = {
   client: apolloClient,
   // Initialize a new Redux store
   // http://redux.js.org/docs/basics/UsageWithReact.html
-  store: configureStore(window.APP_STATE, { history, apolloClient }),
+  store: configureStore(window.APP_STATE, { history, apolloClient, chat }),
+  chat,
 };
 
 // Switch off the native scroll restoration behavior and handle it manually
