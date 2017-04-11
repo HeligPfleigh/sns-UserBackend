@@ -5,7 +5,7 @@ import { stateToHTML } from 'draft-js-export-html';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import s from './Post.css';
 
-const Post = ({ data: { _id, message, totalLikes, totalComments, isLiked, user }, likePostEvent }) => (
+const Post = ({ data: { _id, message, totalLikes, totalComments, isLiked, user }, likePostEvent, unlikePostEvent }) => (
   <div className={s.postPanel}>
     <Col className={s.postHeaderLeft}>
       <span className="hide">{_id}</span>
@@ -29,7 +29,17 @@ const Post = ({ data: { _id, message, totalLikes, totalComments, isLiked, user }
       <a href="#">{ totalComments } Bình luận</a>
     </Col>
     <Col className={s.postControl}>
-      <a href="#" onClick={(e) => { e.preventDefault(); likePostEvent(_id); }}>
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          if (!isLiked) {
+            likePostEvent(_id, message, totalLikes, totalComments);
+          } else {
+            unlikePostEvent(_id, message, totalLikes, totalComments);
+          }
+        }}
+      >
         <i className={`${isLiked ? s.likeColor : 'fa-heart-o'} fa fa-heart fa-lg`} aria-hidden="true"></i>&nbsp;
         <span>Thích</span>
       </a>
@@ -55,6 +65,7 @@ Post.propTypes = {
     user: PropTypes.object,
   }),
   likePostEvent: PropTypes.func.isRequired,
+  unlikePostEvent: PropTypes.func.isRequired,
 };
 
 Post.defaultProps = {

@@ -77,10 +77,17 @@ const likePost = gql`mutation likePost ($postId: String!) {
 }
 ${post}`;
 
-const FeedList = ({ feeds, likePostEvent }) => (
+const unlikePost = gql`mutation unlikePost ($postId: String!) {
+  unlikePost(postId: $postId) {
+    ...PostView
+  }
+}
+${post}`;
+
+const FeedList = ({ feeds, likePostEvent, unlikePostEvent }) => (
   <div>
     {feeds.map(item => (
-      <Post key={item._id} data={item} likePostEvent={likePostEvent} />
+      <Post key={item._id} data={item} likePostEvent={likePostEvent} unlikePostEvent={unlikePostEvent} />
     ))}
   </div>
 );
@@ -92,6 +99,7 @@ FeedList.propTypes = {
     }),
   ).isRequired,
   likePostEvent: PropTypes.func.isRequired,
+  unlikePostEvent: PropTypes.func.isRequired,
 };
 
 class Home extends React.Component {
@@ -102,6 +110,7 @@ class Home extends React.Component {
     createNewPost: PropTypes.func.isRequired,
     loadMoreRows: PropTypes.func.isRequired,
     likePost: PropTypes.func.isRequired,
+    unlikePost: PropTypes.func.isRequired,
   };
 
   render() {
@@ -122,7 +131,7 @@ class Home extends React.Component {
               hasMore={hasNextPage}
               loader={<div className="loader">Loading ...</div>}
             >
-              <FeedList feeds={feeds.edges} likePostEvent={this.props.likePost} />
+              <FeedList feeds={feeds.edges} likePostEvent={this.props.likePost} unlikePostEvent={this.props.unlikePost} />
             </InfiniteScroll>
           </Col>
 
@@ -204,12 +213,66 @@ export default compose(
     }),
   }),
   graphql(likePost, {
-    props: ({ mutate }) => ({
-      likePost: postId => mutate({
+    props: ({ ownProps, mutate }) => ({
+      likePost: (postId, message, totalLikes, totalComments) => mutate({
         variables: { postId },
+        optimisticResponse: {
+          __typename: 'Mutation',
+          likePost: {
+            __typename: 'PostSchemas',
+            _id: postId,
+            message,
+            user: {
+              __typename: 'UserSchemas',
+              _id: ownProps.data.me._id,
+              username: ownProps.data.me.username,
+              profile: ownProps.data.me.profile,
+            },
+            totalLikes: totalLikes + 1,
+            totalComments,
+            isLiked: true,
+          },
+        },
         updateQueries: {
           homePageQuery: (previousResult, { mutationResult }) => {
             const updatedPost = mutationResult.data.likePost;
+            const index = previousResult.feeds.edges.findIndex(item => item._id === updatedPost._id);
+            return update(previousResult, {
+              feeds: {
+                edges: {
+                  $splice: [[index, 1, updatedPost]],
+                },
+              },
+            });
+          },
+        },
+      }),
+    }),
+  }),
+  graphql(unlikePost, {
+    props: ({ ownProps, mutate }) => ({
+      unlikePost: (postId, message, totalLikes, totalComments) => mutate({
+        variables: { postId },
+        optimisticResponse: {
+          __typename: 'Mutation',
+          unlikePost: {
+            __typename: 'PostSchemas',
+            _id: postId,
+            message,
+            user: {
+              __typename: 'UserSchemas',
+              _id: ownProps.data.me._id,
+              username: ownProps.data.me.username,
+              profile: ownProps.data.me.profile,
+            },
+            totalLikes: totalLikes - 1,
+            totalComments,
+            isLiked: false,
+          },
+        },
+        updateQueries: {
+          homePageQuery: (previousResult, { mutationResult }) => {
+            const updatedPost = mutationResult.data.unlikePost;
             const index = previousResult.feeds.edges.findIndex(item => item._id === updatedPost._id);
             return update(previousResult, {
               feeds: {
