@@ -34,9 +34,9 @@ const Post = ({ data: { _id, message, totalLikes, totalComments, isLiked, user }
         onClick={(e) => {
           e.preventDefault();
           if (!isLiked) {
-            likePostEvent(_id, message, totalLikes, totalComments);
+            likePostEvent(_id, message, totalLikes, totalComments, user);
           } else {
-            unlikePostEvent(_id, message, totalLikes, totalComments);
+            unlikePostEvent(_id, message, totalLikes, totalComments, user);
           }
         }}
       >
