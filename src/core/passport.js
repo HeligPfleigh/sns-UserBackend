@@ -14,19 +14,26 @@
  */
 
 import passport from 'passport';
-import qs from 'qs';
 import moment from 'moment';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
+import mongoose from 'mongoose';
+
 // import { User, UserLogin, UserClaim, UserProfile } from '../data/models';
 import { auth as config } from '../config';
-import { UsersModel } from '../data/models';
+import {
+  UsersModel,
+  ApartmentsModel,
+} from '../data/models';
 import fetch from './fetch';
+
+const { Types: { ObjectId } } = mongoose;
 
 export async function getLongTermToken(accessToken) {
   const longlivedTokenRequest = await fetch(`https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=${config.facebook.id}&fb_exchange_token=${accessToken}&client_secret=${config.facebook.secret}`);
-  const longlivedTokenObject = qs.parse(await longlivedTokenRequest.text());
+  const longlivedTokenObject = JSON.parse(await longlivedTokenRequest.text());
   // long-lived tokens will expire in about 60 days
   // so we want to refresh it every 50 days
+
   return {
     tokenExpire: moment().add(50, 'days').toDate(),
     accessToken: longlivedTokenObject.access_token,
@@ -64,10 +71,18 @@ passport.use(new FacebookStrategy({
           firstName: profile._json.first_name,
           picture: `https://graph.facebook.com/${profile.id}/picture?type=large`,
         },
+        building: ObjectId('58da279f0ff5af8c8be59c36'),
         roles: ['user'],
         services: {
           facebook: longlivedToken,
         },
+      });
+
+      ApartmentsModel.create({
+        number: '27',
+        building: ObjectId('58da279f0ff5af8c8be59c36'),
+        user: user._id,
+        isOwner: true,
       });
     }
     done(null, {
