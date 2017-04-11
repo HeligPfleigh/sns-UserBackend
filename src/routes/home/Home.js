@@ -213,8 +213,8 @@ export default compose(
     }),
   }),
   graphql(likePost, {
-    props: ({ ownProps, mutate }) => ({
-      likePost: (postId, message, totalLikes, totalComments) => mutate({
+    props: ({ mutate }) => ({
+      likePost: (postId, message, totalLikes, totalComments, user) => mutate({
         variables: { postId },
         optimisticResponse: {
           __typename: 'Mutation',
@@ -224,9 +224,9 @@ export default compose(
             message,
             user: {
               __typename: 'UserSchemas',
-              _id: ownProps.data.me._id,
-              username: ownProps.data.me.username,
-              profile: ownProps.data.me.profile,
+              _id: user._id,
+              username: user.username,
+              profile: user.profile,
             },
             totalLikes: totalLikes + 1,
             totalComments,
@@ -250,8 +250,8 @@ export default compose(
     }),
   }),
   graphql(unlikePost, {
-    props: ({ ownProps, mutate }) => ({
-      unlikePost: (postId, message, totalLikes, totalComments) => mutate({
+    props: ({ mutate }) => ({
+      unlikePost: (postId, message, totalLikes, totalComments, user) => mutate({
         variables: { postId },
         optimisticResponse: {
           __typename: 'Mutation',
@@ -261,9 +261,9 @@ export default compose(
             message,
             user: {
               __typename: 'UserSchemas',
-              _id: ownProps.data.me._id,
-              username: ownProps.data.me.username,
-              profile: ownProps.data.me.profile,
+              _id: user._id,
+              username: user.username,
+              profile: user.profile,
             },
             totalLikes: totalLikes - 1,
             totalComments,
