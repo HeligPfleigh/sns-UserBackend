@@ -86,6 +86,8 @@ const UserSchemas = new GraphQLObjectType({
           result.push(item.friend);
           return result;
         }, []);
+        ninIds.push(user._id);
+
         let usersId = await ApartmentsModel.find({
           user: { $nin: ninIds },
           building: user.building,
