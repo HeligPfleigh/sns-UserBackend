@@ -20,6 +20,8 @@ import mongoose from 'mongoose';
 
 // import { User, UserLogin, UserClaim, UserProfile } from '../data/models';
 import * as admin from 'firebase-admin';
+import * as firebase from 'firebase';
+import _ from 'lodash';
 import serviceAccount from './private/firebase-admin.json';
 import { auth as config } from '../config';
 import {
@@ -40,7 +42,7 @@ async function getChatToken(data) {
     if (data.chatId) {
       result.token = await defaultAdminApp.auth().createCustomToken(data.chatId);
     } else {
-      const credential = chat.service.auth.FacebookAuthProvider.credential(data.accessToken);
+      const credential = await firebase.auth.FacebookAuthProvider.credential(data.accessToken);
       const loginResult = await chat.service.auth().signInWithCredential(credential);
       const token = await defaultAdminApp.auth().createCustomToken(loginResult.uid);
       result = { chatId: loginResult.uid, token };
@@ -112,6 +114,7 @@ passport.use(new FacebookStrategy({
         user: user._id,
         isOwner: true,
       });
+      await chat.setUser(_.pick(user, ['id', 'username', 'profile']));
     } else if (!user.chatId) {
       chatToken = await getChatToken({ accessToken });
       await UsersModel.update({
@@ -121,6 +124,7 @@ passport.use(new FacebookStrategy({
           chatId: chatToken.chatId,
         },
       });
+      await chat.setUser(_.pick(user, ['id', 'username', 'profile']));
     } else {
       chatToken = await getChatToken({ chatId: user.chatId });
     }

@@ -11,3 +11,5 @@ export const ACCEPTED = 'ACCEPTED';
 export const REJECTED = 'REJECTED';
 export const BLOCKED = 'BLOCKED';
 export const NONE = 'NONE';
+
+export const CONTROL_NEW_CONVERSATION = 'CONTROL_NEW_CONVERSATION';

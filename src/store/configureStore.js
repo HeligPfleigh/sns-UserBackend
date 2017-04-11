@@ -45,7 +45,6 @@ export default function configureStore(initialState, config) {
       user = state.user;
       if (user.chatToken) {
         await chat.auth(user.chatToken);
-        await chat.setUser(user);
       }
     }
   });

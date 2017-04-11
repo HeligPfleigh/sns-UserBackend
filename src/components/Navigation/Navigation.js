@@ -35,7 +35,7 @@ class Navigation extends React.Component {
           {isMobile === false ? <span>Nhóm</span> : ''}
         </Link>
 
-        <Link className={isMobile === false ? s.link : s.navLink} to="/admin">
+        <Link className={isMobile === false ? s.link : s.navLink} to="/messages">
           <i className="fa fa-comments fa-lg"></i>
           {isMobile === false ? <span>Tinh nhắn</span> : ''}
         </Link>

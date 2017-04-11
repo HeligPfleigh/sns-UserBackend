@@ -7,13 +7,10 @@ export class FirebaseProvider {
     const defaultApp = firebase.initializeApp(config);
     this.service = defaultApp;
   }
-  get provider() {
-    return this.service;
-  }
   async auth(token) {
     try {
       await this.service.auth().signInWithCustomToken(token);
-      const user = this.service.auth().currentUser;
+      const user = await this.service.auth().currentUser;
       this.user = user;
       return user;
     } catch (error) {
@@ -46,7 +43,8 @@ export class FirebaseProvider {
           [this.user.uid]: true,
           [data.to.uid]: true,
         };
-      }updates[`/conversation/${data.conversationId}`] = {
+      }
+      updates[`/conversation/${data.conversationId}`] = {
         message: data.message,
         timestamp: firebase.ServerValue.TIMESTAMP,
         from: data.from,
