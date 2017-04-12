@@ -16,16 +16,21 @@ import s from './Header.css';
 import SearchBox from '../SearchBox';
 import Navigation from '../Navigation';
 import NavRight from '../NavRight';
+import history from '../../core/history';
 // import logoUrl from './logo-small.png';
 // import logoUrl2x from './logo-small@2x.png';
 
 class Header extends React.Component {
+
+  gotoHomePage =() => {
+    history.push('/');
+  }
   render() {
     return (
       <Grid bsClass="navbar-fixed-top " className={s.root}>
         <Row className={s.container}>
           <Col lg={6} md={6} sm={7} xs={7} className={s.nowrap}>
-            <Button bsStyle="danger" className={s.brand}>HX</Button>
+            <Button onClick={this.gotoHomePage} bsStyle="danger" className={s.brand}>HX</Button>
             <MediaQuery query="(min-width: 992px)">
               <SearchBox />
             </MediaQuery>

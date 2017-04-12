@@ -12,8 +12,9 @@ class FriendList extends React.Component {
   render() {
     const { friends, ...customs } = this.props;
     const { friendType } = customs;
+    const styleNofriend = friends.length > 0 ? s.friendList : s.friendListHide;
     return (
-      <div className={s.friendList}>
+      <div className={friendType === PENDING ? s.friendList : styleNofriend}>
         {
           friendType === PENDING &&
           <h4>
