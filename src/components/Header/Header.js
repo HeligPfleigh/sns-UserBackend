@@ -27,7 +27,7 @@ class Header extends React.Component {
   }
   render() {
     return (
-      <Grid bsClass="navbar-fixed-top " className={s.root}>
+      <Grid bsClass="navbar" className={s.root}>
         <Row className={s.container}>
           <Col lg={6} md={6} sm={7} xs={7} className={s.nowrap}>
             <Button onClick={this.gotoHomePage} bsStyle="danger" className={s.brand}>HX</Button>
