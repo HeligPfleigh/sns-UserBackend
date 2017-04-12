@@ -1,4 +1,4 @@
-import { CONTROL_NEW_CONVERSATION } from '../constants';
+import { CONTROL_NEW_CONVERSATION, ADD_USER_NEW_CONVERSATION } from '../constants';
 
 const initialState = {
   new: {
@@ -6,6 +6,7 @@ const initialState = {
   },
 };
 export default function chat(state = initialState, action) {
+  const isNewConversation = state && state.new && state.new.active;
   switch (action.type) {
     case CONTROL_NEW_CONVERSATION:
       return {
@@ -14,6 +15,17 @@ export default function chat(state = initialState, action) {
           active: action.payload.active,
         },
       };
+    case ADD_USER_NEW_CONVERSATION:
+      if (isNewConversation) {
+        return {
+          ...state,
+          new: {
+            active: true,
+            user: action.payload,
+          },
+        };
+      }
+      return state;
     default:
       return state;
   }

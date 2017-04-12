@@ -1,5 +1,6 @@
 import * as firebase from 'firebase';
 import EventEmitter from 'events';
+import uuidV4 from 'uuid/v4';
 
 export class FirebaseProvider {
 
@@ -7,10 +8,23 @@ export class FirebaseProvider {
     const defaultApp = firebase.initializeApp(config);
     this.service = defaultApp;
   }
+  async getStaticData(ref) {
+    const refData = this.service.database().ref(ref);
+    const promise = new Promise((resolve, reject) => {
+      refData.once('value').then((snapshot) => {
+        resolve(snapshot.val());
+      }).catch((error) => {
+        reject(error);
+      });
+    });
+    const data = await promise;
+    return data;
+  }
   async auth(token) {
     try {
       await this.service.auth().signInWithCustomToken(token);
-      const user = await this.service.auth().currentUser;
+      let user = await this.service.auth().currentUser;
+      user = await this.getStaticData(`users/${user.uid}`);
       this.user = user;
       return user;
     } catch (error) {
@@ -21,6 +35,13 @@ export class FirebaseProvider {
     if (this.user) {
       await this.service.database().ref(`users/${this.user.uid}`).set(user);
     }
+  }
+  async getUser(chatId) {
+    if (this.user && chatId) {
+      const user = await this.getStaticData(`users/${chatId}`);
+      return user;
+    }
+    return this.user;
   }
   onMessage(conversationId, cb) {
     if (this.user) {
@@ -34,23 +55,26 @@ export class FirebaseProvider {
     if (this.user) {
       const updates = {};
       if (data.isNew) {
-        data.conversationId = this.service.database().ref().child('messages').push().key;
+        data.conversationId = this.service.database().ref().child('conversation').push().key;
         updates[`/conversation/${data.conversationId}`] = {
           lastMessage: data.message,
-          timestamp: firebase.ServerValue.TIMESTAMP,
-        };
-        updates[`/members/${data.conversationId}`] = {
-          [this.user.uid]: true,
-          [data.to.uid]: true,
+          timestamp: firebase.database.ServerValue.TIMESTAMP,
         };
       }
       updates[`/conversation/${data.conversationId}`] = {
-        message: data.message,
-        timestamp: firebase.ServerValue.TIMESTAMP,
-        from: data.from,
-        to: data.to,
+        lastMessage: data.message,
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        owner: this.user,
       };
-      return this.service.database().ref().update(updates);
+      const messageId = this.service.database().ref().child('messages').push().key;
+      updates[`/messages/${data.conversationId}/${messageId}`] = {
+        message: data.message,
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        owner: this.user,
+      };
+
+      this.service.database().ref().update(updates);
+      return data.conversationId;
     }
     return null;
   }
