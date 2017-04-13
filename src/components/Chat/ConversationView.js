@@ -20,13 +20,13 @@ class ConversationView extends React.Component {
   componentWillReceiveProps(nextProps) {
     const { newConversation } = this.props;
     if (nextProps.newConversation.active && !newConversation.active) {
-      this.props.addNewUserToConversation({ userChatId: 'LcGOCZzF1nV2jVTERsVDGvgcWeK2' });
+      this.props.addNewUserToConversation({ userChatId: 'KcGOCZzF1nV2jVTERsVDGvgcWeL2' });
     }
   }
   handleSend = (message) => {
     const { newConversation } = this.props;
     if (newConversation.active && newConversation.user) {
-      this.props.sendMessage({ to: newConversation.user, message, isNew: true });
+      this.props.sendMessage({ to: newConversation.user, message });
     }
   }
   render() {

@@ -3,21 +3,27 @@ import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import { connect } from 'react-redux';
 import s from './Conversation.scss';
 import ConversationItem from './ConversationItem';
-import { activeNewChat } from '../../actions/chat';
+import { activeNewChat, getConversations } from '../../actions/chat';
 
 @connect(
   state => ({
     newConversation: state.chat.new,
+    conversations: state.chat.conversations,
   }),
-  { activeNewChat },
+  { activeNewChat, getConversations },
 )
 class ConversationList extends React.Component {
   static propTypes = {
     newConversation: PropTypes.object,
+    conversations: PropTypes.array,
     activeNewChat: PropTypes.func.isRequired,
+    getConversations: PropTypes.func.isRequired,
+  }
+  componentWillMount() {
+    this.props.getConversations();
   }
   render() {
-    const { newConversation } = this.props;
+    const { newConversation, conversations } = this.props;
     return (
       <div className={s.conversations}>
         <div className={s.header}>
@@ -39,7 +45,10 @@ class ConversationList extends React.Component {
         <div className={s.listConversation}>
           {
             newConversation && newConversation.active &&
-            <ConversationItem />
+            <ConversationItem conversation={newConversation} />
+          }
+          {
+            conversations && conversations.map(conversation => <ConversationItem conversation={conversation} />)
           }
         </div>
       </div>

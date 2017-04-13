@@ -8,9 +8,16 @@ class ConversationItem extends React.Component {
     conversation: PropTypes.object,
   }
   render() {
-    const { conversation } = this.props;
-    const name = conversation && `${conversation.profile.firstName} ${conversation.profile.lastName}`;
-    const picture = conversation && conversation.profile && conversation.profile.picture;
+    let { conversation } = this.props;
+    let conversationId;
+    if (!conversation.receiver) {
+      conversation = Object.values(conversation)[0];
+      conversationId = Object.keys(conversation)[0];
+    }
+    const receiver = conversation && conversation.receiver;
+    const meta = conversation && conversation.meta;
+    const name = receiver && `${receiver.profile.firstName} ${receiver.profile.lastName}`;
+    const picture = receiver && receiver.profile && receiver.profile.picture;
     return (
       <div className={classnames(s.conversationItem, { [s.activeNew]: !conversation })}>
         <div className={s.friendAvata}>
@@ -20,14 +27,14 @@ class ConversationItem extends React.Component {
           <div className={s.friendName}>
             <span>{name || 'New message'}</span>
             {
-              conversation && conversation.lastMessage &&
-              <span>{conversation.lastMessage}</span>
+              meta && meta.lastMessage &&
+              <span>{meta.lastMessage}</span>
             }
           </div>
           {
-            conversation && conversation.timestamp &&
+            meta && meta.timestamp &&
             <div className={s.lastTime}>
-              {conversation.timestamp}
+              {meta.timestamp}
             </div>
           }
         </div>

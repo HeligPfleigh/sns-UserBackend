@@ -1,6 +1,5 @@
 import * as firebase from 'firebase';
 import EventEmitter from 'events';
-import uuidV4 from 'uuid/v4';
 
 export class FirebaseProvider {
 
@@ -9,9 +8,11 @@ export class FirebaseProvider {
     this.service = defaultApp;
   }
   async getStaticData(ref) {
-    const refData = this.service.database().ref(ref);
+    if (typeof ref === 'string') {
+      ref = this.service.database().ref(ref);
+    }
     const promise = new Promise((resolve, reject) => {
-      refData.once('value').then((snapshot) => {
+      ref.once('value').then((snapshot) => {
         resolve(snapshot.val());
       }).catch((error) => {
         reject(error);
@@ -43,40 +44,61 @@ export class FirebaseProvider {
     }
     return this.user;
   }
-  onMessage(conversationId, cb) {
+  async onMessage(conversationId, cb) {
     if (this.user) {
+      const history = await this.getStaticData(`messages/${conversationId}`);
+      cb(null, { history });
       const messengerRef = this.service.database().ref(`messages/${conversationId}`);
-      messengerRef.on('value', (snapshot) => {
-        cb(null, snapshot.val());
+      messengerRef.on('child_added', (snapshot) => {
+        cb(null, { new: snapshot.val() });
       });
     }
   }
-  sendMessage(data) {
+  async sendMessage(data) {
     if (this.user) {
       const updates = {};
-      if (data.isNew) {
-        data.conversationId = this.service.database().ref().child('conversation').push().key;
-        updates[`/conversation/${data.conversationId}`] = {
+      if (!data.conversation) {
+        data.conversation = await this.service.database().ref().child('conversation').push().key;
+        updates[`/members/${data.conversation}`] = {
+          [this.user.uid]: true,
+          [data.to.uid]: true,
+        };
+        updates[`/conversation/${data.conversation}`] = {
+          meta: {
+            lastMessage: data.message,
+            timestamp: firebase.database.ServerValue.TIMESTAMP,
+          },
+          receiver: data.to,
+        };
+      } else {
+        updates[`/conversation/${data.conversation}/meta`] = {
           lastMessage: data.message,
           timestamp: firebase.database.ServerValue.TIMESTAMP,
         };
       }
-      updates[`/conversation/${data.conversationId}`] = {
-        lastMessage: data.message,
-        timestamp: firebase.database.ServerValue.TIMESTAMP,
-        owner: this.user,
-      };
-      const messageId = this.service.database().ref().child('messages').push().key;
-      updates[`/messages/${data.conversationId}/${messageId}`] = {
+      const messageId = await this.service.database().ref().child('messages').push().key;
+      updates[`/messages/${data.conversation}/${messageId}`] = {
         message: data.message,
         timestamp: firebase.database.ServerValue.TIMESTAMP,
-        owner: this.user,
+        user: this.user.uid,
       };
 
-      this.service.database().ref().update(updates);
-      return data.conversationId;
+      await this.service.database().ref().update(updates);
+      return data.conversation;
     }
     return null;
+  }
+  async onConversation(cb) {
+    if (this.user) {
+      const ref = this.service.database().ref('conversation/');
+      ref.on('child_added', (snapshot) => {
+        let newData = snapshot.val();
+        if (newData) {
+          newData = { [snapshot.key]: newData };
+          cb(null, newData);
+        }
+      });
+    }
   }
   dataEvent(params) {
     const eventEmitter = new EventEmitter();
