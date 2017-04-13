@@ -23,7 +23,7 @@ import history from '../../core/history';
 class Header extends React.Component {
 
   gotoHomePage =() => {
-    history.push('/admin');
+    history.push('/');
   }
   render() {
     return (
