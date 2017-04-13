@@ -25,7 +25,7 @@ class Navigation extends React.Component {
     const { isMobile } = this.props;
     return (
       <div className={isMobile === false ? s.root : s.navbarSecond} role="navigation">
-        <Link className={isMobile === false ? s.link : s.navLink} to="/admin">
+        <Link className={isMobile === false ? s.link : s.navLink} to="/">
           <i className="fa fa-home fa-lg"></i>
           {isMobile === false ? <span>Trang chủ</span> : ''}
         </Link>
