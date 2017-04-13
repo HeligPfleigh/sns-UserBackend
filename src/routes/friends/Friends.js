@@ -95,6 +95,7 @@ class Friends extends React.Component {
   render() {
     const { data: { loading, me } } = this.props;
     return (
+
       <Grid>
         <Loading show={loading} />
         <Row>
@@ -112,6 +113,8 @@ class Friends extends React.Component {
           </Col>
         </Row>
       </Grid>
+
+
     );
   }
 }
