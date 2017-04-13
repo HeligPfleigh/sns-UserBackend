@@ -106,7 +106,7 @@ class Friends extends React.Component {
           </Col>
           <Col md={4} xs={12}>
             {
-              me && me.friendSuggestions &&
+              me && me.friendSuggestions && me.friendSuggestions.length > 0 &&
               <FriendList friends={me.friendSuggestions} friendType={NONE} handleFriendAction={this.handleFriendAction} />
             }
           </Col>
