@@ -19,6 +19,7 @@ import InfiniteScroll from 'react-infinite-scroller';
 import Post from '../../components/Post';
 import FriendSuggestions from '../../components/FriendSuggestions';
 import NewPost from '../../components/NewPost';
+import Loading from '../../components/Loading';
 import s from './Home.css';
 
 const post = gql`
@@ -114,32 +115,38 @@ class Home extends React.Component {
   };
 
   render() {
+    // Pre-fetch data
+    if (this.props.data.loading) return null;
+
     const { data: { loading, feeds }, loadMoreRows } = this.props;
     const { pageInfo: { hasNextPage } } = feeds;
     return (
-      <div className={s.root}>
-        <Row className={s.container}>
-          <Col>
-            <h1>My feeds</h1>
-            <a href="/logout"> logout </a>
-          </Col>
-          <Col className={s.feedsContent}>
-            {loading && <h1 style={{ textAlign: 'center' }}>LOADING</h1>}
-            <NewPost createNewPost={this.props.createNewPost} />
-            <InfiniteScroll
-              loadMore={loadMoreRows}
-              hasMore={hasNextPage}
-              loader={<div className="loader">Loading ...</div>}
-            >
-              <FeedList feeds={feeds.edges} likePostEvent={this.props.likePost} unlikePostEvent={this.props.unlikePost} />
-            </InfiniteScroll>
-          </Col>
+      <span>
+        <Loading show={loading} full>Loading ...</Loading>
+        <div className={s.root}>
+          <Row className={s.container}>
+            <Col>
+              <h1>My feeds</h1>
+              <a href="/logout"> logout </a>
+            </Col>
+            <Col className={s.feedsContent}>
+              {loading && <h1 style={{ textAlign: 'center' }}>LOADING</h1>}
+              <NewPost createNewPost={this.props.createNewPost} />
+              <InfiniteScroll
+                loadMore={loadMoreRows}
+                hasMore={hasNextPage}
+                loader={<div className="loader">Loading ...</div>}
+              >
+                <FeedList feeds={feeds.edges} likePostEvent={this.props.likePost} unlikePostEvent={this.props.unlikePost} />
+              </InfiniteScroll>
+            </Col>
 
-          <MediaQuery minDeviceWidth={992} values={{ deviceWidth: 1600 }}>
-            <FriendSuggestions />
-          </MediaQuery>
-        </Row>
-      </div>
+            <MediaQuery minDeviceWidth={992} values={{ deviceWidth: 1600 }}>
+              <FriendSuggestions />
+            </MediaQuery>
+          </Row>
+        </div>
+      </span>
     );
   }
 }

@@ -21,7 +21,7 @@ class Layout extends React.Component {
   render() {
     return (
       <StickyContainer>
-        <Sticky className={s.fixToTop}>
+        <Sticky className="navbar-fixed-top">
           <Header />
         </Sticky>
         {this.props.children}
