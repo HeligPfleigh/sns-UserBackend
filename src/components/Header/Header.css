@@ -14,17 +14,17 @@
 }
 
 .root {
-    background: #263E49;
-    color: #fff;
-    border-radius: 0;
-    margin-bottom: 0;
-  }
+  background: #263E49;
+  color: #fff;
+  border-radius: 0;
+  margin-bottom: 0;
+}
 
-  .container {
-    margin: -1px auto;
-    max-width: var(--max-header-width);
-    /*min-width: var(--min-web-content-width);*/
-  }
+.container {
+  margin: -1px auto;
+  max-width: var(--max-header-width);
+  /*min-width: var(--min-web-content-width);*/
+}
 
 .brand {
   /*padding: 5px;*/

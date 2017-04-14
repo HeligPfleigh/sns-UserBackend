@@ -107,17 +107,6 @@ textarea {
 }
 
 /*
- * Fix to top Header
- */
-.fixToTop {
-  transform: translateZ(0px);
-  position: fixed;
-  top: 0px;
-  left: 0px;
-  z-index: 999;
-}
-
-/*
  * Print styles
  * Inlined to avoid the additional HTTP request:
  * http://www.phpied.com/delay-loading-your-print-css/

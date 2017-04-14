@@ -97,8 +97,8 @@ class Friends extends React.Component {
     return (
 
       <Grid>
-        <Loading show={loading} />
-        <Row>
+        <Loading show={loading} full />
+        <Row className={s.container}>
           <Col md={8} xs={12}>
             {
               me && me.friendRequests &&

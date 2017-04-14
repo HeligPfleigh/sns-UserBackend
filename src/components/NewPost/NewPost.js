@@ -26,7 +26,6 @@ const styles = {
   editor: {
     border: '1px solid #ddd',
     cursor: 'text',
-    fontSize: 16,
     minHeight: 40,
     padding: 10,
   },
