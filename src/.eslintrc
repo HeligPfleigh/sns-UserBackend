@@ -5,6 +5,7 @@
     "no-param-reassign": 0,
     "no-plusplus": "off",
     "react/self-closing-comp": "off",
+    "react/no-danger": "off",
     "jsx-a11y/href-no-hash": "off",
     "css-modules/no-unused-class": "off",
     "no-bitwise": ["error", { "allow": ["~"] }],

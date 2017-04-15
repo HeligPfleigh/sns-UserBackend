@@ -35,7 +35,7 @@ $chatBorder: 1px solid rgba(0, 0, 0, .10);
       display: flex;
       flex-direction: column;
       >span:first-child {
-        font-weight: 500;
+        font-weight: 600;
       }
     }
   }
@@ -127,6 +127,6 @@ $chatBorder: 1px solid rgba(0, 0, 0, .10);
     border-top: $chatBorder;
   }
   .messagesList {
-    display: flex;
+    padding: 0.5em;
   }
 }

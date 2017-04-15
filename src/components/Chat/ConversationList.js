@@ -3,27 +3,51 @@ import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import { connect } from 'react-redux';
 import s from './Conversation.scss';
 import ConversationItem from './ConversationItem';
-import { activeNewChat, getConversations } from '../../actions/chat';
+import * as chatActions from '../../actions/chat';
 
 @connect(
   state => ({
-    newConversation: state.chat.new,
+    user: state.chat.user,
+    newChat: state.chat.newChat,
+    current: state.chat.current,
     conversations: state.chat.conversations,
   }),
-  { activeNewChat, getConversations },
+  { ...chatActions },
 )
 class ConversationList extends React.Component {
   static propTypes = {
-    newConversation: PropTypes.object,
+    user: PropTypes.object,
+    newChat: PropTypes.object,
+    current: PropTypes.string,
     conversations: PropTypes.array,
     activeNewChat: PropTypes.func.isRequired,
     getConversations: PropTypes.func.isRequired,
+    activeConversation: PropTypes.func.isRequired,
   }
   componentWillMount() {
-    this.props.getConversations();
+    const { user, getConversations, current, newChat, activeConversation, conversations } = this.props;
+    if (user && user.uid) {
+      getConversations();
+      if (!current && !newChat.active && conversations && conversations[0]) {
+        activeConversation(conversations[0]);
+      }
+    }
+  }
+  componentWillReceiveProps(nextProps) {
+    const { user, getConversations, activeConversation } = this.props;
+    const { conversations, current, newChat } = nextProps;
+    if (nextProps.user && nextProps.user !== user) {
+      getConversations();
+    }
+    if (nextProps.user && !current && !newChat.active && conversations && conversations[0]) {
+      activeConversation({ conversation: conversations[0] });
+    }
+  }
+  handleActiveConversation = conversation => () => {
+    this.props.activeConversation(conversation);
   }
   render() {
-    const { newConversation, conversations } = this.props;
+    const { newChat, conversations } = this.props;
     return (
       <div className={s.conversations}>
         <div className={s.header}>
@@ -44,11 +68,17 @@ class ConversationList extends React.Component {
         </div>
         <div className={s.listConversation}>
           {
-            newConversation && newConversation.active &&
-            <ConversationItem conversation={newConversation} />
+            newChat && newChat.active &&
+            <ConversationItem conversation={newChat} />
           }
           {
-            conversations && conversations.map(conversation => <ConversationItem conversation={conversation} />)
+            conversations && conversations.map(conversation =>
+              <ConversationItem
+                key={Object.keys(conversation)[0]}
+                onClick={this.handleActiveConversation({ conversation })}
+                conversation={conversation}
+              />,
+            )
           }
         </div>
       </div>

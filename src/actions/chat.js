@@ -1,14 +1,33 @@
 /* eslint-disable import/prefer-default-export */
-
+import _ from 'lodash';
 import {
+  CHAT_SET_USER,
   CONTROL_NEW_CONVERSATION,
   ADD_USER_NEW_CONVERSATION,
   CHAT_ACTIVE_CONVERSATION,
   CHAT_ON_CONVERSATION_CHILD_ADD,
+  CHAT_ON_MESSAGE_CHILD_ADD,
   CHAT_ON_FAIL,
  }
  from '../constants';
 
+export function isLoad(state, conversationId) {
+  if (conversationId) {
+    return !_.isEmpty(state.chat && state.chat.messages && state.chat.messages[conversationId]);
+  }
+  return !_.isEmpty(state.chat && (state.chat.conversations || state.chat.messages));
+}
+export function auth(token) {
+  return async (dispatch, getState, { chat }) => {
+    const user = await chat.auth(token);
+    if (user) {
+      dispatch({
+        type: CHAT_SET_USER,
+        payload: user,
+      });
+    }
+  };
+}
 export function makeError(error) {
   return {
     type: CHAT_ON_FAIL,
@@ -40,15 +59,15 @@ export function addNewUserToConversation({ userChatId }) {
   };
 }
 
-export function sendMessage({ message, to, conversation }) {
+export function sendMessage({ message, to, conversationId }) {
   return async (dispatch, getState, { chat }) => {
     try {
-      const conversationId = await chat.sendMessage({ from: chat.user, to, conversation, message });
-      if (!conversation && conversationId) {
+      const resultId = await chat.sendMessage({ from: chat.user, to, conversationId, message });
+      if (!conversationId && resultId) {
         dispatch({
           type: CHAT_ACTIVE_CONVERSATION,
           payload: {
-            id: conversationId,
+            id: resultId,
           },
         });
       }
@@ -61,21 +80,27 @@ export function sendMessage({ message, to, conversation }) {
 export function activeConversation({ conversation }) {
   return async (dispatch, getState, { chat }) => {
     try {
-      if (!conversation) {
+      if (conversation) {
+        const conversationId = Object.keys(conversation)[0];
         dispatch({
           type: CHAT_ACTIVE_CONVERSATION,
-          payload: {
-            id: conversation,
-          },
+          payload: conversationId,
         });
-        chat.onMessage(conversation, (error, data) => {
+        if (isLoad(getState(), conversationId)) return;
+        chat.onMessage(conversationId, (error, data) => {
           if (error) {
             dispatch({
               type: CHAT_ON_FAIL,
               error,
             });
           } else {
-
+            dispatch({
+              type: CHAT_ON_MESSAGE_CHILD_ADD,
+              payload: {
+                conversationId,
+                message: data,
+              },
+            });
           }
         });
       }
@@ -88,6 +113,7 @@ export function activeConversation({ conversation }) {
 export function getConversations() {
   return async (dispatch, getState, { chat }) => {
     try {
+      if (isLoad(getState())) return;
       chat.onConversation((err, data) => {
         if (err) {
           makeError(err);

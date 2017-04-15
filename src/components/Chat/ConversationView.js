@@ -1,39 +1,45 @@
 import React, { PropTypes } from 'react';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import { connect } from 'react-redux';
+import _ from 'lodash';
 import s from './Conversation.scss';
 import ChatEditor from './ChatEditor';
+import Message from './Message';
 import { addNewUserToConversation, sendMessage } from '../../actions/chat';
 
 @connect(
   state => ({
-    newConversation: state.chat.new,
+    chatState: state.chat,
   }),
   { addNewUserToConversation, sendMessage },
 )
 class ConversationView extends React.Component {
   static propTypes = {
-    newConversation: PropTypes.object,
+    chatState: PropTypes.object,
     addNewUserToConversation: PropTypes.func.isRequired,
     sendMessage: PropTypes.func.isRequired,
   };
-  componentWillReceiveProps(nextProps) {
-    const { newConversation } = this.props;
-    if (nextProps.newConversation.active && !newConversation.active) {
-      this.props.addNewUserToConversation({ userChatId: 'KcGOCZzF1nV2jVTERsVDGvgcWeL2' });
-    }
-  }
   handleSend = (message) => {
-    const { newConversation } = this.props;
-    if (newConversation.active && newConversation.user) {
-      this.props.sendMessage({ to: newConversation.user, message });
+    const { chatState } = this.props;
+    const { newChat, current } = chatState;
+    if (newChat.active && newChat.receiver) {
+      this.props.sendMessage({ to: newChat.receiver, message });
+    } else if (current) {
+      this.props.sendMessage({ message, conversationId: current });
     }
   }
   render() {
+    const { chatState: { user, current, conversations, messages } } = this.props;
+    const activeConversation = _.find(conversations, o => _.has(o, current));
+    const receiver = activeConversation && Object.values(activeConversation)[0] && Object.values(activeConversation)[0].receiver;
+    const members = [user, receiver];
+    const messagesOnChat = messages && messages[current];
     return (
       <div className={s.viewChat}>
         <div className={s.messagesList}>
-          Haha
+          {
+            messagesOnChat && messagesOnChat.map(message => <Message key={Object.keys(message)[0]} members={members} message={message} />)
+          }
         </div>
         <div className={s.editor}>
           <ChatEditor handleAction={this.handleSend} />

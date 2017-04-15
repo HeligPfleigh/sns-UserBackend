@@ -46,24 +46,22 @@ export class FirebaseProvider {
   }
   async onMessage(conversationId, cb) {
     if (this.user) {
-      const history = await this.getStaticData(`messages/${conversationId}`);
-      cb(null, { history });
       const messengerRef = this.service.database().ref(`messages/${conversationId}`);
       messengerRef.on('child_added', (snapshot) => {
-        cb(null, { new: snapshot.val() });
+        cb(null, { [snapshot.key]: snapshot.val() });
       });
     }
   }
   async sendMessage(data) {
     if (this.user) {
       const updates = {};
-      if (!data.conversation) {
-        data.conversation = await this.service.database().ref().child('conversation').push().key;
-        updates[`/members/${data.conversation}`] = {
+      if (!data.conversationId) {
+        data.conversationId = await this.service.database().ref().child('conversation').push().key;
+        updates[`/members/${data.conversationId}`] = {
           [this.user.uid]: true,
           [data.to.uid]: true,
         };
-        updates[`/conversation/${data.conversation}`] = {
+        updates[`/conversation/${data.conversationId}`] = {
           meta: {
             lastMessage: data.message,
             timestamp: firebase.database.ServerValue.TIMESTAMP,
@@ -71,32 +69,32 @@ export class FirebaseProvider {
           receiver: data.to,
         };
       } else {
-        updates[`/conversation/${data.conversation}/meta`] = {
+        updates[`/conversation/${data.conversationId}/meta`] = {
           lastMessage: data.message,
           timestamp: firebase.database.ServerValue.TIMESTAMP,
         };
       }
       const messageId = await this.service.database().ref().child('messages').push().key;
-      updates[`/messages/${data.conversation}/${messageId}`] = {
+      updates[`/messages/${data.conversationId}/${messageId}`] = {
         message: data.message,
         timestamp: firebase.database.ServerValue.TIMESTAMP,
         user: this.user.uid,
       };
 
       await this.service.database().ref().update(updates);
-      return data.conversation;
+      return data.conversationId;
     }
     return null;
   }
-  async onConversation(cb) {
+  onConversation(cb) {
     if (this.user) {
-      const ref = this.service.database().ref('conversation/');
-      ref.on('child_added', (snapshot) => {
-        let newData = snapshot.val();
-        if (newData) {
-          newData = { [snapshot.key]: newData };
-          cb(null, newData);
-        }
+      const ref = this.service.database().ref('members/');
+      ref.orderByChild(this.user.uid).equalTo(true).on('child_added', (snapshot) => {
+        const refConversation = this.service.database().ref(`conversation/${snapshot.key}`);
+        refConversation.on('value', (chatSnap) => {
+          const conversation = { [chatSnap.key]: chatSnap.val() };
+          cb(null, conversation);
+        });
       });
     }
   }

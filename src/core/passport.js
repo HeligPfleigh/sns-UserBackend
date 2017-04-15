@@ -47,6 +47,11 @@ async function getChatToken(data) {
       const token = await defaultAdminApp.auth().createCustomToken(loginResult.uid);
       result = { chatId: loginResult.uid, token };
     }
+    if (result.token) {
+      await chat.auth(result.token);
+      const tokenId = await chat.service.auth().currentUser.getToken(false);
+      await defaultAdminApp.auth().verifyIdToken(tokenId);
+    }
   } catch (error) {
     console.error(error); // eslint-disable-line
     return null;
