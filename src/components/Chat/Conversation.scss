@@ -44,10 +44,7 @@ $chatBorder: 1px solid rgba(0, 0, 0, .10);
   }
 }
 .conversations {
-  display: flex;
-  justify-content: space-between;
-  align-content: center;
-  flex-direction: column;
+  height: 100%;
   border: $chatBorder;
   padding-bottom: 2em;
   .header {
@@ -113,9 +110,10 @@ $chatBorder: 1px solid rgba(0, 0, 0, .10);
   }
 }
 .viewChat {
+  height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
   border-top: $chatBorder;
   border-right: $chatBorder;
@@ -125,8 +123,16 @@ $chatBorder: 1px solid rgba(0, 0, 0, .10);
   }
   .editor {
     border-top: $chatBorder;
+    height: 56px;
   }
   .messagesList {
     padding: 0.5em;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
   }
+}
+.toNewMess {
+
 }

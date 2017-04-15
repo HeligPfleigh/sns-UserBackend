@@ -5,6 +5,7 @@ import _ from 'lodash';
 import s from './Conversation.scss';
 import ChatEditor from './ChatEditor';
 import Message from './Message';
+import NewMessage from './NewMessage';
 import { addNewUserToConversation, sendMessage } from '../../actions/chat';
 
 @connect(
@@ -36,6 +37,9 @@ class ConversationView extends React.Component {
     const messagesOnChat = messages && messages[current];
     return (
       <div className={s.viewChat}>
+        <div>
+          <NewMessage />
+        </div>
         <div className={s.messagesList}>
           {
             messagesOnChat && messagesOnChat.map(message => <Message key={Object.keys(message)[0]} members={members} message={message} />)

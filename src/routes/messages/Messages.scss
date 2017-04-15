@@ -1,4 +1,15 @@
 .root {
-  margin-top: 3em;
   background: white;
+  flex: 1;
+  .fullHeight {
+    height: 100%;
+  }
+}
+:global #app {
+  height: 100vh;
+  >div {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
 }

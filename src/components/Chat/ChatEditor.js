@@ -25,7 +25,6 @@ class ChatEditor extends React.Component {
     if (command === 'send-message') {
       if (editorState.getCurrentContent().hasText()) {
         this.props.handleAction(stateToHTML(editorState.getCurrentContent()));
-        console.log(stateToHTML(editorState.getCurrentContent()));
       }
       this.setState({ editorState: EditorState.createEmpty() });
     }
@@ -39,6 +38,7 @@ class ChatEditor extends React.Component {
         spellCheck
         handleKeyCommand={this.handleKeyCommand}
         keyBindingFn={this.keyBindingFn}
+        placeholder="Type a message..."
       />
     );
   }

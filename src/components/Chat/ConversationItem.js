@@ -7,9 +7,12 @@ import s from './Conversation.scss';
 class ConversationItem extends React.Component {
   static propTypes = {
     conversation: PropTypes.object,
+    active: PropTypes.bool,
+    onClick: PropTypes.func,
   }
   render() {
-    let { conversation, ...customs } = this.props;
+    let { conversation } = this.props;
+    const { active, onClick } = this.props;
     if (!conversation.receiver) {
       conversation = Object.values(conversation)[0];
     }
@@ -18,7 +21,7 @@ class ConversationItem extends React.Component {
     const name = receiver && `${receiver.profile.firstName} ${receiver.profile.lastName}`;
     const picture = receiver && receiver.profile && receiver.profile.picture;
     return (
-      <div {...customs} className={classnames(s.conversationItem, { [s.activeNew]: !conversation })}>
+      <div onClick={onClick} className={classnames(s.conversationItem, { [s.activeNew]: active })}>
         <div className={s.friendAvata}>
           <img alt={name} src={picture || '/tile.png'} />
         </div>

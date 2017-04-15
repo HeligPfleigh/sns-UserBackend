@@ -47,7 +47,7 @@ export class FirebaseProvider {
   async onMessage(conversationId, cb) {
     if (this.user) {
       const messengerRef = this.service.database().ref(`messages/${conversationId}`);
-      messengerRef.on('child_added', (snapshot) => {
+      messengerRef.limitToLast(20).on('child_added', (snapshot) => {
         cb(null, { [snapshot.key]: snapshot.val() });
       });
     }

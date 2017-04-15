@@ -47,7 +47,7 @@ class ConversationList extends React.Component {
     this.props.activeConversation(conversation);
   }
   render() {
-    const { newChat, conversations } = this.props;
+    const { newChat, conversations, current } = this.props;
     return (
       <div className={s.conversations}>
         <div className={s.header}>
@@ -69,7 +69,7 @@ class ConversationList extends React.Component {
         <div className={s.listConversation}>
           {
             newChat && newChat.active &&
-            <ConversationItem conversation={newChat} />
+            <ConversationItem conversation={newChat} active />
           }
           {
             conversations && conversations.map(conversation =>
@@ -77,6 +77,7 @@ class ConversationList extends React.Component {
                 key={Object.keys(conversation)[0]}
                 onClick={this.handleActiveConversation({ conversation })}
                 conversation={conversation}
+                active={Object.keys(conversation)[0] === current}
               />,
             )
           }

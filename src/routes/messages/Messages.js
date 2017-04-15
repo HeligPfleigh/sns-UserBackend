@@ -19,14 +19,14 @@ class Messages extends React.Component {
   render() {
     return (
       <Grid className={s.root}>
-        <Row>
-          <Col md={3} xs={12}>
-            <Row>
+        <Row className={s.fullHeight}>
+          <Col md={3} xs={12} className={s.fullHeight}>
+            <Row className={s.fullHeight}>
               <ConversationList />
             </Row>
           </Col>
-          <Col md={9} xs={12}>
-            <Row>
+          <Col md={9} xs={12} className={s.fullHeight}>
+            <Row className={s.fullHeight}>
               <ConversationView />
             </Row>
           </Col>
