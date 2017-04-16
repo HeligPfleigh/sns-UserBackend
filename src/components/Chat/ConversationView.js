@@ -19,6 +19,7 @@ class ConversationView extends React.Component {
   static propTypes = {
     chatState: PropTypes.object,
     sendMessage: PropTypes.func.isRequired,
+    handleToggleChatView: PropTypes.func.isRequired,
   };
   componentDidUpdate() {
     this.scrollMessages.scrollTop(this.scrollMessages.getScrollHeight());
@@ -35,15 +36,31 @@ class ConversationView extends React.Component {
   render() {
     const { chatState: { user, current, conversations, messages, newChat } } = this.props;
     const activeConversation = _.find(conversations, o => _.has(o, current));
-    const receiver = activeConversation && Object.values(activeConversation)[0] && Object.values(activeConversation)[0].receiver;
+    let receiver = activeConversation && Object.values(activeConversation)[0] && Object.values(activeConversation)[0].receiver;
     const members = [user, receiver];
     const messagesOnChat = messages && messages[current];
+    if (!receiver) {
+      receiver = newChat && newChat.receiver;
+    }
     return (
       <div className={s.viewChat}>
         <div className={s.chatHeader}>
+          <div className={s.navigationMb}>
+            <i className="fa fa-arrow-left" aria-hidden="true" onClick={() => this.props.handleToggleChatView()}></i>
+            {
+              receiver ? <span>{`${receiver.profile.firstName} ${receiver.profile.lastName}`}</span>
+              : <span>New message</span>
+            }
+          </div>
           {
-            !current && newChat && newChat.active &&
+            !current && newChat && newChat.active && !newChat.receiver &&
             <NewMessage />
+          }
+          {
+            receiver &&
+            <div className={s.chatStatus}>
+              <span>{`${receiver.profile.firstName} ${receiver.profile.lastName}`}</span>
+            </div>
           }
         </div>
         <div className={s.messagesList}>

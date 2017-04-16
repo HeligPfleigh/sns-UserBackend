@@ -3,6 +3,9 @@ $heightLight : rgba(0, 0, 0, .05);
 $chatBorder: 1px solid rgba(0, 0, 0, .10);
 .activeNew {
   background: $heightLight;
+  @include media-breakpoint-down(sm) {
+    background: white;
+  }
 }
 .conversationItem {
   display: flex;
@@ -27,10 +30,6 @@ $chatBorder: 1px solid rgba(0, 0, 0, .10);
     justify-content: space-between; 
     width: 100%;
     padding-left: 1em;
-    @include media-breakpoint-down(sm) {
-      flex-direction: column;
-      align-items: flex-start;
-    }
     .friendName {
       display: flex;
       flex-direction: column;
@@ -134,7 +133,33 @@ $chatBorder: 1px solid rgba(0, 0, 0, .10);
   }
   .chatHeader {
     height: 50px;
+    min-height: 50px;
     border-bottom: $chatBorder;
+    .chatStatus {
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      height: 100%;
+      @include media-breakpoint-down(sm) {
+        display: none;
+      }
+    }
+    .navigationMb {
+      @extend .chatStatus;
+      background: $nav-color;
+      color: $text-white;
+      display: none;
+      @include media-breakpoint-down(sm) {
+        display: flex;
+      }
+      :global .fa {
+        position: absolute;
+        cursor: pointer;
+        padding-left: 0.5em;
+        font-size: 18px;
+      }
+    }
   }
 }
 .toNewMess {

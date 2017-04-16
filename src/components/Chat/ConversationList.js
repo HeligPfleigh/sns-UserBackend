@@ -23,6 +23,7 @@ class ConversationList extends React.Component {
     activeNewChat: PropTypes.func.isRequired,
     getConversations: PropTypes.func.isRequired,
     activeConversation: PropTypes.func.isRequired,
+    handleToggleChatView: PropTypes.func.isRequired,
   }
   componentWillMount() {
     const { user, getConversations, current, newChat, activeConversation, conversations } = this.props;
@@ -44,7 +45,12 @@ class ConversationList extends React.Component {
     }
   }
   handleActiveConversation = conversation => () => {
+    this.props.handleToggleChatView();
     this.props.activeConversation(conversation);
+  }
+  handleActiveNewChat = () => {
+    this.props.handleToggleChatView();
+    this.props.activeNewChat(true);
   }
   render() {
     const { newChat, conversations, current } = this.props;
@@ -56,7 +62,7 @@ class ConversationList extends React.Component {
           </span>
           <span>Messenger</span>
           <span>
-            <i className="fa fa-pencil-square-o" onClick={() => this.props.activeNewChat(true)} />
+            <i className="fa fa-pencil-square-o" onClick={this.handleActiveNewChat} />
           </span>
         </div>
         <div className={s.search}>
