@@ -18,7 +18,6 @@ const initialState = {
   messages: {},
 };
 export default function chat(state = initialState, action) {
-  const isNewConversation = state && state.new && state.new.active;
   switch (action.type) {
     case CHAT_SET_USER:
       return {
@@ -34,16 +33,13 @@ export default function chat(state = initialState, action) {
         current: action.payload.active ? null : state.current,
       };
     case ADD_USER_NEW_CONVERSATION:
-      if (isNewConversation) {
-        return {
-          ...state,
-          newChat: {
-            active: true,
-            receiver: action.payload,
-          },
-        };
-      }
-      return state;
+      return {
+        ...state,
+        newChat: {
+          active: true,
+          receiver: action.payload,
+        },
+      };
     case CHAT_ACTIVE_CONVERSATION:
       return {
         ...state,

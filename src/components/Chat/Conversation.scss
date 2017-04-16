@@ -113,11 +113,11 @@ $chatBorder: 1px solid rgba(0, 0, 0, .10);
   height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  justify-content: space-between;
   border-top: $chatBorder;
   border-right: $chatBorder;
   border-bottom: $chatBorder;
+  position: absolute;
+  width: 100%;
   >div {
     width: 100%;
   }
@@ -127,12 +127,48 @@ $chatBorder: 1px solid rgba(0, 0, 0, .10);
   }
   .messagesList {
     padding: 0.5em;
-    flex: 1;
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
   }
+  .chatHeader {
+    height: 50px;
+    border-bottom: $chatBorder;
+  }
 }
 .toNewMess {
-
+  height: 50px;
+  .searchBox {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    label {
+      margin: 0;
+    }
+    input {
+      border: none;
+      padding: 4px;
+      flex: 1;
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+  .listPeople {
+    margin: 0 10px;
+    border-radius: 6px;
+    img {
+      width: 24px !important;
+      height: 24px !important;
+    }
+    li {
+      cursor: pointer;
+    }
+  }
+  .listPeopleBox {
+    position: absolute;
+    margin-top: -1em;
+    z-index: 999;
+  }
 }

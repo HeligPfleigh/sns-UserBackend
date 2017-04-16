@@ -10,17 +10,26 @@ class Friend extends React.Component {
     handleFriendAction: PropTypes.func,
     friendType: PropTypes.string.isRequired,
   }
+  handleClickFriend = () => {
+    const { friend, handleFriendAction, friendType } = this.props;
+    if (friendType === ACCEPTED) {
+      handleFriendAction(friend);
+    }
+  }
   render() {
     const { friend, handleFriendAction, friendType } = this.props;
     return (
-      <div className={s.friend}>
+      <div className={s.friend} onClick={this.handleClickFriend}>
         <div className={s.friendAvata}>
           <img alt={friend.profile && friend.profile.firstName} src={friend.profile && friend.profile.picture} />
         </div>
         <div className={s.friendInfo}>
           <div className={s.friendName}>
             <span>{friend.profile.firstName} {friend.profile.lastName}</span>
-            <span>10 other mutual friends</span>
+            {
+              friendType !== ACCEPTED &&
+              <span>10 other mutual friends</span>
+            }
           </div>
           {
             friendType === PENDING &&

@@ -42,10 +42,11 @@ export function activeNewChat(status) {
     },
   };
 }
-export function addNewUserToConversation({ userChatId }) {
+export function addNewUserToConversation({ chatId }) {
   return async (dispatch, getState, { chat }) => {
+    if (!chatId) return;
     try {
-      const payload = await chat.getUser(userChatId);
+      const payload = await chat.getUser(chatId);
       dispatch({
         type: ADD_USER_NEW_CONVERSATION,
         payload,

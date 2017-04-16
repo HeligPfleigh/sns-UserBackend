@@ -2,24 +2,27 @@ import React, { PropTypes } from 'react';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import { connect } from 'react-redux';
 import _ from 'lodash';
+import { Scrollbars } from 'react-custom-scrollbars';
 import s from './Conversation.scss';
 import ChatEditor from './ChatEditor';
 import Message from './Message';
 import NewMessage from './NewMessage';
-import { addNewUserToConversation, sendMessage } from '../../actions/chat';
+import { sendMessage } from '../../actions/chat';
 
 @connect(
   state => ({
     chatState: state.chat,
   }),
-  { addNewUserToConversation, sendMessage },
+  { sendMessage },
 )
 class ConversationView extends React.Component {
   static propTypes = {
     chatState: PropTypes.object,
-    addNewUserToConversation: PropTypes.func.isRequired,
     sendMessage: PropTypes.func.isRequired,
   };
+  componentDidUpdate() {
+    this.scrollMessages.scrollTop(this.scrollMessages.getScrollHeight());
+  }
   handleSend = (message) => {
     const { chatState } = this.props;
     const { newChat, current } = chatState;
@@ -30,20 +33,30 @@ class ConversationView extends React.Component {
     }
   }
   render() {
-    const { chatState: { user, current, conversations, messages } } = this.props;
+    const { chatState: { user, current, conversations, messages, newChat } } = this.props;
     const activeConversation = _.find(conversations, o => _.has(o, current));
     const receiver = activeConversation && Object.values(activeConversation)[0] && Object.values(activeConversation)[0].receiver;
     const members = [user, receiver];
     const messagesOnChat = messages && messages[current];
     return (
       <div className={s.viewChat}>
-        <div>
-          <NewMessage />
+        <div className={s.chatHeader}>
+          {
+            !current && newChat && newChat.active &&
+            <NewMessage />
+          }
         </div>
         <div className={s.messagesList}>
-          {
-            messagesOnChat && messagesOnChat.map(message => <Message key={Object.keys(message)[0]} members={members} message={message} />)
-          }
+          <Scrollbars
+            style={{ height: '100vh' }}
+            universal
+            autoHide
+            ref={(node) => { this.scrollMessages = node; }}
+          >
+            {
+              messagesOnChat && messagesOnChat.map(message => <Message key={Object.keys(message)[0]} members={members} message={message} />)
+            }
+          </Scrollbars>
         </div>
         <div className={s.editor}>
           <ChatEditor handleAction={this.handleSend} />

@@ -7,15 +7,16 @@ import { PENDING } from '../../constants';
 class FriendList extends React.Component {
   static propTypes = {
     friends: PropTypes.array.isRequired,
+    className: PropTypes.string,
     handleFriendAction: PropTypes.func,
   }
   render() {
-    const { friends, ...customs } = this.props;
+    const { friends, className, ...customs } = this.props;
     const { friendType } = customs;
 
    // const styleNofriend = friends.length > 0 ? s.friendList : s.friendListHide;
     return (
-      <div className={s.friendList}>
+      <div className={`${s.friendList} ${className}`}>
         {
           friendType === PENDING &&
           <h4>
