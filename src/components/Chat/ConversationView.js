@@ -8,6 +8,7 @@ import ChatEditor from './ChatEditor';
 import Message from './Message';
 import NewMessage from './NewMessage';
 import { sendMessage } from '../../actions/chat';
+import { formatStatus } from '../../utils/time';
 
 @connect(
   state => ({
@@ -34,7 +35,7 @@ class ConversationView extends React.Component {
     }
   }
   render() {
-    const { chatState: { user, current, conversations, messages, newChat } } = this.props;
+    const { chatState: { user, current, conversations, messages, newChat, online } } = this.props;
     const activeConversation = _.find(conversations, o => _.has(o, current));
     let receiver = activeConversation && Object.values(activeConversation)[0] && Object.values(activeConversation)[0].receiver;
     const members = [user, receiver];
@@ -42,13 +43,26 @@ class ConversationView extends React.Component {
     if (!receiver) {
       receiver = newChat && newChat.receiver;
     }
+    const statusOnline = online && receiver && receiver.uid && online[receiver.uid];
     return (
       <div className={s.viewChat}>
         <div className={s.chatHeader}>
           <div className={s.navigationMb}>
             <i className="fa fa-arrow-left" aria-hidden="true" onClick={() => this.props.handleToggleChatView()}></i>
             {
-              receiver ? <span>{`${receiver.profile.firstName} ${receiver.profile.lastName}`}</span>
+              receiver ? <div>
+                {
+                  statusOnline === true &&
+                  <span className={s.online} />
+                }
+                <span>{`${receiver.profile.firstName} ${receiver.profile.lastName}`}</span>
+                {
+                  statusOnline !== true &&
+                  <span className={s.offline}>
+                    {formatStatus(statusOnline)}
+                  </span>
+                }
+              </div>
               : <span>New message</span>
             }
           </div>
@@ -59,7 +73,19 @@ class ConversationView extends React.Component {
           {
             receiver &&
             <div className={s.chatStatus}>
-              <span>{`${receiver.profile.firstName} ${receiver.profile.lastName}`}</span>
+              <div>
+                {
+                  statusOnline === true &&
+                  <span className={s.online} />
+                }
+                <span>{`${receiver.profile.firstName} ${receiver.profile.lastName}`}</span>
+                {
+                  statusOnline !== true &&
+                  <span className={s.offline}>
+                    {formatStatus(statusOnline)}
+                  </span>
+                }
+              </div>
             </div>
           }
         </div>

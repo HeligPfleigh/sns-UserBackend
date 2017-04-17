@@ -161,6 +161,18 @@ $chatBorder: 1px solid rgba(0, 0, 0, .10);
       }
     }
   }
+  .online {
+    background: rgb(66, 183, 42);
+    border-radius: 50%;
+    display: inline-block;
+    height: 8px;
+    margin-right: 4px;
+    width: 8px;
+  }
+  .offline {
+    color: $grey-1;
+    display: block;
+  }
 }
 .toNewMess {
   height: 50px;

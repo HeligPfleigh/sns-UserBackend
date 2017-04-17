@@ -56,12 +56,12 @@ export class FirebaseProvider {
     if (this.user) {
       const updates = {};
       if (!data.conversationId) {
-        data.conversationId = await this.service.database().ref().child('conversation').push().key;
+        data.conversationId = await this.service.database().ref().child('conversations').push().key;
         updates[`/members/${data.conversationId}`] = {
           [this.user.uid]: true,
           [data.to.uid]: true,
         };
-        updates[`/conversation/${data.conversationId}`] = {
+        updates[`/conversations/${data.conversationId}`] = {
           meta: {
             lastMessage: data.message,
             timestamp: firebase.database.ServerValue.TIMESTAMP,
@@ -70,7 +70,7 @@ export class FirebaseProvider {
           receiver: data.to,
         };
       } else {
-        updates[`/conversation/${data.conversationId}/meta`] = {
+        updates[`/conversations/${data.conversationId}/meta`] = {
           lastMessage: data.message,
           timestamp: firebase.database.ServerValue.TIMESTAMP,
         };
@@ -91,11 +91,26 @@ export class FirebaseProvider {
     if (this.user) {
       const ref = this.service.database().ref('members/');
       ref.orderByChild(this.user.uid).equalTo(true).on('child_added', (snapshot) => {
-        const refConversation = this.service.database().ref(`conversation/${snapshot.key}`);
+        const refConversation = this.service.database().ref(`conversations/${snapshot.key}`);
         refConversation.on('value', (chatSnap) => {
-          const conversation = { [chatSnap.key]: chatSnap.val() };
-          cb(null, conversation);
+          const value = chatSnap.val();
+          if (value && value.meta) {
+            const conversation = { [chatSnap.key]: value };
+            cb(null, conversation);
+          }
         });
+      });
+    }
+  }
+  onChangeStatus(friend, cb) {
+    if (this.user && friend) {
+      const refOnlineFriend = this.service.database().ref(`online/${friend.uid}`);
+      refOnlineFriend.on('value', (chatSnap) => {
+        const value = chatSnap.val();
+        if (value) {
+          const status = { [chatSnap.key]: value };
+          cb(null, status);
+        }
       });
     }
   }
@@ -110,7 +125,7 @@ export class FirebaseProvider {
         });
       }
       if (params && params.conversations) {
-        dataRef = this.service.database().ref('conversation');
+        dataRef = this.service.database().ref('conversations');
         dataRef.on('value', (snapshot) => {
           eventEmitter.emit('data', snapshot.val());
         });

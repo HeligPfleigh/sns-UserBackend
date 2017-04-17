@@ -8,6 +8,7 @@ import {
   CHAT_ACTIVE_CONVERSATION,
   CHAT_ON_CONVERSATION_CHILD_ADD,
   CHAT_ON_MESSAGE_CHILD_ADD,
+  CHAT_ON_CHANGE_ONLINE_STATE,
   CHAT_ON_FAIL,
  } from '../constants';
 
@@ -121,13 +122,28 @@ export function sendMessage({ message, to, conversationId }) {
     try {
       const resultId = await chat.sendMessage({ from: chat.user, to, conversationId, message });
       if (!conversationId && resultId) {
-        dispatch({
-          type: CHAT_ACTIVE_CONVERSATION,
-          payload: {
-            id: resultId,
-          },
-        });
+        dispatch(activeConversation({ conversation: { [resultId]: resultId } }));
       }
+    } catch (error) {
+      makeError(error);
+    }
+  };
+}
+
+export function getFriendStatus(friend) {
+  return async (dispatch, getState, { chat }) => {
+    try {
+      const state = getState();
+      if (!friend || !friend.uid || !_.isEmpty(state.chat && state.chat.online && state.chat.online[friend.uid])) return;
+      chat.onChangeStatus(friend, (err, data) => {
+        if (err) makeError(err);
+        else {
+          dispatch({
+            type: CHAT_ON_CHANGE_ONLINE_STATE,
+            payload: data,
+          });
+        }
+      });
     } catch (error) {
       makeError(error);
     }
@@ -153,6 +169,7 @@ export function getConversations() {
             type: CHAT_ON_CONVERSATION_CHILD_ADD,
             payload: { [key]: value },
           });
+          dispatch(getFriendStatus(value.receiver));
         }
       });
     } catch (error) {

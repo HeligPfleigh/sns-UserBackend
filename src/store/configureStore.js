@@ -47,7 +47,7 @@ export default function configureStore(initialState, config) {
       store.dispatch(auth(user.chatToken));
     }
   }
-  store.subscribe(async () => {
+  store.subscribe(() => {
     const stateNew = store.getState();
     if (stateNew.user && stateNew.user !== user) {
       user = stateNew.user;

@@ -7,6 +7,7 @@ import {
   CHAT_LOAD_CONVERSATION_HISTORY_SUCCESS,
   CHAT_ON_CONVERSATION_CHILD_ADD,
   CHAT_ON_MESSAGE_CHILD_ADD,
+  CHAT_ON_CHANGE_ONLINE_STATE,
   CHAT_ON_FAIL,
 } from '../constants';
 
@@ -16,6 +17,7 @@ const initialState = {
   },
   conversations: [],
   messages: {},
+  online: {},
 };
 export default function chat(state = initialState, action) {
   switch (action.type) {
@@ -85,6 +87,14 @@ export default function chat(state = initialState, action) {
         },
       };
     }
+    case CHAT_ON_CHANGE_ONLINE_STATE:
+      return {
+        ...state,
+        online: {
+          ...state.online,
+          ...action.payload,
+        },
+      };
     case CHAT_ON_FAIL:
       return {
         ...state,
