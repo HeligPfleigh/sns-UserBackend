@@ -66,6 +66,7 @@ export class FirebaseProvider {
             lastMessage: data.message,
             timestamp: firebase.database.ServerValue.TIMESTAMP,
           },
+          user: this.user,
           receiver: data.to,
         };
       } else {

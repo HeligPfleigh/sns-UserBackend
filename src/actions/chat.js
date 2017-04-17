@@ -142,9 +142,16 @@ export function getConversations() {
         if (err) {
           makeError(err);
         } else {
+          const key = Object.keys(data)[0];
+          const value = data[key];
+          const receiver = value.receiver;
+          if (receiver.uid === chat.user.uid) {
+            value.receiver = value.user;
+            value.user = receiver;
+          }
           dispatch({
             type: CHAT_ON_CONVERSATION_CHILD_ADD,
-            payload: data,
+            payload: { [key]: value },
           });
         }
       });
