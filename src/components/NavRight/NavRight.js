@@ -20,7 +20,7 @@ const NavRight = () => (
     <span className={s.navRight}>
       <Link class={s.link} to="/me">
         <i className="fa fa-user-circle fa-2x" aria-hidden="true"></i>
-        
+
       </Link>
     </span>
   </span>

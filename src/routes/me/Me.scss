@@ -20,7 +20,11 @@
     color: white;
 }
 .textInline {
+     margin-left: 10px;
     display: inline-block;
+}
+.textInline :first-child {
+    margin-left: 0px;
 }
 .image {
     float: left;

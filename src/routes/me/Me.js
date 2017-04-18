@@ -3,6 +3,7 @@ import { Grid, Row, Col } from 'react-bootstrap';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import s from './Me.scss';
 import TextTitle from './TextTitle';
+import { Timeline, Bookmark } from 'react-vertical-timeline';
 
 class Me extends React.Component {
 
@@ -44,12 +45,18 @@ class Me extends React.Component {
           <Col>
             <div className={s.feedsContent}>
 
+              <Timeline height={300} progress={50} >
+                <Bookmark progress={20} >
+                Hi there 20%
+              </Bookmark>
+                <Bookmark progress={55} >
+                Hi there 55%
+              </Bookmark>
+                <Bookmark progress={75} >
+                Hi there 75%
+              </Bookmark>
+              </Timeline>
 
-              <div className={s.userName}>
-                <h1 >Leu Duc Quy </h1>
-
-
-              </div>
             </div>
           </Col>
 
