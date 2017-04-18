@@ -1,0 +1,55 @@
+@import '../../components/variables.css';
+.container>div {
+    margin: 10px;
+}
+
+.feedsContent {
+    float: left;
+    width: 68%;
+}
+
+.root {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+.avartar {
+    position: absolute;
+    z-index: 1;
+    left: 20px;
+    bottom: 50px;
+    color: white;
+}
+.textInline {
+    display: inline-block;
+}
+.image {
+    float: left;
+    width: 99%;
+    padding: 5px;
+    margin: 5px;
+}
+.infor {
+    margin-left : 20px;
+}
+.userName{
+    position: absolute;
+    z-index: 2;
+    left: 40px;
+     bottom: -20px;
+     width: 200px;
+}
+.feedsContent {
+    float: left;
+    width: 68%;
+    border: 1px solid #cfcfcf;
+    background-color: #fff;
+    margin-bottom: 15px;
+     position: relative;
+}
+
+.container {
+   
+     margin: 0 auto ;
+     padding: 0 0 10px;
+    max-width: var(--max-content-width);
+}
