@@ -50,5 +50,6 @@ export default function createHelpers(config) {
     history: config.history,
     fetch: fetchKnowingCookie,
     graphqlRequest,
+    chat: config.chat,
   };
 }

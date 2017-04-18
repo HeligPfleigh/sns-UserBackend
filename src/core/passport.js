@@ -19,12 +19,45 @@ import { Strategy as FacebookStrategy } from 'passport-facebook';
 import mongoose from 'mongoose';
 
 // import { User, UserLogin, UserClaim, UserProfile } from '../data/models';
+import * as admin from 'firebase-admin';
+import * as firebase from 'firebase';
+import _ from 'lodash';
+import serviceAccount from './private/firebase-admin.json';
 import { auth as config } from '../config';
 import {
   UsersModel,
   ApartmentsModel,
 } from '../data/models';
 import fetch from './fetch';
+import chat from './chat';
+
+const defaultAdminApp = admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: config.firebase.databaseURL,
+});
+
+async function getChatToken(data) {
+  let result = {};
+  try {
+    if (data.chatId) {
+      result.token = await defaultAdminApp.auth().createCustomToken(data.chatId);
+    } else {
+      const credential = await firebase.auth.FacebookAuthProvider.credential(data.accessToken);
+      const loginResult = await chat.service.auth().signInWithCredential(credential);
+      const token = await defaultAdminApp.auth().createCustomToken(loginResult.uid);
+      result = { chatId: loginResult.uid, token };
+    }
+    /* if (result.token) {
+      await chat.auth(result.token);
+      const tokenId = await chat.service.auth().currentUser.getToken(false);
+      await defaultAdminApp.auth().verifyIdToken(tokenId);
+    }*/
+  } catch (error) {
+    console.error(error); // eslint-disable-line
+    return null;
+  }
+  return result;
+}
 
 const { Types: { ObjectId } } = mongoose;
 
@@ -58,7 +91,9 @@ passport.use(new FacebookStrategy({
     let user = await UsersModel.findOne({
       'emails.address': profile._json.email,
     });
+    let chatToken;
     if (!user) {
+      chatToken = await getChatToken({ accessToken });
       user = await UsersModel.create({
         emails: {
           address: profile._json.email,
@@ -76,20 +111,34 @@ passport.use(new FacebookStrategy({
         services: {
           facebook: longlivedToken,
         },
+        chatId: chatToken.chatId,
       });
-
       ApartmentsModel.create({
         number: '27',
         building: ObjectId('58da279f0ff5af8c8be59c36'),
         user: user._id,
         isOwner: true,
       });
+      await chat.setUser(_.pick(user, ['id', 'username', 'profile']));
+    } else if (!user.chatId) {
+      chatToken = await getChatToken({ accessToken });
+      await UsersModel.update({
+        _id: user._id,
+      }, {
+        $set: {
+          chatId: chatToken.chatId,
+        },
+      });
+      await chat.setUser(_.pick(user, ['id', 'username', 'profile']));
+    } else {
+      chatToken = await getChatToken({ chatId: user.chatId });
     }
     done(null, {
       id: user._id,
       profile: user.profile,
       email: user.emails.address,
       roles: user.roles,
+      chatToken: chatToken && chatToken.token,
     });
   };
 

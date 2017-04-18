@@ -27,6 +27,8 @@
     "express-graphql": "^0.6.3",
     "express-jwt": "^5.1.0",
     "fastclick": "^1.0.6",
+    "firebase": "^3.7.5",
+    "firebase-admin": "^4.2.0",
     "font-awesome": "^4.7.0",
     "graphql": "^0.9.1",
     "graphql-tag": "^1.2.4",
@@ -48,6 +50,7 @@
     "react": "^15.4.2",
     "react-apollo": "^0.11.2",
     "react-bootstrap": "^0.30.8",
+    "react-custom-scrollbars": "^4.1.0",
     "react-dom": "^15.4.2",
     "react-infinite-scroller": "^1.0.7",
     "react-redux": "^5.0.2",
@@ -60,6 +63,7 @@
     "serialize-javascript": "^1.3.0",
     "source-map-support": "^0.4.11",
     "universal-router": "^2.0.0",
+    "uuid": "^3.0.1",
     "whatwg-fetch": "^2.0.2"
   },
   "devDependencies": {

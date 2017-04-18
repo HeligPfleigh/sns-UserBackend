@@ -44,5 +44,12 @@ export const auth = {
     key: process.env.TWITTER_CONSUMER_KEY || 'Ie20AZvLJI2lQD5Dsgxgjauns',
     secret: process.env.TWITTER_CONSUMER_SECRET || 'KTZ6cxoKnEakQCeSpZlaUCJWGAlTEBJj0y2EMkUBujA7zWSvaQ',
   },
-
+  firebase: {
+    apiKey: 'AIzaSyDgbPU5DuXmvxWprMwc-HxTMae05c6rCPc',
+    authDomain: 'snschat-fb64b.firebaseapp.com',
+    databaseURL: 'https://snschat-fb64b.firebaseio.com',
+    projectId: 'snschat-fb64b',
+    storageBucket: 'snschat-fb64b.appspot.com',
+    messagingSenderId: '1034925992768',
+  },
 };

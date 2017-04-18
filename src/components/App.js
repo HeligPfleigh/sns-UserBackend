@@ -22,6 +22,7 @@ const ContextType = {
   }).isRequired,
   // Apollo Client
   client: PropTypes.object.isRequired,
+  chat: PropTypes.object.isRequired,
 };
 
 /**
