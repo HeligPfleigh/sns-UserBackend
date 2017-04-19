@@ -13,6 +13,7 @@
 .postHeaderLeft {
   width: 90%;
   float: left;
+  display: flex;
 }
 
 .postHeaderLeft img {
@@ -38,6 +39,11 @@
   font-size: 1.1em;
 }
 
+.postContent p {
+  margin: 0;
+  padding: 0;
+}
+
 .postStatistic a {
   color: #cfcfcf;
   padding-right: 10px;
@@ -60,4 +66,11 @@
 
 .likeColor {
   color: #f25268 !important;
+}
+
+.commentPanel {
+  margin: 0px 10px 5px;
+  padding: 10px;
+  font-size: 1.1em;
+  background-color: #F3F6F8;
 }
