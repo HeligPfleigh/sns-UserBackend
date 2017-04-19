@@ -37,14 +37,7 @@ class Me extends React.Component {
 
 
               </div>
-            </div>
-
-          </Col>
-
-        </Row>
-        <Row className={s.container}>
-          <Col>
-          <div className={s.feedsContent}>
+              
             <Eventtime
               createdAt={createdAt} element={
 
@@ -63,14 +56,12 @@ class Me extends React.Component {
                 </div>
               }
             />
-
+        </div>
+         </Col>
+        </Row >
+      
+     </div>
         
-          </div>
-          </Col>
-
-
-        </Row>
-      </div>
     );
   }
 }

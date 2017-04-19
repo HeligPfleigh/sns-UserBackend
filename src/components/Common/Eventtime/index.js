@@ -16,20 +16,28 @@ class Eventtime extends React.Component {
       width: '98%',
       backgroundColor: 'transparent',
       boxShadow: 'none',
+      paddingLeft: 0,
+
     };
+    const Ex = s.message;
+    
     return (
 
-      <Timeline>
-          <TimelineEvent
+      <Timeline className={Ex}>
+        <TimelineEvent
 
-            createdAt={this.props.createdAt}
-            iconColor="black"
-            contentStyle={styles}
-          >
-            {this.props.element}
-          </TimelineEvent>
+          createdAt={this.props.createdAt}
 
-        </Timeline>
+          contentStyle={styles}
+          icon={<i className="material-icons md-10"></i>}
+          iconColor='black'
+       
+
+        >
+          {this.props.element}
+        </TimelineEvent>
+
+      </Timeline>
 
     );
   }
