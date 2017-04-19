@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import s from './Conversation.scss';
 import ConversationItem from './ConversationItem';
 import * as chatActions from '../../actions/chat';
+import Loading from '../Loading';
 
 @connect(
   state => ({
@@ -53,7 +54,7 @@ class ConversationList extends React.Component {
     this.props.activeNewChat(true);
   }
   render() {
-    const { newChat, conversations, current } = this.props;
+    const { newChat, conversations, current, user } = this.props;
     return (
       <div className={s.conversations}>
         <div className={s.header}>
@@ -73,6 +74,7 @@ class ConversationList extends React.Component {
           </span>
         </div>
         <div className={s.listConversation}>
+          <Loading show={!user} />
           {
             newChat && newChat.active &&
             <ConversationItem conversation={newChat} active />

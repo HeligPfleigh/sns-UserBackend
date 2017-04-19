@@ -62,12 +62,8 @@ export function activeConversation({ conversation }) {
         });
         if (isLoad(getState(), conversationId)) return;
         chat.onMessage(conversationId, (error, data) => {
-          if (error) {
-            dispatch({
-              type: CHAT_ON_FAIL,
-              error,
-            });
-          } else {
+          if (error) makeError(error);
+          else {
             dispatch({
               type: CHAT_ON_MESSAGE_CHILD_ADD,
               payload: {

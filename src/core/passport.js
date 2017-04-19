@@ -36,27 +36,33 @@ const defaultAdminApp = admin.initializeApp({
   databaseURL: config.firebase.databaseURL,
 });
 
-async function getChatToken(data) {
+async function getChatToken({ accessToken, chatId }) {
   let result = {};
   try {
-    if (data.chatId) {
-      result.token = await defaultAdminApp.auth().createCustomToken(data.chatId);
+    if (chatId) {
+      result.token = await defaultAdminApp.auth().createCustomToken(chatId);
     } else {
-      const credential = await firebase.auth.FacebookAuthProvider.credential(data.accessToken);
+      const credential = await firebase.auth.FacebookAuthProvider.credential(accessToken);
       const loginResult = await chat.service.auth().signInWithCredential(credential);
       const token = await defaultAdminApp.auth().createCustomToken(loginResult.uid);
       result = { chatId: loginResult.uid, token };
     }
-    /* if (result.token) {
-      await chat.auth(result.token);
-      const tokenId = await chat.service.auth().currentUser.getToken(false);
-      await defaultAdminApp.auth().verifyIdToken(tokenId);
-    }*/
   } catch (error) {
     console.error(error); // eslint-disable-line
     return null;
   }
   return result;
+}
+function createChatUserIfNotExits(user) {
+  const refUser = defaultAdminApp.database().ref('users');
+  if (user && user.chatId) {
+    refUser.child(user.chatId).once('value', (snap) => {
+      const userData = snap.val();
+      if (!userData || !userData.uid) {
+        refUser.child(user.chatId).set(Object.assign({ uid: user.chatId }, _.pick(user, ['id', 'username', 'profile'])));
+      }
+    });
+  }
 }
 
 const { Types: { ObjectId } } = mongoose;
@@ -72,7 +78,6 @@ export async function getLongTermToken(accessToken) {
     accessToken: longlivedTokenObject.access_token,
   };
 }
-
 /**
  * Sign in with Facebook.
  */
@@ -119,7 +124,6 @@ passport.use(new FacebookStrategy({
         user: user._id,
         isOwner: true,
       });
-      await chat.setUser(_.pick(user, ['id', 'username', 'profile']));
     } else if (!user.chatId) {
       chatToken = await getChatToken({ accessToken });
       await UsersModel.update({
@@ -129,10 +133,10 @@ passport.use(new FacebookStrategy({
           chatId: chatToken.chatId,
         },
       });
-      await chat.setUser(_.pick(user, ['id', 'username', 'profile']));
     } else {
       chatToken = await getChatToken({ chatId: user.chatId });
     }
+    createChatUserIfNotExits(user);
     done(null, {
       id: user._id,
       profile: user.profile,
