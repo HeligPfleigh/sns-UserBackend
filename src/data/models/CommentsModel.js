@@ -18,11 +18,12 @@ const CommentSchema = new Schema({
   message: {
     type: Schema.Types.Mixed,
     required: true,
+    trim: true,
   },
-  reply: [{
+  reply: {
     type: ObjectId,
     ref: 'Commment',
-  }],
+  },
 });
 
 // https://github.com/drudge/mongoose-timestamp
