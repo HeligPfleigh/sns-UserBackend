@@ -1,9 +1,9 @@
-import React, { PropTypes } from 'react';
-import { Grid, Row, Col } from 'react-bootstrap';
+import React from 'react';
+import { Grid, Row, Col, Image } from 'react-bootstrap';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import s from './Me.scss';
 import TextTitle from './TextTitle';
-import { Timeline, Bookmark } from 'react-vertical-timeline';
+import Eventtime from '../../components/Common/Eventtime';
 
 class Me extends React.Component {
 
@@ -12,6 +12,7 @@ class Me extends React.Component {
     const imageSrc = 'http://hdwallpaperfun.com/wp-content/uploads/2015/07/Awesome-Art-Landscape-Wallpaper.jpg';
 
     const title = 'Ảnh(200)';
+    const createdAt = '20-04-2017';
     return (
       <div className={s.root}>
         <Row className={s.container}>
@@ -21,13 +22,13 @@ class Me extends React.Component {
               <img className={s.image} src={imageSrc} />
 
               <span className={s.avartar}>
-                <i className="fa fa-user-circle fa-2x" aria-hidden="true"></i>
+                <i className="fa fa-user-circle fa-4x" aria-hidden="true"></i>
                 <div className={s.userName}>
                   <h1 >Leu Duc Quy </h1>
                 </div>
 
               </span>
-              <div className={s.infor}>
+              <div className = {s.infors}>
 
 
                 <TextTitle title={title} />
@@ -43,22 +44,30 @@ class Me extends React.Component {
         </Row>
         <Row className={s.container}>
           <Col>
-            <div className={s.feedsContent}>
+          <div className={s.feedsContent}>
+            <Eventtime
+              createdAt={createdAt} element={
 
-              <Timeline height={300} progress={50} >
-                <Bookmark progress={20} >
-                Hi there 20%
-              </Bookmark>
-                <Bookmark progress={55} >
-                Hi there 55%
-              </Bookmark>
-                <Bookmark progress={75} >
-                Hi there 75%
-              </Bookmark>
-              </Timeline>
+                <div className={s.infor} >
+                  <Image src={imageSrc} thumbnail />
+                  <Image src={imageSrc} thumbnail />
+                  <Image src={imageSrc} thumbnail />
+                  <Image src={imageSrc} thumbnail />
+                  <Image src={imageSrc} thumbnail />
+                  <Image src={imageSrc} thumbnail />
+                  <Image src={imageSrc} thumbnail />
+                  <Image src={imageSrc} thumbnail />
+                  <Image src={imageSrc} thumbnail />
+                  <Image src={imageSrc} thumbnail />
 
-            </div>
+                </div>
+              }
+            />
+
+        
+          </div>
           </Col>
+
 
         </Row>
       </div>

@@ -11,9 +11,9 @@ class TextTitle extends React.Component {
 
   render() {
     return (
-      
-        <h4 className={s.textInline}>{this.props.title}</h4>
-      
+
+      <h4 className={s.textInline}>{this.props.title}</h4>
+
     );
   }
 }

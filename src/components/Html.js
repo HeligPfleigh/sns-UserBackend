@@ -35,6 +35,7 @@ class Html extends React.Component {
 
   render() {
     const { title, description, styles, cssVendors, scripts, state, children } = this.props;
+    debugger;
     return (
       <html className="no-js" lang="en">
         <head>
@@ -44,6 +45,7 @@ class Html extends React.Component {
           <meta name="description" content={description} />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+          
           {cssVendors && cssVendors.map(link =>
             <link key={link} rel="stylesheet" type="text/css" href={link} />,
           )}

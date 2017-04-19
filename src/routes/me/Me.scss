@@ -16,7 +16,7 @@
     position: absolute;
     z-index: 1;
     left: 20px;
-    bottom: 50px;
+    bottom: 70px;
     color: white;
 }
 .textInline {
@@ -32,16 +32,27 @@
     padding: 5px;
     margin: 5px;
 }
-.infor {
+
+.infors {
     margin-left : 20px;
+}
+.infor {
+    margin-left : 1px;
+}
+.infor  > *{
+     width : 100px;
+    height : 100px;
+    text-align: left;
+    background-color: transparent;
 }
 .userName{
     position: absolute;
     z-index: 2;
-    left: 40px;
-     bottom: -20px;
+    left: 80px;
+     bottom: -10px;
      width: 200px;
 }
+
 .feedsContent {
     float: left;
     width: 68%;
