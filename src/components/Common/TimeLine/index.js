@@ -5,14 +5,22 @@ import TimeEvent from './TimeEvent';
 import s from './TimeLine.scss';
 
 class TimeLine extends React.Component {
+
+  static propTypes = {
+    events: PropTypes.array.isRequired,
+  };
   render() {
     return (
       <div >
         <div className={s.line}>
-          <div>
-            <TimeEvent />
-            <TimeContent />
-          </div>
+          {this.props.events.map(data => (
+            <div>
+              <TimeEvent time={data.time} />
+              <TimeContent images={data.images} />
+            </div>
+              ))
+          }
+
 
         </div>
       </div>

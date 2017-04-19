@@ -20,7 +20,7 @@ class Eventtime extends React.Component {
 
     };
     const Ex = s.message;
-    
+
     return (
 
       <Timeline className={Ex}>
@@ -30,8 +30,8 @@ class Eventtime extends React.Component {
 
           contentStyle={styles}
           icon={<i className="material-icons md-10"></i>}
-          iconColor='black'
-       
+          iconColor="black"
+
 
         >
           {this.props.element}
