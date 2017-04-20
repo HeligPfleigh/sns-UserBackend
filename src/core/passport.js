@@ -17,6 +17,7 @@ import passport from 'passport';
 import moment from 'moment';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
 
 // import { User, UserLogin, UserClaim, UserProfile } from '../data/models';
 import * as admin from 'firebase-admin';
@@ -31,7 +32,7 @@ import {
 import fetch from './fetch';
 import chat from './chat';
 
-const defaultAdminApp = admin.initializeApp({
+export const defaultAdminApp = admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: config.firebase.databaseURL,
 });
@@ -66,6 +67,23 @@ function createChatUserIfNotExits(user) {
 }
 
 const { Types: { ObjectId } } = mongoose;
+
+export async function verifiedChatToken(req, res) {
+  try {
+    const user = jwt.verify(req.cookies.id_token, config.jwt.secret);
+    if (user && user.chatToken && user.chatExp && moment(user.chatExp).diff(new Date()) < 0) {
+      const chatToken = await defaultAdminApp.auth().createCustomToken(user.chatId);
+      req.user = { ...user, chatToken, chatExp: moment().add(0, 'hours').unix() };
+      const expiresIn = 60 * 60 * 24 * 180;
+      const token = jwt.sign(_.omit(req.user, ['exp', 'iat']), config.jwt.secret, { expiresIn });
+      res.cookie('id_token', token, { maxAge: 1000 * expiresIn, httpOnly: true });
+      return req.user;
+    }
+  } catch (error) {
+    return error;
+  }
+  return null;
+}
 
 export async function getLongTermToken(accessToken) {
   const longlivedTokenRequest = await fetch(`https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=${config.facebook.id}&fb_exchange_token=${accessToken}&client_secret=${config.facebook.secret}`);
@@ -143,6 +161,8 @@ passport.use(new FacebookStrategy({
       email: user.emails.address,
       roles: user.roles,
       chatToken: chatToken && chatToken.token,
+      chatExp: moment().add(1, 'hours').unix(),
+      chatId: user.chatId,
     });
   };
 
