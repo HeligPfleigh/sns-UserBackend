@@ -2,10 +2,16 @@
 .container>div {
     margin: 10px;
 }
-
+.margintop30 {
+    margin-top: 30px;
+}
 .feedsContent {
     float: left;
-    width: 68%;
+    width: 100%;
+    border: 1px solid #cfcfcf;
+    background-color: #fff;
+    margin-bottom: 15px;
+     position: relative;
 }
 
 .root {
@@ -23,7 +29,7 @@
      margin-left: 10px;
     display: inline-block;
 }
-.textInline :first-child {
+.textInline:first-child {
     margin-left: 0px;
 }
 .image {
@@ -55,14 +61,7 @@
      width: 200px;
 }
 
-.feedsContent {
-    float: left;
-    width: 68%;
-    border: 1px solid #cfcfcf;
-    background-color: #fff;
-    margin-bottom: 15px;
-     position: relative;
-}
+
 
 .container {
    

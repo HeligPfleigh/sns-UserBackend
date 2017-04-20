@@ -8,7 +8,16 @@ import TimeLine from '../../components/Common/TimeLine';
 
 class Me extends React.Component {
 
+  constructor(props) {
+    super(props);
 
+    this.state = {
+      isImage: true,
+    };
+  }
+  handler = (state) => {
+
+  }
   render() {
     const imageSrc = 'http://hdwallpaperfun.com/wp-content/uploads/2015/07/Awesome-Art-Landscape-Wallpaper.jpg';
 
@@ -21,9 +30,9 @@ class Me extends React.Component {
       },
     ];
     return (
-      <div className={s.root}>
-        <Row className={s.container}>
-          <Col>
+      <Grid className={s.margintop30}>
+        <Row >
+          <Col sm={8} xs={12}>
             <div className={s.feedsContent}>
 
               <img className={s.image} src={imageSrc} />
@@ -38,18 +47,21 @@ class Me extends React.Component {
               <div className={s.infors}>
 
 
-               <Tab numbers = {numbers} />
-                
+                <Tab numbers={numbers} onclicks={this.handler} />
+
 
               </div>
-              
+
               <TimeLine events={events} />
 
             </div>
           </Col>
+          <Col sm={4} xs={12}>
+          test
+          </Col>
         </Row >
 
-      </div>
+      </Grid>
 
     );
   }
