@@ -3,7 +3,8 @@ import { Grid, Row, Col, Image } from 'react-bootstrap';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import s from './Me.scss';
 import TextTitle from './TextTitle';
-import Eventtime from '../../components/Common/Eventtime';
+
+import TimeLine from '../../components/Common/TimeLine';
 
 class Me extends React.Component {
 
@@ -13,6 +14,12 @@ class Me extends React.Component {
 
     const title = 'Ảnh(200)';
     const createdAt = '20-04-2017';
+
+    const events = [
+      { time: createdAt,
+        images: [imageSrc, imageSrc, imageSrc, imageSrc, imageSrc, imageSrc, imageSrc, imageSrc, imageSrc, imageSrc],
+      },
+    ];
     return (
       <div className={s.root}>
         <Row className={s.container}>
@@ -28,40 +35,24 @@ class Me extends React.Component {
                 </div>
 
               </span>
-              <div className = {s.infors}>
+              <div className={s.infors}>
 
 
                 <TextTitle title={title} />
 
                 <h4 className={s.textInline}>Thông tin</h4>
-
+                <div>/</div> 
 
               </div>
               
-            <Eventtime
-              createdAt={createdAt} element={
+              <TimeLine events={events} />
 
-                <div className={s.infor} >
-                  <Image src={imageSrc} thumbnail />
-                  <Image src={imageSrc} thumbnail />
-                  <Image src={imageSrc} thumbnail />
-                  <Image src={imageSrc} thumbnail />
-                  <Image src={imageSrc} thumbnail />
-                  <Image src={imageSrc} thumbnail />
-                  <Image src={imageSrc} thumbnail />
-                  <Image src={imageSrc} thumbnail />
-                  <Image src={imageSrc} thumbnail />
-                  <Image src={imageSrc} thumbnail />
-
-                </div>
-              }
-            />
-        </div>
-         </Col>
+            </div>
+          </Col>
         </Row >
-      
-     </div>
-        
+
+      </div>
+
     );
   }
 }

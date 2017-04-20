@@ -4,6 +4,46 @@
   width : 1px;
   margin-top: 0px;
   margin-bottom: 0px;
-  margin-left: 5px;
+  margin-left: 20px;
+  height: 500px;
   background-color: black;
+}
+.layoutContent {
+  margin-left: 10px;
+  margin-right: auto;
+  margin-top: 0px;
+  margin-bottom: 10px;
+   position: absolute;
+}
+.layoutEvent {
+ 
+  margin-right: auto;
+  margin-top: 0px;
+  margin-bottom: 20px;
+  
+  display: inline-block;
+}
+.pin {
+  width : 12px;
+  height: 12px;
+  border-radius: 50%;
+  border-width: 2px;
+  border-color: white;
+  background-color: black;
+  margin-left:-6px;
+  
+   display: inline-block;
+    position: absolute;
+}
+.time{
+ margin-bottom: 20px;
+  margin-left: 20px;
+  
+  width: 100px;
+  display: inline-block;
+}
+.image {
+  width: 100px;
+  height: 100px;
+  float: left;
 }
