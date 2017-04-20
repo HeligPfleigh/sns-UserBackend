@@ -2,8 +2,8 @@ import React from 'react';
 import { Grid, Row, Col, Image } from 'react-bootstrap';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import s from './Me.scss';
-import TextTitle from './TextTitle';
 
+import Tab from './Tab';
 import TimeLine from '../../components/Common/TimeLine';
 
 class Me extends React.Component {
@@ -12,7 +12,7 @@ class Me extends React.Component {
   render() {
     const imageSrc = 'http://hdwallpaperfun.com/wp-content/uploads/2015/07/Awesome-Art-Landscape-Wallpaper.jpg';
 
-    const title = 'Ảnh(200)';
+    const numbers = 100;
     const createdAt = '20-04-2017';
 
     const events = [
@@ -38,10 +38,8 @@ class Me extends React.Component {
               <div className={s.infors}>
 
 
-                <TextTitle title={title} />
-
-                <h4 className={s.textInline}>Thông tin</h4>
-                <div>/</div> 
+               <Tab numbers = {numbers} />
+                
 
               </div>
               

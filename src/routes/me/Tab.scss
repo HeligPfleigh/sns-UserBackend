@@ -1,0 +1,31 @@
+@import '../../components/variables.css';
+
+
+.tab {    width: 100%;  
+  display: inline-block;  
+    margin:0px;  
+      padding: 0px; 
+         border-bottom: 1px solid #f5f5f5; 
+          li {    float: left;    padding: 10px 15px ;  
+            border-left: 1px solid #f5f5f5;    font-size: 16px;  
+              position: relative;    list-style: none; 
+                 a {    
+                       color: #283e4a;   
+                        }    
+                    i {     
+                         display: none;   
+                              position: absolute;   
+                                   bottom: -1px;     
+                                      color: #889399;    
+                                          font-size: 16px;    
+                                             }   
+                                              }   
+                                              li.active {  
+                                                  i{    
+                                                        display: inline-block;   
+                                                         }  
+                                                          }    
+                                                           li:nth-child(1) {
+                                                              border: 0px; 
+                                                              }
+                                                              }
