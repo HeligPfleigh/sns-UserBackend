@@ -182,8 +182,8 @@ export default compose(
           cursor: data.feeds.pageInfo.endCursor,
         },
         updateQuery: (previousResult, { fetchMoreResult }) => {
-          const newEdges = fetchMoreResult.feeds.edges;
-          const pageInfo = fetchMoreResult.feeds.pageInfo;
+          const newEdges = fetchMoreResult.data.feeds.edges;
+          const pageInfo = fetchMoreResult.data.feeds.pageInfo;
           return {
             feeds: {
               edges: [...previousResult.feeds.edges, ...newEdges],
