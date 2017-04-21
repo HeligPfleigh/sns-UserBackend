@@ -22,6 +22,7 @@ class Post extends React.Component {
     }),
     likePostEvent: PropTypes.func.isRequired,
     unlikePostEvent: PropTypes.func.isRequired,
+    userInfo: PropTypes.object.isRequired,
   };
 
   constructor(props) {
@@ -53,6 +54,7 @@ class Post extends React.Component {
       },
       likePostEvent,
       unlikePostEvent,
+      userInfo,
     } = this.props;
 
     return (
@@ -110,7 +112,7 @@ class Post extends React.Component {
           </a>
         </Col>
         <Col className={s.commentPanel}>
-          <CommentList isFocus={this.state.isFocus} postId={_id} user={user} />
+          <CommentList isFocus={this.state.isFocus} postId={_id} user={userInfo} />
         </Col>
       </div>
     );

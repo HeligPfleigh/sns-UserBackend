@@ -88,14 +88,15 @@ const unlikePost = gql`mutation unlikePost ($postId: String!) {
 }
 ${postFragment}`;
 
-const FeedList = ({ feeds, likePostEvent, unlikePostEvent }) => (
+const FeedList = ({ feeds, likePostEvent, unlikePostEvent, userInfo }) => (
   <div>
     {feeds.map(item => (
-      <Post
+      item.user && item.user.profile && <Post
         key={item._id}
         data={item}
         likePostEvent={likePostEvent}
         unlikePostEvent={unlikePostEvent}
+        userInfo={userInfo}
       />
     ))}
   </div>
@@ -109,6 +110,7 @@ FeedList.propTypes = {
   ).isRequired,
   likePostEvent: PropTypes.func.isRequired,
   unlikePostEvent: PropTypes.func.isRequired,
+  userInfo: PropTypes.object.isRequired,
 };
 
 class Home extends React.Component {
@@ -126,7 +128,7 @@ class Home extends React.Component {
   render() {
     // Pre-fetch data
     if (this.props.data.loading) return null;
-    const { data: { loading, feeds }, loadMoreRows } = this.props;
+    const { data: { loading, feeds, me }, loadMoreRows } = this.props;
     let hasNextPage = false;
     if (feeds && feeds.pageInfo) {
       hasNextPage = feeds.pageInfo.hasNextPage;
@@ -152,6 +154,7 @@ class Home extends React.Component {
                   feeds={feeds.edges}
                   likePostEvent={this.props.likePost}
                   unlikePostEvent={this.props.unlikePost}
+                  userInfo={me}
                 />
               </InfiniteScroll>
             </Col>
