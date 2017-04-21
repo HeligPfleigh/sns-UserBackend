@@ -7,16 +7,30 @@
  * LICENSE.txt file in the root directory of this source tree.
  */
 
+
 /***********Style Navbar Right*************/
+
 .navRight {
-  float: right;
-  /*margin: 0px auto;*/
-  padding: 10px;
+    float: right;
+    /*margin: 0px auto;*/
+    padding: 10px;
 }
 
 .menuRight {
-  border-left: 1px solid #fff;
-  float: right;
-  margin-right: -6px;
-  padding: 10px;
+    border-left: 1px solid #fff;
+    float: right;
+    margin-right: -6px;
+    padding: 10px;
+}
+
+.navLink {
+    color: #b6b6b6;
+}
+
+.link {
+    display: inline-block;
+    padding: 0px 8px;
+    text-decoration: none;
+    font-size: 0.9em;
+    text-align: center;
 }

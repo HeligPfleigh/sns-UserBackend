@@ -27,7 +27,7 @@ export default {
     require('./about').default,
     require('./privacy').default,
     require('./admin').default,
-
+    require('./me').default,
     // Wildcard routes, e.g. { path: '*', ... } (must go last)
     require('./notFound').default,
   ],
@@ -39,7 +39,7 @@ export default {
     // Provide default values for title, description etc.
     route.title = `${route.title || 'Untitled Page'} - www.reactstarterkit.com`;
     route.description = route.description || '';
-
+   
     return route;
   },
 
