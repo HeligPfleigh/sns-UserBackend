@@ -13,8 +13,8 @@ class TimeContent extends React.Component {
 
       <div className={s.layoutContent}>
         {this.props.images.map((image, i) => (
-          
-            <Image key={i} className={s.image} src={image} thumbnail />
+
+          <Image key={i} className={s.image} src={image} />
 
               ))
           }

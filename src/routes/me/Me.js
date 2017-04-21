@@ -12,11 +12,13 @@ class Me extends React.Component {
     super(props);
 
     this.state = {
-      isImage: true,
+      isImageShow: true,
     };
   }
-  handler = (state) => {
-
+  buttonClicked = (state) => {
+    this.setState({
+      isImageShow: state,
+    });
   }
   render() {
     const imageSrc = 'http://hdwallpaperfun.com/wp-content/uploads/2015/07/Awesome-Art-Landscape-Wallpaper.jpg';
@@ -34,30 +36,33 @@ class Me extends React.Component {
         <Row >
           <Col sm={8} xs={12}>
             <div className={s.feedsContent}>
+              <div className={s.topLayout}>
+                <Image className={s.image} src={imageSrc} />
 
-              <img className={s.image} src={imageSrc} />
 
-              <span className={s.avartar}>
-                <i className="fa fa-user-circle fa-4x" aria-hidden="true"></i>
-                <div className={s.userName}>
+                <div className={s.userName} >
+                  {/* <i className="fa fa-user-circle fa-4x" aria-hidden="true"></i>*/}
+                  <Image className={s.avartar} src={imageSrc} />
+
                   <h1 >Leu Duc Quy </h1>
                 </div>
 
-              </span>
+
+              </div>
               <div className={s.infors}>
 
 
-                <Tab numbers={numbers} onclicks={this.handler} />
+                <Tab numbers={numbers} isImageShow={this.state.isImageShow} onclicks={this.buttonClicked} />
 
 
               </div>
-
-              <TimeLine events={events} />
-
+              <Grid fluid>
+                {this.state.isImageShow && <TimeLine events={events} /> }
+              </Grid>
             </div>
           </Col>
           <Col sm={4} xs={12}>
-          test
+
           </Col>
         </Row >
 

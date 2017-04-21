@@ -3,27 +3,32 @@
     margin: 10px;
 }
 .margintop30 {
-    margin-top: 30px;
+   border-width: 0px;
+  // border: 
 }
 .feedsContent {
     float: left;
     width: 100%;
-    border: 1px solid #cfcfcf;
+   // border: 1px solid #cfcfcf;
     background-color: #fff;
     margin-bottom: 15px;
      position: relative;
 }
-
+.topLayout {
+    width: 100%;
+    position: relative;
+    display: inline-block;
+}
 .root {
     padding-left: 20px;
     padding-right: 20px;
 }
 .avartar {
-    position: absolute;
-    z-index: 1;
-    left: 20px;
-    top: 300px;
+   
+    width: 100px;
+    height: 100px;
     color: white;
+    border-radius: 50%;
 }
 .textInline {
      margin-left: 10px;
@@ -34,15 +39,14 @@
 }
 .image {
     float: left;
-    width: 99%;
-    padding: 5px;
-    margin: 5px;
+    width: 100%;
+    
 }
 
-.infors {
-    margin-left : 20px;
+.infors {    
     border-width: 1px;
-    border-collapse: 1px;
+    width: 100%;
+    display: inline-block;
 }
 .infor {
     margin-left : 1px;
@@ -54,11 +58,17 @@
     background-color: transparent;
 }
 .userName{
+    display: inline-flex;
     position: absolute;
-    z-index: 2;
-    left: 80px;
-     bottom: -10px;
-     width: 200px;
+    z-index: 1;
+    left: 20px;
+    bottom:20px;
+    h1 {
+        padding-left: 10px;      
+        color: white;
+        margin: 0px;
+        line-height: 100px;
+    }
 }
 
 
@@ -68,4 +78,16 @@
      margin: 0 auto ;
      padding: 0 0 10px;
     max-width: var(--max-content-width);
+}
+@media(max-width:767px) {
+   .userName{    
+        h1{
+        font-size: 18px;
+        line-height: 50px;
+        }
+    }
+    .avartar {   
+        width: 50px;
+        height: 50px;
+    } 
 }
