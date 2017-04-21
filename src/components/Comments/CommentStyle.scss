@@ -1,0 +1,63 @@
+@import "../../theme/resources.scss";
+
+.commentPanel {
+  display: flex;
+  width: 100%;
+  margin: 10px 0px 0px;
+}
+
+.commentAvarta {
+  img {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+.commentContent {
+  padding-left: 10px;
+  p {
+    margin: 0;
+    padding: 0;
+    &:first-child {
+      // font-weight: bold;
+      color: black;
+    }
+    &:first-child, &:first-child + p {
+      display: inline;
+      margin: 0 0 10px;
+    }
+  }
+  a {
+    color: black;
+    text-decoration: none;
+    &:hover {
+      cursor: pointer;
+    }
+  }
+  .commentControl {
+    display: flex;
+    justify-content: flex-start;
+    font-size: 0.9em;
+    color: #bdbdbd;
+    a {
+      color: #bdbdbd;
+      padding: 0 3px;
+      &:first-child {
+        padding-left: 0px;
+      }
+      &:hover {
+        color: black;
+      }
+    }
+  }
+}
+
+.subComment {
+  width: 93%;
+  float: right;
+  img {
+    width: 32px;
+    height: 32px;
+  }
+  font-size: 0.9em;
+}

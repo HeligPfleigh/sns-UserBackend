@@ -5,10 +5,12 @@ import {
   GraphQLNonNull as NonNull,
   GraphQLInt as Int,
   GraphQLBoolean as BooleanType,
+  GraphQLList as List,
 } from 'graphql';
 
 import UserInterface from './UserInterface';
 import PostInterface from './PostInterface';
+import CommentSchemas from './CommentSchemas';
 
 import {
   UsersModel,
@@ -35,8 +37,15 @@ const PostSchemas = new ObjectType({
         post: post._id,
       }),
     },
+    comments: {
+      type: new List(CommentSchemas),
+      resolve: post => CommentsModel.find({ post: post._id, reply: { $exists: false } }),
+    },
     isLiked: {
       type: BooleanType,
+    },
+    createdAt: {
+      type: StringType,
     },
   },
 });
