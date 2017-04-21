@@ -43,7 +43,10 @@ function runServer() {
     }
 
     server = cp.spawn('node', [serverPath], {
-      env: Object.assign({ NODE_ENV: 'development' }, process.env),
+      env: Object.assign({
+        NODE_ENV: 'development',
+        VERBOSE: true,
+      }, process.env),
       silent: false,
     });
 
