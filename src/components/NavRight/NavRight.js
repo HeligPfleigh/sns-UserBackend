@@ -18,9 +18,8 @@ const NavRight = () => (
       <i className="fa fa-bars fa-2x" aria-hidden="true"></i>
     </span>
     <span className={s.navRight}>
-      <Link class={s.link} to="/me">
+      <Link to="/me">
         <i className="fa fa-user-circle fa-2x" aria-hidden="true"></i>
-
       </Link>
     </span>
   </span>
