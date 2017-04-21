@@ -64,13 +64,13 @@ const currentTransports = [
   // }),
   new (winston.transports.Console)({
     colorize: true,
-    level: process.env.VERBOSE ? 'info' : 'info',
+    level: process.env.VERBOSE ? 'debug' : 'info',
   }),
   new (DailyRotateFile)({
     filename: `${APP_NAME}.info`,
     dirname: logsFolder,
     name: APP_NAME,
-    level: process.env.VERBOSE ? 'verbose' : 'info',
+    level: process.env.VERBOSE ? 'debug' : 'info',
   }),
   new (DailyRotateFile)({
     filename: `${APP_NAME}.err`,
