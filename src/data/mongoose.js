@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 // import nconf from 'nconf';
-// import logger from '../logger';
-const logger = console;
+import logger from './logger';
 
 // http://mongoosejs.com/docs/promises.html
 mongoose.Promise = global.Promise;
@@ -36,7 +35,7 @@ const Mongoose = {
 
     // When the connection is disconnected
     mongoose.connection.on('disconnected', () => {
-      logger.warn(`Mongoose default connection to DB : ${uri} disconnected`);
+      logger.warning(`Mongoose default connection to DB : ${uri} disconnected`);
     });
 
     const gracefulExit = () => {

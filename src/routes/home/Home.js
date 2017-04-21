@@ -22,23 +22,31 @@ import NewPost from '../../components/NewPost';
 import Loading from '../../components/Loading';
 import s from './Home.css';
 
-const post = gql`
+const userFragment = gql`
+  fragment UserView on UserSchemas {
+    _id,
+    username,
+    profile {
+      picture,
+      firstName,
+      lastName
+    }
+  }
+`;
+
+const postFragment = gql`
   fragment PostView on PostSchemas {
     _id,
     message,
     user {
-      _id,
-      username,
-      profile {
-        picture,
-        firstName,
-        lastName
-      }
+      ...UserView,
     },
     totalLikes,
     totalComments,
     isLiked,
+    createdAt,
   }
+  ${userFragment}
 `;
 
 const homePageQuery = gql`query homePageQuery ($cursor: String) {
@@ -52,16 +60,11 @@ const homePageQuery = gql`query homePageQuery ($cursor: String) {
     }
   }
   me {
-    _id,
-    username,
-    profile {
-      picture,
-      firstName,
-      lastName
-    }
-  }
+    ...UserView,
+  },
 }
-${post}
+${userFragment}
+${postFragment}
 `;
 
 const createNewPost = gql`mutation createNewPost ($message: String!) {
@@ -69,26 +72,31 @@ const createNewPost = gql`mutation createNewPost ($message: String!) {
     ...PostView
   }
 }
-${post}`;
+${postFragment}`;
 
 const likePost = gql`mutation likePost ($postId: String!) {
   likePost(postId: $postId) {
     ...PostView
   }
 }
-${post}`;
+${postFragment}`;
 
 const unlikePost = gql`mutation unlikePost ($postId: String!) {
   unlikePost(postId: $postId) {
     ...PostView
   }
 }
-${post}`;
+${postFragment}`;
 
 const FeedList = ({ feeds, likePostEvent, unlikePostEvent }) => (
   <div>
     {feeds.map(item => (
-      <Post key={item._id} data={item} likePostEvent={likePostEvent} unlikePostEvent={unlikePostEvent} />
+      <Post
+        key={item._id}
+        data={item}
+        likePostEvent={likePostEvent}
+        unlikePostEvent={unlikePostEvent}
+      />
     ))}
   </div>
 );
@@ -106,6 +114,7 @@ FeedList.propTypes = {
 class Home extends React.Component {
   static propTypes = {
     data: PropTypes.shape({
+      feeds: PropTypes.object,
       loading: PropTypes.bool.isRequired,
     }).isRequired,
     createNewPost: PropTypes.func.isRequired,
@@ -117,9 +126,11 @@ class Home extends React.Component {
   render() {
     // Pre-fetch data
     if (this.props.data.loading) return null;
-
     const { data: { loading, feeds }, loadMoreRows } = this.props;
-    const { pageInfo: { hasNextPage } } = feeds;
+    let hasNextPage = false;
+    if (feeds && feeds.pageInfo) {
+      hasNextPage = feeds.pageInfo.hasNextPage;
+    }
     return (
       <span>
         <Loading show={loading} full>Loading ...</Loading>
@@ -137,7 +148,11 @@ class Home extends React.Component {
                 hasMore={hasNextPage}
                 loader={<div className="loader">Loading ...</div>}
               >
-                <FeedList feeds={feeds.edges} likePostEvent={this.props.likePost} unlikePostEvent={this.props.unlikePost} />
+                <FeedList
+                  feeds={feeds.edges}
+                  likePostEvent={this.props.likePost}
+                  unlikePostEvent={this.props.unlikePost}
+                />
               </InfiniteScroll>
             </Col>
 
@@ -184,26 +199,9 @@ export default compose(
     },
   }),
   graphql(createNewPost, {
-    props: ({ ownProps, mutate }) => ({
+    props: ({ mutate }) => ({
       createNewPost: message => mutate({
         variables: { message },
-        optimisticResponse: {
-          __typename: 'Mutation',
-          createNewPost: {
-            __typename: 'PostSchemas',
-            _id: 'TENPORARY_ID_OF_THE_POST_OPTIMISTIC_UI',
-            message,
-            user: {
-              __typename: 'UserSchemas',
-              _id: ownProps.data.me._id,
-              username: ownProps.data.me.username,
-              profile: ownProps.data.me.profile,
-            },
-            totalLikes: 0,
-            totalComments: 0,
-            isLiked: false,
-          },
-        },
         updateQueries: {
           homePageQuery: (previousResult, { mutationResult }) => {
             const newPost = mutationResult.data.createNewPost;

@@ -24,7 +24,7 @@ import App from './components/App';
 import Html from './components/Html';
 import { ErrorPageWithoutStyle } from './routes/error/ErrorPage';
 import errorPageStyle from './routes/error/ErrorPage.css';
-import passport from './core/passport';
+import passport, { verifiedChatToken } from './core/passport';
 import schema from './data/schema';
 import routes from './routes';
 import assets from './assets.json'; // eslint-disable-line import/no-unresolved
@@ -32,6 +32,7 @@ import configureStore from './store/configureStore';
 import { setRuntimeVariable } from './actions/runtime';
 import { port, auth, databaseUrl } from './config';
 import Mongoose from './data/mongoose';
+import chat from './core/chat';
 
 // Create connect database
 Mongoose.connect(databaseUrl, {});
@@ -72,7 +73,7 @@ app.get('/login/facebook',
 app.get('/login/facebook/return',
   passport.authenticate('facebook', { failureRedirect: '/login', session: false }),
   (req, res) => {
-    const expiresIn = 60 * 60 * 24 * 180; // 180 days
+    const expiresIn = 60 * 60 * 24 * 180;
     const token = jwt.sign(req.user, auth.jwt.secret, { expiresIn });
     res.cookie('id_token', token, { maxAge: 1000 * expiresIn, httpOnly: true });
     res.redirect('/');
@@ -102,6 +103,7 @@ app.use('/graphql', graphqlMiddleware);
 // -----------------------------------------------------------------------------
 app.get('*', async (req, res, next) => {
   try {
+    await verifiedChatToken(req, res);
     const apolloClient = createApolloClient({
       schema,
       rootValue: { request: req },
@@ -112,6 +114,7 @@ app.get('*', async (req, res, next) => {
     }, {
       cookie: req.headers.cookie,
       apolloClient,
+      chat,
     });
 
     store.dispatch(setRuntimeVariable({
@@ -135,6 +138,7 @@ app.get('*', async (req, res, next) => {
       store,
       // Apollo Client for use with react-apollo
       client: apolloClient,
+      chat,
     };
 
     const route = await UniversalRouter.resolve(routes, {

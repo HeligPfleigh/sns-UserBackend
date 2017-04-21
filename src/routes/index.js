@@ -20,6 +20,7 @@ export default {
   children: [
     require('./home').default,
     requireAuth(require('./friends').default),
+    requireAuth(require('./messages').default),
     require('./contact').default,
     require('./login').default,
     require('./register').default,

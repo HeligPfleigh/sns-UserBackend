@@ -42,6 +42,9 @@ const UserSchema = new Schema({
     type: ObjectId,
     ref: 'Building',
   },
+  chatId: {
+    type: String,
+  },
 });
 
 // indexes

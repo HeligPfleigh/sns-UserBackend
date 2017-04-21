@@ -36,6 +36,10 @@ const UserSchemas = new GraphQLObjectType({
       type: GraphQLString,
       // resolve: (user) => user._id,
     },
+    chatId: {
+      type: GraphQLString,
+      // resolve: (user) => user._id,
+    },
     profile: {
       type: ProfileSchemas,
     },

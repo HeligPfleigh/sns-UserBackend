@@ -1,0 +1,33 @@
+{
+  "rules": {
+    "users": {
+      ".write": "auth != null",
+      "$userId": {
+        ".read": "auth != null",
+    		".write": "auth != null && $userId == auth.uid"
+      }
+    },
+    "conversation": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$room_id": {
+        ".read": "root.child('members/'+$room_id+'/'+auth.uid).exists()",
+      }
+    },
+    "members": {
+       ".write": "auth != null",
+       "$room_id": {
+          // any member can read the list of member names
+          ".read": "data.child(auth.uid).exists()",
+          ".write": "!data.exists() || data.child(auth.uid).exists()",
+       }
+    },
+    "messages": {
+      ".write": "auth != null",
+      "$room_id": {
+        // the list of messages for a room can be read by any member
+        ".read": "root.child('members/'+$room_id+'/'+auth.uid).exists()",
+      }
+    }
+  }
+}
