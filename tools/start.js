@@ -71,7 +71,7 @@ async function start() {
       const bs = browserSync.create();
 
       bs.init({
-        ...isDebug ? {} : { notify: false, ui: false },
+        ...isDebug ? {} : { notify: false, ui: { port: 3002 } },
 
         proxy: {
           target: server.host,
@@ -80,6 +80,7 @@ async function start() {
             xfwd: true,
           },
         },
+        port: 3006,
       }, resolve);
     };
 
