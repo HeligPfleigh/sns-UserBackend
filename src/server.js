@@ -9,6 +9,7 @@
 
 import path from 'path';
 import express from 'express';
+import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import expressJwt from 'express-jwt';
@@ -49,6 +50,19 @@ global.navigator.userAgent = global.navigator.userAgent || 'all';
 //
 // Register Node.js middleware
 // -----------------------------------------------------------------------------
+const whitelist = [
+  'http://localhost:3003',
+  '*',
+];
+const corsOptions = {
+  origin: (origin, callback) => {
+    const originIsWhitelisted = whitelist.indexOf(origin) !== -1;
+    callback(null, originIsWhitelisted);
+  },
+  credentials: true,
+};
+app.use(cors(corsOptions));
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -60,7 +74,12 @@ app.use(bodyParser.json());
 app.use(expressJwt({
   secret: auth.jwt.secret,
   credentialsRequired: false,
-  getToken: req => req.cookies.id_token,
+  getToken: (req) => {
+    if (req.headers && req.headers.authorization) {
+      return req.headers.authorization;
+    }
+    return req.cookies.id_token;
+  },
 }));
 app.use(passport.initialize());
 
