@@ -62,69 +62,69 @@ const config = {
             'stage-2',
             // JSX, Flow
             // https://github.com/babel/babel/tree/master/packages/babel-preset-react
-            'react',
+            // 'react',
             // Optimize React code for the production build
             // https://github.com/thejameskyle/babel-react-optimize
-            ...isDebug ? [] : ['react-optimize'],
+            // ...isDebug ? [] : ['react-optimize'],
           ],
           plugins: [
             'transform-decorators-legacy',
             // Adds component stack to warning messages
             // https://github.com/babel/babel/tree/master/packages/babel-plugin-transform-react-jsx-source
-            ...isDebug ? ['transform-react-jsx-source'] : [],
+            // ...isDebug ? ['transform-react-jsx-source'] : [],
             // Adds __self attribute to JSX which React will use for some warnings
             // https://github.com/babel/babel/tree/master/packages/babel-plugin-transform-react-jsx-self
-            ...isDebug ? ['transform-react-jsx-self'] : [],
+            // ...isDebug ? ['transform-react-jsx-self'] : [],
           ],
         },
       },
-      {
-        test: /\.css/,
-        use: [
-          {
-            loader: 'isomorphic-style-loader',
-          },
-          {
-            loader: 'css-loader',
-            options: {
-              // CSS Loader https://github.com/webpack/css-loader
-              importLoaders: 1,
-              sourceMap: isDebug,
-              // CSS Modules https://github.com/css-modules/css-modules
-              modules: true,
-              localIdentName: isDebug ? '[name]-[local]-[hash:base64:5]' : '[hash:base64:5]',
-              // CSS Nano http://cssnano.co/options/
-              minimize: !isDebug,
-              discardComments: { removeAll: true },
-            },
-          },
-          {
-            loader: 'postcss-loader',
-            options: {
-              config: './tools/postcss.config.js',
-            },
-          },
-        ],
-      },
-      { test: /\.scss$/,
-        use: [
-          'isomorphic-style-loader',
-          {
-            loader: 'css-loader',
-            options: {
-              modules: true,
-              localIdentName: isDebug ? '[name]-[local]-[hash:base64:5]' : '[hash:base64:5]',
-            },
-          },
-          {
-            loader: 'postcss-loader?pack=sass',
-            options: {
-              config: './tools/postcss.config.js',
-            },
-          },
-          'sass-loader',
-        ],
-      },
+      // {
+      //   test: /\.css/,
+      //   use: [
+      //     {
+      //       loader: 'isomorphic-style-loader',
+      //     },
+      //     {
+      //       loader: 'css-loader',
+      //       options: {
+      //         // CSS Loader https://github.com/webpack/css-loader
+      //         importLoaders: 1,
+      //         sourceMap: isDebug,
+      //         // CSS Modules https://github.com/css-modules/css-modules
+      //         modules: true,
+      //         localIdentName: isDebug ? '[name]-[local]-[hash:base64:5]' : '[hash:base64:5]',
+      //         // CSS Nano http://cssnano.co/options/
+      //         minimize: !isDebug,
+      //         discardComments: { removeAll: true },
+      //       },
+      //     },
+      //     {
+      //       loader: 'postcss-loader',
+      //       options: {
+      //         config: './tools/postcss.config.js',
+      //       },
+      //     },
+      //   ],
+      // },
+      // { test: /\.scss$/,
+      //   use: [
+      //     'isomorphic-style-loader',
+      //     {
+      //       loader: 'css-loader',
+      //       options: {
+      //         modules: true,
+      //         localIdentName: isDebug ? '[name]-[local]-[hash:base64:5]' : '[hash:base64:5]',
+      //       },
+      //     },
+      //     {
+      //       loader: 'postcss-loader?pack=sass',
+      //       options: {
+      //         config: './tools/postcss.config.js',
+      //       },
+      //     },
+      //     'sass-loader',
+      //   ],
+      // },
       {
         test: /\.md$/,
         loader: path.resolve(__dirname, './lib/markdown-loader.js'),
@@ -184,7 +184,8 @@ const clientConfig = {
   target: 'web',
 
   entry: {
-    client: ['babel-polyfill', './src/client.js', `bootstrap-loader${isDebug ? '' : '/extractStyles'}`],
+    // client: ['babel-polyfill', './src/client.js', `bootstrap-loader${isDebug ? '' : '/extractStyles'}`],
+    client: ['babel-polyfill'],
   },
 
   output: {

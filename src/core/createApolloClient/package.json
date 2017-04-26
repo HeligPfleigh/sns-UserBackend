@@ -1,6 +1,0 @@
-{
-  "private": true,
-  "name": "fetch",
-  "main": "./createApolloClient.server.js",
-  "browser": "./createApolloClient.client.js"
-}

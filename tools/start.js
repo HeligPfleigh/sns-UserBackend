@@ -37,17 +37,19 @@ async function start() {
 
     // Hot Module Replacement (HMR) + React Hot Reload
     if (isDebug) {
+      /**
       clientConfig.entry.client = [...new Set([
         'babel-polyfill',
-        'react-hot-loader/patch',
+        // 'react-hot-loader/patch',
         'webpack-hot-middleware/client',
       ].concat(clientConfig.entry.client))];
       clientConfig.output.filename = clientConfig.output.filename.replace('[chunkhash', '[hash');
       clientConfig.output.chunkFilename = clientConfig.output.chunkFilename.replace('[chunkhash', '[hash');
-      const { query } = clientConfig.module.rules.find(x => x.loader === 'babel-loader');
-      query.plugins = ['react-hot-loader/babel'].concat(query.plugins || []);
+      // const { query } = clientConfig.module.rules.find(x => x.loader === 'babel-loader');
+      // query.plugins = ['react-hot-loader/babel'].concat(query.plugins || []);
       clientConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
       clientConfig.plugins.push(new webpack.NoEmitOnErrorsPlugin());
+       */
     }
 
     const bundler = webpack(webpackConfig);
@@ -76,6 +78,7 @@ async function start() {
         proxy: {
           target: server.host,
           middleware: [wpMiddleware, hotMiddleware],
+          // middleware: [hotMiddleware],
           proxyOptions: {
             xfwd: true,
           },

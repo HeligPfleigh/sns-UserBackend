@@ -15,25 +15,26 @@ import bodyParser from 'body-parser';
 import expressJwt from 'express-jwt';
 import expressGraphQL from 'express-graphql';
 import jwt from 'jsonwebtoken';
-import React from 'react';
-import ReactDOM from 'react-dom/server';
-import { renderToStringWithData } from 'react-apollo';
-import UniversalRouter from 'universal-router';
-import PrettyError from 'pretty-error';
-import createApolloClient from './core/createApolloClient';
-import App from './components/App';
-import Html from './components/Html';
-import { ErrorPageWithoutStyle } from './routes/error/ErrorPage';
-import errorPageStyle from './routes/error/ErrorPage.css';
-import passport, { verifiedChatToken } from './core/passport';
+// import React from 'react';
+// import ReactDOM from 'react-dom/server';
+// import { renderToStringWithData } from 'react-apollo';
+// import UniversalRouter from 'universal-router';
+// import PrettyError from 'pretty-error';
+
+console.log(1234);
+
+// import createApolloClient from './core/createApolloClient';
+// import passport, { verifiedChatToken } from './core/passport';
+
+import passport from './core/passport';
 import schema from './data/schema';
-import routes from './routes';
-import assets from './assets.json'; // eslint-disable-line import/no-unresolved
-import configureStore from './store/configureStore';
-import { setRuntimeVariable } from './actions/runtime';
+
+// import assets from './assets.json'; // eslint-disable-line import/no-unresolved
+// import configureStore from './store/configureStore';
+// import { setRuntimeVariable } from './actions/runtime';
 import { port, auth, databaseUrl } from './config';
 import Mongoose from './data/mongoose';
-import chat from './core/chat';
+// import chat from './core/chat';
 
 // Create connect database
 Mongoose.connect(databaseUrl, {});
@@ -120,111 +121,15 @@ app.use('/graphql', graphqlMiddleware);
 //
 // Register server-side rendering middleware
 // -----------------------------------------------------------------------------
-app.get('*', async (req, res, next) => {
-  try {
-    await verifiedChatToken(req, res);
-    const apolloClient = createApolloClient({
-      schema,
-      rootValue: { request: req },
-    });
-
-    const store = configureStore({
-      user: req.user || null,
-    }, {
-      cookie: req.headers.cookie,
-      apolloClient,
-      chat,
-    });
-
-    store.dispatch(setRuntimeVariable({
-      name: 'initialNow',
-      value: Date.now(),
-    }));
-
-    const css = new Set();
-
-    // Global (context) variables that can be easily accessed from any React component
-    // https://facebook.github.io/react/docs/context.html
-    const context = {
-      // Enables critical path CSS rendering
-      // https://github.com/kriasoft/isomorphic-style-loader
-      insertCss: (...styles) => {
-        // eslint-disable-next-line no-underscore-dangle
-        styles.forEach(style => css.add(style._getCss()));
-      },
-      // Initialize a new Redux store
-      // http://redux.js.org/docs/basics/UsageWithReact.html
-      store,
-      // Apollo Client for use with react-apollo
-      client: apolloClient,
-      chat,
-    };
-
-    const route = await UniversalRouter.resolve(routes, {
-      ...context,
-      path: req.path,
-      query: req.query,
-    });
-
-    if (route.redirect) {
-      res.redirect(route.status || 302, route.redirect);
-      return;
-    }
-
-    const data = { ...route };
-
-    data.children = await renderToStringWithData(<App context={context}>{route.component}</App>);
-    data.styles = [
-      { id: 'css', cssText: [...css].join('') },
-    ];
-    data.scripts = [
-      assets.vendor.js,
-      assets.client.js,
-    ];
-    if (assets.vendor.css) {
-      data.cssVendors = [assets.vendor.css];
-    }
-
-    // Furthermore invoked actions will be ignored, client will not receive them!
-    if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.log('Serializing store...');
-    }
-    data.state = context.store.getState();
-
-    if (assets[route.chunk]) {
-      data.scripts.push(assets[route.chunk].js);
-    }
-
-    const html = ReactDOM.renderToStaticMarkup(<Html {...data} />);
-    res.status(route.status || 200);
-    res.send(`<!doctype html>${html}`);
-  } catch (err) {
-    next(err);
-  }
+app.get('*', async (req, res) => {
+  res.json({
+    name: 'sns api gateway',
+  });
 });
 
 //
 // Error handling
 // -----------------------------------------------------------------------------
-const pe = new PrettyError();
-pe.skipNodeFiles();
-pe.skipPackage('express');
-
-app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
-  console.log(pe.render(err)); // eslint-disable-line no-console
-  const html = ReactDOM.renderToStaticMarkup(
-    <Html
-      title="Internal Server Error"
-      description={err.message}
-      styles={[{ id: 'css', cssText: errorPageStyle._getCss() }]} // eslint-disable-line no-underscore-dangle
-    >
-      {ReactDOM.renderToString(<ErrorPageWithoutStyle error={err} />)}
-    </Html>,
-  );
-  res.status(err.status || 500);
-  res.send(`<!doctype html>${html}`);
-});
 
 //
 // Launch the server
