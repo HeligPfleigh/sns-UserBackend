@@ -12,7 +12,7 @@
 export const port = process.env.PORT || 3005;
 export const host = process.env.WEBSITE_HOSTNAME || `localhost:${port}`;
 
-export const databaseUrl = process.env.DATABASE_URL || 'mongodb://localhost/sns_test';
+export const databaseUrl = process.env.DATABASE_URL || 'mongodb://mongo:27017/sns_test';
 
 export const analytics = {
 
