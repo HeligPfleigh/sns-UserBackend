@@ -21,8 +21,6 @@ import jwt from 'jsonwebtoken';
 // import UniversalRouter from 'universal-router';
 // import PrettyError from 'pretty-error';
 
-console.log(1234);
-
 // import createApolloClient from './core/createApolloClient';
 // import passport, { verifiedChatToken } from './core/passport';
 
