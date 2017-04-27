@@ -1,3 +1,0 @@
-- step 1: write TDD tests
-- step 2: write more tests
-- step 3: implement code and make all test pass
