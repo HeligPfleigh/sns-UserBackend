@@ -51,6 +51,8 @@ global.navigator.userAgent = global.navigator.userAgent || 'all';
 // -----------------------------------------------------------------------------
 const whitelist = [
   'http://localhost:3003',
+  'http://sns-app.herokuapp.com',
+  'https://sns-app.herokuapp.com',
   '*',
 ];
 const corsOptions = {
@@ -121,7 +123,7 @@ app.use('/graphql', graphqlMiddleware);
 // -----------------------------------------------------------------------------
 app.get('*', async (req, res) => {
   res.json({
-    name: 'sns api gateway',
+    name: 'hello world!',
   });
 });
 
