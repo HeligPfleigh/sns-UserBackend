@@ -6,8 +6,10 @@ import acceptFriend from './friends/acceptFriend';
 import rejectFriend from './friends/rejectFriend';
 import friendAction from './friends/friendAction';
 import sendFriendRequest from './users/sendFriendRequest';
+import updateProfile from './users/updateProfile';
 
 export default {
+  updateProfile,
   createNewPost,
   createNewComment,
   likePost,

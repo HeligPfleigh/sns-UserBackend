@@ -21,8 +21,6 @@ import jwt from 'jsonwebtoken';
 // import UniversalRouter from 'universal-router';
 // import PrettyError from 'pretty-error';
 
-console.log(1234);
-
 // import createApolloClient from './core/createApolloClient';
 // import passport, { verifiedChatToken } from './core/passport';
 
@@ -53,6 +51,8 @@ global.navigator.userAgent = global.navigator.userAgent || 'all';
 // -----------------------------------------------------------------------------
 const whitelist = [
   'http://localhost:3003',
+  'http://sns-app.herokuapp.com',
+  'https://sns-app.herokuapp.com',
   '*',
 ];
 const corsOptions = {
@@ -123,7 +123,7 @@ app.use('/graphql', graphqlMiddleware);
 // -----------------------------------------------------------------------------
 app.get('*', async (req, res) => {
   res.json({
-    name: 'sns api gateway',
+    name: 'hello world!',
   });
 });
 
