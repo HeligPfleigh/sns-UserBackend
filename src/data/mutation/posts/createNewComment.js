@@ -3,6 +3,8 @@ import {
 } from 'graphql';
 
 import CommentSchemas from '../../schemas/CommentSchemas';
+import { sendCommentNotification } from '../../../utils/notifications';
+
 import {
   PostsModel,
   CommentsModel,
@@ -17,6 +19,8 @@ const createNewComment = {
   },
   resolve: ({ request }, { postId, message, commentId }) => new Promise(async (resolve, reject) => {
     try {
+      // console.warn('check if user logged in or not');
+
       if (!postId || !message) {
         throw new Error('Bad request...');
       }
@@ -34,7 +38,7 @@ const createNewComment = {
         message,
         reply: commentId !== 'ok' ? commentId : null,
       });
-
+      sendCommentNotification(postId, request.user.id);
       resolve(r);
     } catch (e) {
       reject(e);
