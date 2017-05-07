@@ -134,7 +134,7 @@ passport.use(new FacebookStrategy({
         services: {
           facebook: longlivedToken,
         },
-        chatId: chatToken.chatId,
+        chatId: chatToken && chatToken.chatId,
       });
       ApartmentsModel.create({
         number: '27',
@@ -142,17 +142,17 @@ passport.use(new FacebookStrategy({
         user: user._id,
         isOwner: true,
       });
-    } else if (!user.chatId) {
+    } else if (!(user && user.chatId)) {
       chatToken = await getChatToken({ accessToken });
       await UsersModel.update({
         _id: user._id,
       }, {
         $set: {
-          chatId: chatToken.chatId,
+          chatId: chatToken && chatToken.chatId,
         },
       });
     } else {
-      chatToken = await getChatToken({ chatId: user.chatId });
+      chatToken = await getChatToken({ chatId: user && user.chatId });
     }
     createChatUserIfNotExits(user);
     done(null, {
@@ -162,7 +162,7 @@ passport.use(new FacebookStrategy({
       roles: user.roles,
       chatToken: chatToken && chatToken.token,
       chatExp: moment().add(1, 'hours').unix(),
-      chatId: user.chatId,
+      chatId: user && user.chatId,
     });
   };
 
