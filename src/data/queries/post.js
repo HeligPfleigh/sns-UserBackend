@@ -10,7 +10,13 @@ const post = {
   args: {
     _id: { type: StringType },
   },
-  resolve: ({ request }, { _id }) => PostsModel.findOne({ _id }),
+  resolve: async ({ request }, { _id }) => {
+    const userId = request.user.id;
+    const postResult = await PostsModel.findOne({ _id });
+    postResult.likes.indexOf(userId) !== -1 ? postResult.isLiked = true : postResult.isLiked = false;
+
+    return postResult;
+  },
 };
 
 export default post;

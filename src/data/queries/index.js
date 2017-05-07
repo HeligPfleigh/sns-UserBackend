@@ -5,6 +5,7 @@ import users from './users';
 import me from './me';
 import apartment from './apartment';
 import building from './building';
+import notifications from './notifications';
 
 export default {
   post,
@@ -14,4 +15,5 @@ export default {
   me,
   apartment,
   building,
+  notifications,
 };
