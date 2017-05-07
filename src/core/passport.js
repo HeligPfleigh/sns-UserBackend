@@ -76,7 +76,8 @@ export async function verifiedChatToken(req, res) {
       req.user = { ...user, chatToken, chatExp: moment().add(0, 'hours').unix() };
       const expiresIn = 60 * 60 * 24 * 180;
       const token = jwt.sign(_.omit(req.user, ['exp', 'iat']), config.jwt.secret, { expiresIn });
-      res.cookie('id_token', token, { maxAge: 1000 * expiresIn, httpOnly: true });
+      res.cookie('id_token', token, { maxAge: 1000 * expiresIn });
+      // res.cookie('id_token', token, { maxAge: 1000 * expiresIn, httpOnly: true });
       return req.user;
     }
   } catch (error) {
