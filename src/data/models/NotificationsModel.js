@@ -23,10 +23,10 @@ const NotificationSchema = new Schema({
     type: Boolean,
     default: false,
   },
-  subject: [{
+  subject: {
     type: ObjectId,
     ref: 'Post',
-  }],
+  },
   actors: [{
     type: ObjectId,
     ref: 'User',
@@ -36,6 +36,6 @@ const NotificationSchema = new Schema({
 // https://github.com/drudge/mongoosetimestamp
 NotificationSchema.plugin(timestamp);
 
-const NotificationModel = mongoose.model('Notification', NotificationSchema, 'Notification');
+const NotificationModel = mongoose.model('notification', NotificationSchema);
 
 export default NotificationModel;
