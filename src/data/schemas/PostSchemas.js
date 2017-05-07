@@ -35,11 +35,22 @@ const PostSchemas = new ObjectType({
       type: Int,
       resolve: post => CommentsModel.count({
         post: post._id,
+        reply: { $exists: false },
       }),
     },
     comments: {
       type: new List(CommentSchemas),
-      resolve: post => CommentsModel.find({ post: post._id, reply: { $exists: false } }),
+      args: {
+        _id: { type: StringType },
+        limit: { type: Int },
+      },
+      resolve: (post, { _id, limit = 2 }) => {
+        const q = { post: post._id, reply: { $exists: false } };
+        if (_id) {
+          q._id = { $lt: _id };
+        }
+        return CommentsModel.find(q).sort({ createdAt: -1 }).limit(limit);
+      },
     },
     isLiked: {
       type: BooleanType,
