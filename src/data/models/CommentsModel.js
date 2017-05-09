@@ -9,11 +9,13 @@ const CommentSchema = new Schema({
     type: ObjectId,
     ref: 'User',
     required: true,
+    index: true,
   },
   post: {
     type: ObjectId,
     ref: 'Post',
     required: true,
+    index: true,
   },
   message: {
     type: Schema.Types.Mixed,

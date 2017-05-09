@@ -16,6 +16,7 @@ const EmailSchema = new Schema({
     type: String,
     required: true,
     sparse: true,
+    index: true,
   },
   verified: {
     type: Boolean,

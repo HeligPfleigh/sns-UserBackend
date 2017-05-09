@@ -13,15 +13,18 @@ const ApartmentSchema = new Schema({
   building: {
     type: ObjectId,
     ref: 'Building',
+    index: true,
   },
   user: {
     type: ObjectId,
     ref: 'User',
+    index: true,
   },
   isOwner: {
     type: Boolean,
     default: true,
     required: true,
+    index: true,
   },
 });
 

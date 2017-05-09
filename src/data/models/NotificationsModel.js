@@ -9,6 +9,7 @@ const NotificationSchema = new Schema({
   user: {
     type: ObjectId,
     ref: 'User',
+    index: true,
   },
   type: {
     type: String,
@@ -16,6 +17,7 @@ const NotificationSchema = new Schema({
     trim: true,
     enum: NOTIFY_TYPES,
     default: NOTIFY_TYPES[0],
+    index: true,
   },
   seen: {
     type: Boolean,

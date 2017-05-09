@@ -12,10 +12,12 @@ const PostSchema = new Schema({
     trim: true,
     enum: POST_TYPES,
     default: POST_TYPES[0],
+    index: true,
   },
   user: {
     type: ObjectId,
     ref: 'User',
+    index: true,
   },
   photos: {
     type: Array,
