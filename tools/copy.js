@@ -9,7 +9,7 @@
 
 import path from 'path';
 import chokidar from 'chokidar';
-import { writeFile, copyFile, makeDir, copyDir, cleanDir } from './lib/fs';
+import { writeFile, copyFile, makeDir, cleanDir } from './lib/fs';
 import pkg from '../package.json';
 import { format } from './run';
 
@@ -28,8 +28,6 @@ async function copy() {
         start: 'node server.js',
       },
     }, null, 2)),
-    // copyFile('LICENSE.txt', 'build/LICENSE.txt'),
-    copyDir('public', 'build/public'),
   ]);
 
   if (process.argv.includes('--watch')) {
