@@ -33,6 +33,10 @@ const NotificationSchemas = new ObjectType({
       type: BooleanType,
       resolve: notify => notify.seen,
     },
+    isRead: {
+      type: BooleanType,
+      resolve: notify => notify.isRead,
+    },
     subject: {
       type: PostInterface,
       resolve: notify => PostsModel.findById(notify.subject),
@@ -40,9 +44,6 @@ const NotificationSchemas = new ObjectType({
     actors: {
       type: new List(UserInterface),
       resolve: notify => UsersModel.find({ _id: { $in: notify.actors } }),
-    },
-    isRead: {
-      type: BooleanType,
     },
     createdAt: {
       type: StringType,

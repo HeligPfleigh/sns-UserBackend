@@ -105,11 +105,11 @@ const UserSchemas = new GraphQLObjectType({
     },
     totalFriends: {
       type: GraphQLInt,
-      resolve: async user => FriendsModel.count({ user: user._id }),
+      resolve: user => FriendsModel.count({ user: user._id }),
     },
     totalNotification: {
       type: GraphQLInt,
-      resolve: async user => NotificationsModel.count({ user: user._id, seen: false }),
+      resolve: user => NotificationsModel.count({ user: user._id, seen: false }),
     },
   }),
 });
