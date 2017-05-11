@@ -23,6 +23,10 @@ const NotificationSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  isRead: {
+    type: Boolean,
+    default: false,
+  },
   subject: {
     type: ObjectId,
     ref: 'Post',
