@@ -7,6 +7,7 @@ import rejectFriend from './friends/rejectFriend';
 import friendAction from './friends/friendAction';
 import sendFriendRequest from './users/sendFriendRequest';
 import updateProfile from './users/updateProfile';
+import { UpdateSeen, UpdateIsRead } from './notifications';
 
 export default {
   updateProfile,
@@ -18,4 +19,6 @@ export default {
   rejectFriend,
   sendFriendRequest,
   friendAction,
+  UpdateSeen,
+  UpdateIsRead,
 };
