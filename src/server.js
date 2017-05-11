@@ -87,10 +87,10 @@ app.use(passport.initialize());
 if (__DEV__) {
   app.enable('trust proxy');
 }
-app.get('/login/facebook',
+app.get('/auth/facebook',
   passport.authenticate('facebook', { scope: ['email', 'user_location'], session: false }),
 );
-app.get('/login/facebook/return',
+app.get('/auth/facebook/return',
   passport.authenticate('facebook', { failureRedirect: '/login', session: false }),
   (req, res) => {
     const expiresIn = 60 * 60 * 24 * 180;
@@ -100,7 +100,7 @@ app.get('/login/facebook/return',
   },
 );
 
-app.get('/logout', (req, res) => {
+app.get('/auth/logout', (req, res) => {
 // app.post('/logout', (req, res) => {
   res.clearCookie('id_token');
   res.redirect('/');
