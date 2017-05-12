@@ -1,13 +1,13 @@
 export const port = process.env.API_PORT || 8081;
 export const host = `localhost:${port}`;
 
-export const databaseUrl = process.env.DATABASE_URL || 'mongodb://localhost:27017/sns_test';
+export const databaseUrl = process.env.DATABASE_URL || 'mongodb://localhost:27017/sns';
 
 export const auth = {
   facebook: {
     id: process.env.FACEBOK_ID || '669818893191009',
     secret: process.env.FACEBOK_SECRET || 'a06b0239c7df66ab9f13e878b0d77029',
-    callBackURL: process.env.FACEBOK_CALLBACK_URL || 'http://sns.mttjsc.com:8080/auth/facebook/return',
+    callBackURL: process.env.FACEBOK_CALLBACK_URL || 'http://sns.mttjsc.com/auth/facebook/return',
   },
   firebase: {
     apiKey: process.env.FIREBASE_PROJECT_APIKEY || 'AIzaSyDgbPU5DuXmvxWprMwc-HxTMae05c6rCPc',
