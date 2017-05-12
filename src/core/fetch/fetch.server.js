@@ -9,7 +9,7 @@
 
 import Promise from 'bluebird';
 import fetch, { Request, Headers, Response } from 'node-fetch';
-import { host } from '../../config';
+import config from '../../config';
 
 fetch.Promise = Promise;
 Response.Promise = Promise;
@@ -23,7 +23,7 @@ function localUrl(url) {
     return url;
   }
 
-  return `http://${host}${url}`;
+  return `http://${config.host}${url}`;
 }
 
 function localFetch(url, options) {

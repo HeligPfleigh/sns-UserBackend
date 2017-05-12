@@ -30,10 +30,10 @@ import schema from './data/schema';
 // import assets from './assets.json'; // eslint-disable-line import/no-unresolved
 // import configureStore from './store/configureStore';
 // import { setRuntimeVariable } from './actions/runtime';
-import { port, auth, databaseUrl } from './config';
+import config from './config';
 import Mongoose from './data/mongoose';
 // import chat from './core/chat';
-
+const { port, auth, databaseUrl } = config;
 // Create connect database
 Mongoose.connect(databaseUrl, {});
 
@@ -51,6 +51,7 @@ global.navigator.userAgent = global.navigator.userAgent || 'all';
 // -----------------------------------------------------------------------------
 const whitelist = [
   'http://localhost:3003',
+  'http://sns.mttjsc.com:8080',
   'http://sns-app.herokuapp.com',
   'https://sns-app.herokuapp.com',
   '*',

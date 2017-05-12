@@ -23,8 +23,7 @@ import jwt from 'jsonwebtoken';
 import * as admin from 'firebase-admin';
 import * as firebase from 'firebase';
 import _ from 'lodash';
-import serviceAccount from './private/firebase-admin.json';
-import { auth as config } from '../config';
+import config from '../config';
 import {
   UsersModel,
   ApartmentsModel,
@@ -33,8 +32,8 @@ import fetch from './fetch';
 import chat from './chat';
 
 export const defaultAdminApp = admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: config.firebase.databaseURL,
+  credential: admin.credential.cert(config.auth.firebaseAdmin),
+  databaseURL: config.auth.firebase.databaseURL,
 });
 
 async function getChatToken({ accessToken, chatId }) {
@@ -70,14 +69,13 @@ const { Types: { ObjectId } } = mongoose;
 
 export async function verifiedChatToken(req, res) {
   try {
-    const user = jwt.verify(req.cookies.id_token, config.jwt.secret);
+    const user = jwt.verify(req.cookies.id_token, config.auth.jwt.secret);
     if (user && user.chatToken && user.chatExp && moment(user.chatExp).diff(new Date()) < 0) {
       const chatToken = await defaultAdminApp.auth().createCustomToken(user.chatId);
       req.user = { ...user, chatToken, chatExp: moment().add(0, 'hours').unix() };
       const expiresIn = 60 * 60 * 24 * 180;
-      const token = jwt.sign(_.omit(req.user, ['exp', 'iat']), config.jwt.secret, { expiresIn });
+      const token = jwt.sign(_.omit(req.user, ['exp', 'iat']), config.auth.jwt.secret, { expiresIn });
       res.cookie('id_token', token, { maxAge: 1000 * expiresIn });
-      // res.cookie('id_token', token, { maxAge: 1000 * expiresIn, httpOnly: true });
       return req.user;
     }
   } catch (error) {
@@ -87,7 +85,7 @@ export async function verifiedChatToken(req, res) {
 }
 
 export async function getLongTermToken(accessToken) {
-  const longlivedTokenRequest = await fetch(`https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=${config.facebook.id}&fb_exchange_token=${accessToken}&client_secret=${config.facebook.secret}`);
+  const longlivedTokenRequest = await fetch(`https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=${config.auth.facebook.id}&fb_exchange_token=${accessToken}&client_secret=${config.auth.facebook.secret}`);
   const longlivedTokenObject = JSON.parse(await longlivedTokenRequest.text());
   // long-lived tokens will expire in about 60 days
   // so we want to refresh it every 50 days
@@ -101,9 +99,9 @@ export async function getLongTermToken(accessToken) {
  * Sign in with Facebook.
  */
 passport.use(new FacebookStrategy({
-  clientID: config.facebook.id,
-  clientSecret: config.facebook.secret,
-  callbackURL: '/auth/facebook/return',
+  clientID: config.auth.facebook.id,
+  clientSecret: config.auth.facebook.secret,
+  callbackURL: config.auth.facebook.callBackURL,
   profileFields: ['name', 'email', 'link', 'locale', 'timezone', 'gender'],
   passReqToCallback: true,
 }, (req, accessToken, refreshToken, profile, done) => {
