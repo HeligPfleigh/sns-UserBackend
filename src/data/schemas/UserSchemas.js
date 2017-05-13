@@ -21,6 +21,7 @@ import {
   FriendsRelationModel as FriendsModel,
   BuildingsModel,
   ApartmentsModel,
+  NotificationsModel,
 } from '../models';
 
 const UserSchemas = new GraphQLObjectType({
@@ -104,7 +105,11 @@ const UserSchemas = new GraphQLObjectType({
     },
     totalFriends: {
       type: GraphQLInt,
-      resolve: async user => FriendsModel.count({ user: user._id }).select('_id'),
+      resolve: user => FriendsModel.count({ user: user._id }),
+    },
+    totalNotification: {
+      type: GraphQLInt,
+      resolve: user => NotificationsModel.count({ user: user._id, seen: false }),
     },
   }),
 });

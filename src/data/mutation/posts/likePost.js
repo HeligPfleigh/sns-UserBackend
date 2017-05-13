@@ -4,6 +4,7 @@ import {
 
 import PostSchema from '../../schemas/PostSchemas';
 import { PostsModel } from '../../models';
+import { sendLikeNotification } from '../../../utils/notifications';
 
 const likePost = {
   type: PostSchema,
@@ -28,6 +29,8 @@ const likePost = {
 
       const postObj = await PostsModel.findById(postId);
       postObj.isLiked = true;
+
+      sendLikeNotification(postId, request.user.id);
       resolve(postObj);
     } catch (err) {
       reject(err);

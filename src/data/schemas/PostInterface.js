@@ -5,6 +5,8 @@ import {
   GraphQLID,
 } from 'graphql';
 
+import UserInterface from './UserInterface';
+
 const PostInterface = new GraphQLInterfaceType({
   name: 'PostInterface',
   description: 'PostInterface',
@@ -14,6 +16,9 @@ const PostInterface = new GraphQLInterfaceType({
     },
     message: {
       type: GraphQLString,
+    },
+    user: {
+      type: UserInterface,
     },
   }),
   resolveType: () => {
