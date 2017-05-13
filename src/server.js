@@ -51,7 +51,7 @@ global.navigator.userAgent = global.navigator.userAgent || 'all';
 // -----------------------------------------------------------------------------
 const whitelist = [
   'http://localhost:3003',
-  'http://sns.mttjsc.com:8080',
+  'http://sns.mttjsc.com',
   'http://sns-app.herokuapp.com',
   'https://sns-app.herokuapp.com',
   '*',
