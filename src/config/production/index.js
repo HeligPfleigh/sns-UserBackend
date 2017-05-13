@@ -27,7 +27,7 @@ export const auth = {
     auth_uri: 'https://accounts.google.com/o/oauth2/auth',
     token_uri: 'https://accounts.google.com/o/oauth2/token',
     auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
-    client_x509_cert_url: 'https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-1gt28%40snschat-fb64b.iam.gserviceaccount.com',
+    client_x509_cert_url: process.env.FIREBASE_CLIENT_CER_URL || 'https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-1gt28%40snschat-fb64b.iam.gserviceaccount.com',
   },
   jwt: { secret: process.env.JWT_SECRET || 'React Starter Kit' },
 };
