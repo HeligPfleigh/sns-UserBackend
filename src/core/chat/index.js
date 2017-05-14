@@ -1,4 +1,4 @@
 import serviceChatFactory, { FirebaseProvider } from './services';
-import { auth } from '../../config';
+import config from '../../config';
 
-export default serviceChatFactory.createClient(FirebaseProvider, auth.firebase);
+export default serviceChatFactory.createClient(FirebaseProvider, config.auth.firebase);
