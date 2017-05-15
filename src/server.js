@@ -96,7 +96,7 @@ app.get('/auth/facebook/return',
   (req, res) => {
     const expiresIn = 60 * 60 * 24 * 180;
     const token = jwt.sign(req.user, auth.jwt.secret, { expiresIn });
-    res.cookie('id_token', token, { maxAge: 1000 * expiresIn, httpOnly: true });
+    res.cookie('id_token', token, { maxAge: 1000 * expiresIn });
     res.redirect('/');
   },
 );
