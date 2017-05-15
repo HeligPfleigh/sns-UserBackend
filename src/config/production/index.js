@@ -15,7 +15,7 @@ export const auth = {
     databaseURL: process.env.FIREBASE_DATABASE_URL || 'https://snschat-fb64b.firebaseio.com',
     projectId: process.env.FIREBASE_PROJECT_ID || 'snschat-fb64b',
     storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'snschat-fb64b.appspot.com',
-    messagingSenderId: process.env.FIREBASE_MESSAGIN_SENDER_ID || '1034925992768',
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || '1034925992768',
   },
   firebaseAdmin: {
     type: 'service_account',
