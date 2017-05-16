@@ -23,8 +23,8 @@ const createNewPost = {
         user: userId || author,
       });
 
-      if (userId && isEqual(userId, author)) {
-        sendPostNotification(r._id, userId);
+      if (userId && !isEqual(userId, author)) {
+        sendPostNotification(r._id, author);
       }
       r.isLiked = false;
       resolve(r);
