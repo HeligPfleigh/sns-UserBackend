@@ -1,7 +1,7 @@
 import {
   GraphQLString as StringType,
 } from 'graphql';
-import _ from 'lodash';
+import isEqual from 'lodash/isEqual';
 
 import PostSchemas from '../../schemas/PostSchemas';
 import { sendPostNotification } from '../../../utils/notifications';
@@ -23,7 +23,7 @@ const createNewPost = {
         user: userId || author,
       });
 
-      if (userId && _.isEqual(userId, author)) {
+      if (userId && isEqual(userId, author)) {
         sendPostNotification(r._id, userId);
       }
       r.isLiked = false;
