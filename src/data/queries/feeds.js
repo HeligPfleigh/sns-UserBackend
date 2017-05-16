@@ -58,7 +58,11 @@ const feeds = {
         .sort({ createdAt: -1 }).cursor();
       }
 
-      edges.on('data', (res) => {
+      edges.on('data', async (res) => {
+        if (!res.author) {
+          res.author = res.user;
+          await res.save();
+        }
         res.likes.indexOf(userId) !== -1 ? res.isLiked = true : res.isLiked = false;
         edgesArray.push(res);
       });
