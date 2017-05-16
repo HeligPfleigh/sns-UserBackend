@@ -46,7 +46,12 @@ const UserSchemas = new GraphQLObjectType({
     },
     posts: {
       type: new GraphQLList(PostSchemas),
-      resolve: user => PostsModel.find({ user: user._id }).sort({ createdAt: -1 }),
+      resolve: user => PostsModel.find({
+        $or: [
+          { user: user._id },
+          { author: user._id },
+        ],
+      }).sort({ createdAt: -1 }),
     },
     building: {
       type: new GraphQLList(BuildingSchemas),
