@@ -26,6 +26,7 @@ const createNewPost = {
       if (userId && _.isEqual(userId, author)) {
         sendPostNotification(r._id, userId);
       }
+      r.isLiked = false;
       resolve(r);
     } catch (e) {
       reject(e);
