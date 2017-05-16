@@ -46,7 +46,12 @@ function sendCommentNotification(postId, userId) {
   getUserFollow(postId, userId, NOTIFY_TYPES[1]);
 }
 
+function sendPostNotification(postId, userId) {
+  getUserFollow(postId, userId, NOTIFY_TYPES[2]);
+}
+
 export {
-  sendCommentNotification,
   sendLikeNotification,
+  sendCommentNotification,
+  sendPostNotification,
 };
