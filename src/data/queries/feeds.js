@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 import {
   GraphQLInt as IntType,
   GraphQLString as StringType,
-  GraphQLBoolean as BooleanType,
 } from 'graphql';
 
 import {
@@ -32,9 +31,9 @@ const feeds = {
   args: {
     limit: { type: IntType },
     cursor: { type: StringType },
-    isOne: { type: BooleanType },
+    owner: { type: StringType },
   },
-  resolve: async ({ request }, { limit = 5, cursor, isOne = false }) => {
+  resolve: async ({ request }, { limit = 5, cursor, owner }) => {
     const userId = request.user.id;
     let friendListByIds = await FriendsModel.find({ user: userId }).select('friend _id');
     friendListByIds = friendListByIds.map(v => v.friend);
@@ -47,11 +46,11 @@ const feeds = {
         user: { $in: friendListByIds },
       };
 
-      if (isOne) {
+      if (owner) {
         options = {
           $or: [
-            { author: userId },
-            { user: userId },
+            { author: owner },
+            { user: owner },
           ],
         };
       }
