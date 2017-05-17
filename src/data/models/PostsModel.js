@@ -19,6 +19,11 @@ const PostSchema = new Schema({
     ref: 'User',
     index: true,
   },
+  author: {
+    type: ObjectId,
+    ref: 'User',
+    index: true,
+  },
   photos: {
     type: Array,
   },

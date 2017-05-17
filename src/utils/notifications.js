@@ -7,12 +7,12 @@ import {
 import { NOTIFY_TYPES } from '../constants';
 
 const getUserFollow = async (postId, userId, status) => {
-  const post = await PostsModel.findById(postId).select('likes user');
+  const post = await PostsModel.findById(postId).select('likes user author');
   const comments = await CommentsModel.find({ post: postId }).select('user');
 
   const userLikes = post.likes;
   const userComment = _.uniq(_.map(comments, 'user'));
-  let list = _.uniqWith(_.union([post.user], userLikes, userComment), _.isEqual);
+  let list = _.uniqWith(_.union([post.user], [post.author], userLikes, userComment), _.isEqual);
   list = _.reject(list, item => item.equals(userId));
 
   list.forEach(async (userFollow) => {
@@ -46,7 +46,12 @@ function sendCommentNotification(postId, userId) {
   getUserFollow(postId, userId, NOTIFY_TYPES[1]);
 }
 
+function sendPostNotification(postId, userId) {
+  getUserFollow(postId, userId, NOTIFY_TYPES[2]);
+}
+
 export {
-  sendCommentNotification,
   sendLikeNotification,
+  sendCommentNotification,
+  sendPostNotification,
 };

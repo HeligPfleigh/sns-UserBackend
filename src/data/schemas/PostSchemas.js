@@ -27,6 +27,10 @@ const PostSchemas = new ObjectType({
       type: UserInterface,
       resolve: post => UsersModel.findOne({ _id: post.user }),
     },
+    author: {
+      type: UserInterface,
+      resolve: post => UsersModel.findOne({ _id: post.author }),
+    },
     totalLikes: {
       type: Int,
       resolve: post => post.likes.length,
