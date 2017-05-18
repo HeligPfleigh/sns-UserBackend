@@ -17,7 +17,7 @@ const updateSeen = {
         { multi: true },
       );
 
-      if (result.nModified < 1) {
+      if (result.ok !== 1 && result.nModified < 1) {
         throw new Error('Update faild...');
       }
 

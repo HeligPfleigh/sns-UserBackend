@@ -31,8 +31,9 @@ const feeds = {
   args: {
     limit: { type: IntType },
     cursor: { type: StringType },
+    owner: { type: StringType },
   },
-  resolve: async ({ request }, { limit = 5, cursor }) => {
+  resolve: async ({ request }, { limit = 5, cursor, owner }) => {
     const userId = request.user.id;
     let friendListByIds = await FriendsModel.find({ user: userId }).select('friend _id');
     friendListByIds = friendListByIds.map(v => v.friend);
@@ -41,24 +42,34 @@ const feeds = {
     const edgesAndPageInfoPromise = new Promise((resolve, reject) => {
       const edgesArray = [];
       let edges = null;
-      if (cursor) {
-        edges = PostsModel.find({
-          user: { $in: friendListByIds },
-          _id: {
-            $lt: cursor,
-          },
-        })
-        .limit(limit)
-        .sort({ createdAt: -1 }).cursor();
-      } else {
-        edges = PostsModel.find({
-          user: { $in: friendListByIds },
-        })
-        .limit(limit)
-        .sort({ createdAt: -1 }).cursor();
+      let options = {
+        user: { $in: friendListByIds },
+      };
+
+      if (owner) {
+        options = {
+          $or: [
+            { author: owner },
+            { user: owner },
+          ],
+        };
       }
 
-      edges.on('data', (res) => {
+      if (cursor) {
+        options._id = {
+          $lt: cursor,
+        };
+      }
+
+      edges = PostsModel.find(options)
+      .limit(limit)
+      .sort({ createdAt: -1 }).cursor();
+
+      edges.on('data', async (res) => {
+        if (!res.author) {
+          res.author = res.user;
+          await res.save();
+        }
         res.likes.indexOf(userId) !== -1 ? res.isLiked = true : res.isLiked = false;
         edgesArray.push(res);
       });

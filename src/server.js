@@ -54,6 +54,7 @@ const whitelist = [
   'http://sns.mttjsc.com',
   'http://sns-app.herokuapp.com',
   'https://sns-app.herokuapp.com',
+  'https://sns.mttjsc.com',
   '*',
 ];
 const corsOptions = {
