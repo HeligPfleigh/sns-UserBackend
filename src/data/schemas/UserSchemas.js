@@ -46,7 +46,22 @@ const UserSchemas = new GraphQLObjectType({
     },
     posts: {
       type: new GraphQLList(PostSchemas),
-      resolve: user => PostsModel.find({ user: user._id }).sort({ createdAt: -1 }),
+      resolve: user => new Promise((resolve, reject) => {
+        const edgesArray = [];
+        const edges = PostsModel.find({ user: user._id }).sort({ createdAt: -1 }).cursor();
+
+        edges.on('data', (res) => {
+          res.likes.indexOf(user._id) !== -1 ? res.isLiked = true : res.isLiked = false;
+          edgesArray.push(res);
+        });
+
+        edges.on('error', (err) => {
+          reject(err);
+        });
+        edges.on('end', () => {
+          resolve(edgesArray);
+        });
+      }),
     },
     building: {
       type: new GraphQLList(BuildingSchemas),
