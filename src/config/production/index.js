@@ -1,7 +1,7 @@
 export const port = process.env.API_PORT || 8081;
 export const host = `localhost:${port}`;
 
-export const databaseUrl = process.env.DATABASE_URL || 'mongodb://localhost:27017/sns';
+export const databaseUrl = process.env.DATABASE_URL || 'mongodb://mongo:27017/sns';
 
 export const auth = {
   facebook: {
