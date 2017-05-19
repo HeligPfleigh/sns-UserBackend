@@ -45,6 +45,7 @@ import {
   // buildSchemaFromTypeDefinitions,
   makeExecutableSchema,
 } from 'graphql-tools';
+import { PostsModel, UsersModel } from './models';
 
 import { schema as userSchema, resolvers as userResolvers } from './zzz';
 
@@ -100,12 +101,8 @@ const rootResolvers = {
       ];
     },
     post(root, { _id }, context) {
-      return new Promise((resolve, reject) => {
-        resolve({
-          _id: `${_id}123`,
-        });
-      });
-    },
+      return PostsModel.findOne({_id});
+    }
   },
 };
 

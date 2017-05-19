@@ -1,6 +1,7 @@
 // import { property } from 'lodash';
 import {
   PostsModel,
+  UsersModel,
 } from './models';
 
 export const schema = [`
@@ -22,7 +23,7 @@ type Notification {
 type Post {
   _id: ID!
   message: String
-  user: User
+  user: Author
 }
 
 type Profile {
@@ -86,6 +87,11 @@ export const resolvers = {
   Me: {
     posts() {
       return PostsModel.find({});
+    },
+  },
+  Post: {
+    user(data) {
+      return UsersModel.findOne({_id: data.user});
     },
   },
   Friend: {
