@@ -47,8 +47,15 @@ function connect() {
 
 function clearDatabase() {
   return new Promise(resolve => {
-    mongoose.connection.dropDatabase();
-    resolve();
+    mongoose.connection.db.dropDatabase((err) => {
+      console.log('database dropped');
+      resolve();
+    });
+    // for (const i in mongoose.connection.collections) {
+    //   mongoose.connection.collections[i].remove(function() {});
+    // }
+
+    // resolve();
   });
 }
 

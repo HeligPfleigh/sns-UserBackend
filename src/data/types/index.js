@@ -2,7 +2,8 @@
 import {
   PostsModel,
   UsersModel,
-} from './models';
+  BuildingsModel,
+} from '../models';
 
 export const schema = [`
 type Building {
@@ -16,8 +17,21 @@ type Apartment {
   building: Building
 }
 
+enum NotificationType {
+  LIKES
+  COMMENTS
+  NEW_POST
+}
+
 type Notification {
   _id: ID!
+  user: Author!
+  type: NotificationType!
+  seen: Boolean
+  isRead: Boolean
+  subject: Post
+  actors: [Author]
+  createdAt: String
 }
 
 type Post {
@@ -84,6 +98,11 @@ type Author implements User {
 `];
 
 export const resolvers = {
+  Apartment: {
+    building (data) {
+      return BuildingsModel.findOne({_id: data.building});
+    },
+  },
   Me: {
     posts() {
       return PostsModel.find({});

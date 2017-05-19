@@ -45,9 +45,15 @@ import {
   // buildSchemaFromTypeDefinitions,
   makeExecutableSchema,
 } from 'graphql-tools';
-import { PostsModel, UsersModel } from './models';
+import {
+  PostsModel,
+  UsersModel,
+  BuildingsModel,
+  ApartmentsModel,
+  NotificationsModel,
+} from './models';
 
-import { schema as userSchema, resolvers as userResolvers } from './zzz';
+import { schema as schemaType, resolvers as resolversType } from './types';
 
 const rootSchema = [`
 
@@ -73,13 +79,13 @@ type Entry {
 
 type Query {
   # A feed of repository submissions
-  feed(limit: Int): [Entry]
+  # feed(limit: Int): [Entry]
   post(_id: String!): Post
-  user(_id: String): Author
-  me: Me,
+  user(_id: String): Friend
+  # me: Me,
   apartment(_id: String): Apartment,
-  building(_id: String): Apartment,
-  notifications: [Notification],
+  building(_id: String): Building,
+  notification(_id: String): Notification,
 }
 
 schema {
@@ -88,26 +94,26 @@ schema {
 `];
 const rootResolvers = {
   Query: {
-    feed(root, { limit }, context) {
-      console.log(root, limit, context);
-      return [
-        {
-          _id: limit,
-          type: 'NEW',
-          user: {
-            _id: '123',
-          },
-        },
-      ];
-    },
     post(root, { _id }, context) {
       return PostsModel.findOne({_id});
-    }
+    },
+    apartment(root, { _id }, context) {
+      return ApartmentsModel.findOne({_id});
+    },
+    building(root, { _id }, context) {
+      return BuildingsModel.findOne({_id});
+    },
+    user(root, { _id }, context) {
+      return UsersModel.findOne({_id});
+    },
+    notification(root, { _id }, context) {
+      return NotificationsModel.findOne({_id});
+    },
   },
 };
 
-const schema = [...rootSchema, ...userSchema];
-const resolvers = merge(rootResolvers, userResolvers);
+const schema = [...rootSchema, ...schemaType];
+const resolvers = merge(rootResolvers, resolversType);
 
 const executableSchema = makeExecutableSchema({
   typeDefs: schema,
@@ -119,8 +125,11 @@ export default executableSchema;
 /**
 > Refactor
   - short
-  - nic syntax
+  - nice syntax
 
 > test 
 > micro-service
+
+> paging mongo
+> realtime
 */
