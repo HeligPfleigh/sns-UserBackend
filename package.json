@@ -66,6 +66,7 @@
     "browser-sync": "^2.18.7",
     "chai": "^3.5.0",
     "chokidar": "^1.6.1",
+    "cross-env": "^5.0.0",
     "editorconfig-tools": "^0.1.1",
     "enzyme": "^2.7.1",
     "eslint": "^3.15.0",
@@ -172,13 +173,34 @@
       "git add"
     ]
   },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.{js}",
+      "!src/**/*.test.{js}"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "statements": 98,
+        "branches": 91,
+        "functions": 98,
+        "lines": 98
+      }
+    },
+    "moduleDirectories": [
+      "node_modules",
+      "src"
+    ],
+    "moduleNameMapper": {},
+    "setupTestFrameworkScriptFile": "<rootDir>/test/test-bundler.js",
+    "testRegex": "tests/.*\\.test\\.js$"
+  },
   "scripts": {
     "lint:js": "eslint src tools --fix",
     "lint:css": "stylelint \"src/**/*.{css,less,scss,sss}\"",
     "lint:staged": "lint-staged",
     "lint": "yarn run lint:js && yarn run lint:css",
-    "test": "mocha \"src/**/*.test.js\" --require babel-register --require test/setup.js",
-    "test:watch": "yarn run test -- --reporter min --watch",
+    "test": "cross-env NODE_ENV=test jest --coverage",
+    "test:watch": "cross-env NODE_ENV=test jest --watchAll",
     "clean": "babel-node tools/run clean",
     "copy": "babel-node tools/run copy",
     "bundle": "babel-node tools/run bundle",

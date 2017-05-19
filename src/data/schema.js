@@ -118,3 +118,12 @@ const executableSchema = makeExecutableSchema({
 });
 
 export default executableSchema;
+
+/**
+> Refactor
+  - short
+  - nic syntax
+
+> test 
+> micro-service
+*/
