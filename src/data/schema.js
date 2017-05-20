@@ -45,14 +45,10 @@ import {
   // buildSchemaFromTypeDefinitions,
   makeExecutableSchema,
 } from 'graphql-tools';
-import {
-  PostsModel,
-  UsersModel,
-  BuildingsModel,
-  ApartmentsModel,
-  NotificationsModel,
-} from './models';
-
+import AddressServices from './apis/AddressServices';
+import NotificationsService from './apis/NotificationsService';
+import UsersService from './apis/UsersService';
+import PostsService from './apis/PostsService';
 import { schema as schemaType, resolvers as resolversType } from './types';
 
 const rootSchema = [`
@@ -95,19 +91,19 @@ schema {
 const rootResolvers = {
   Query: {
     post(root, { _id }, context) {
-      return PostsModel.findOne({_id});
+      return PostsService.getPost(_id);
     },
     apartment(root, { _id }, context) {
-      return ApartmentsModel.findOne({_id});
+      return AddressServices.getApartment(_id);
     },
     building(root, { _id }, context) {
-      return BuildingsModel.findOne({_id});
+      return AddressServices.getBuilding(_id);
     },
     user(root, { _id }, context) {
-      return UsersModel.findOne({_id});
+      return UsersService.getUser(_id);
     },
     notification(root, { _id }, context) {
-      return NotificationsModel.findOne({_id});
+      return NotificationsService.getNotification(_id);
     },
   },
 };
@@ -126,6 +122,9 @@ export default executableSchema;
 > Refactor
   - short
   - nice syntax
+
+> api
+> mutation
 
 > test 
 > micro-service
