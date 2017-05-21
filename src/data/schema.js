@@ -1,81 +1,36 @@
-/**
-import {
-  GraphQLSchema as Schema,
-  GraphQLObjectType as ObjectType,
-} from 'graphql';
-
-// import queries from './queries';
-// import mutation from './mutation';
-import schemas from './schemas';
-import { UsersModel } from './models';
-
-const schema = makeExecutableSchema({
-  typeDefs: schemas,
-  resolvers: {
-    Query: {
-      building({ request }, { _id }) {
-        return {
-          _id,
-        };
-      },
-      user({ request }, { _id }) {
-        return UsersModel.findOne({ _id });
-      },
-      users() {
-        return UsersModel.find({});
-      },
-    },
-  },
-});
-// const schema = new Schema({
-//   query: new ObjectType({
-//     name: 'RootQuery',
-//     fields: queries,
-//   }),
-//   mutation: new ObjectType({
-//     name: 'RootMutation',
-//     fields: mutation,
-//   }),
-// });
-
-// export default schema;
-*/
 import merge from 'lodash/merge';
+import mongoose from 'mongoose';
 import {
   // buildSchemaFromTypeDefinitions,
   makeExecutableSchema,
 } from 'graphql-tools';
+import {
+  PostsModel,
+  FriendsRelationModel as FriendsModel,
+} from './models';
+import Service from './mongo/service';
 import AddressServices from './apis/AddressServices';
 import NotificationsService from './apis/NotificationsService';
 import UsersService from './apis/UsersService';
 import PostsService from './apis/PostsService';
 import { schema as schemaType, resolvers as resolversType } from './types';
 
+const { Types: { ObjectId } } = mongoose;
+
+const toObjectId = (idStr) => {
+  let id = null;
+  try {
+    id = ObjectId(idStr);
+  } catch (err) {
+    throw err;
+  }
+  return id;
+};
+
 const rootSchema = [`
-
-# A list of options for the sort order of the feed
-enum FeedType {
-  # Sort by a combination of freshness and score, using Reddit's algorithm
-  HOT
-  # Newest entries first
-  NEW
-  # Highest score entries first
-  TOP
-}
-
-type Entry {
-  # The SQL ID of this entry
-  _id: Int!
-
-  # The sort order for the feed
-  type: FeedType!,
-
-  user: Author!
-}
-
 type Query {
   # A feed of repository submissions
-  # feed(limit: Int): [Entry]
+  feed(limit: Int, cursor: String): Feeds
   post(_id: String!): Post
   user(_id: String): Friend
   # me: Me,
@@ -84,12 +39,49 @@ type Query {
   notification(_id: String): Notification,
 }
 
+type Mutation {
+  acceptFriend (
+    userId: String!
+  ): Friend
+}
+
 schema {
   query: Query
+  mutation: Mutation
 }
 `];
+
+const FeedsService = Service({
+  Model: PostsModel,
+  paginate: {
+    default: 5,
+    max: 10,
+  },
+  cursor: true,
+});
 const rootResolvers = {
   Query: {
+    async feed({ request }, { cursor = null, limit = 5 }) {
+      const userId = request.user.id;
+      let friendListByIds = await FriendsModel.find({ user: userId }).select('friend _id');
+      friendListByIds = friendListByIds.map(v => v.friend);
+      friendListByIds.push(userId);
+      friendListByIds = friendListByIds.map(toObjectId);
+      const r = await FeedsService.find({
+        $cursor: cursor,
+        $field: 'author',
+        query: {
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      });
+      return {
+        pageInfo: r.paging,
+        edges: r.data,
+      };
+    },
     post(root, { _id }, context) {
       return PostsService.getPost(_id);
     },
@@ -104,6 +96,11 @@ const rootResolvers = {
     },
     notification(root, { _id }, context) {
       return NotificationsService.getNotification(_id);
+    },
+  },
+  Mutation: {
+    acceptFriend(root, { repoFullName }, context) {
+      return UsersService.acceptFriend();
     },
   },
 };
@@ -124,11 +121,20 @@ export default executableSchema;
   - nice syntax
 
 > api
+> paging
+
+> context la gi
+> root la gi
+
+> paging (test) ---
+
 > mutation
 
-> test 
 > micro-service
 
-> paging mongo
+> dataloader
+
+> scalar type
+
 > realtime
 */

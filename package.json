@@ -127,7 +127,8 @@
       "__DEV__": true
     },
     "env": {
-      "browser": true
+      "browser": true,
+      "jest": true
     },
     "rules": {
       "import/extensions": "off",

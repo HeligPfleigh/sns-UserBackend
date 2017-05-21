@@ -3,15 +3,14 @@ import {
   setupTest,
   getContext,
 } from '../../../test/helper';
-import schema from '../schema';
 import { PostsModel, UsersModel } from '../models';
+import schema from '../schema';
 
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
 const userId = '58f9c2502d4581000484b18a';
-const postId = '58f9d6b62d4581000484b1a3';
 const userData = {
   _id: userId,
   emails: {
@@ -38,55 +37,87 @@ const userData = {
 };
 
 const postData = {
-  _id: postId,
   message: '{\'entityMap\':{},\'blocks\':[{\'key\':\'4gvpl\',\'text\':\'Viet nam tuoi dep\',\'type\':\'unstyled\',\'depth\':0,\'inlineStyleRanges\':[],\'entityRanges\':[],\'data\':{}}]}',
   user: userId,
   author: userId,
-  likes: [userId],
+  likes: ['58f9d2132d4581000484b1a0'],
   photos: [],
   type: 'STATUS',
   __v: 0,
 };
 
-describe('RootPostQuery', () => {
+describe('RootFeedQuery', () => {
   beforeEach(async () => {
     // setup db
     const user = new UsersModel(userData);
     await user.save();
-    const post = new PostsModel(postData);
-    await post.save();
+    let post = null;
+    for (let i = 10; i > 0; i--) {
+      postData.message = `message${i}`;
+      post = new PostsModel(postData);
+      await post.save();
+    }
   });
   test('should get post by id', async () => {
-    // language=GraphQL
-    const query = `
+    let query = `
       {
-        post (_id:"${postId}") {
-          _id
-          user {
+        feed {
+          edges {
             _id
-            username
+            message
+          }
+          pageInfo {
+            total
+            limit
+            endCursor
+            hasNextPage
           }
         }
       }
     `;
 
-    const rootValue = {};
+    const rootValue = {
+      request: {
+        user: {
+          id: userId,
+        },
+      },
+    };
     const context = getContext({});
-    const result = await graphql(schema, query, rootValue, context);
-    expect(result.data.post._id.toString()).toBe(postData._id);
-    expect(result.data.post.user).toEqual(Object.assign({}, {
-      _id: userData._id,
-      username: userData.username,
-    }));
+    let result = await graphql(schema, query, rootValue, context);
+    let messages = result.data.feed.edges.map(m => m.message);
+    expect(result.data.feed.pageInfo.total).toEqual(10);
+    expect(result.data.feed.pageInfo.limit).toEqual(5);
+    expect(result.data.feed.pageInfo.hasNextPage).toEqual(true);
+    expect(result.data.feed.edges.length).toEqual(5);
+    expect(messages).toEqual([
+      'message1', 'message2', 'message3', 'message4', 'message5',
+    ]);
+
+    query = `
+      {
+        feed (cursor: "${result.data.feed.pageInfo.endCursor}") {
+          edges {
+            _id
+            message
+          }
+          pageInfo {
+            total
+            limit
+            endCursor
+            hasNextPage
+          }
+        }
+      }
+    `;
+    result = await graphql(schema, query, rootValue, context);
+    messages = result.data.feed.edges.map(m => m.message);
+    expect(messages).toEqual([
+      'message6', 'message7', 'message8', 'message9', 'message10',
+    ]);
   });
 
   afterEach(async () => {
     // clear data
-    await UsersModel.remove({
-      _id: userData._id,
-    });
-    await PostsModel.remove({
-      _id: postData._id,
-    });
   });
 });

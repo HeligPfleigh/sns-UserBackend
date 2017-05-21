@@ -2,11 +2,11 @@ import {
   PostsModel,
 } from '../models';
 
-function getPost (postId) {
-  return PostsModel.findOne({_id: postId});
+function getPost(postId) {
+  return PostsModel.findOne({ _id: postId });
 }
 
-function feed () {
+function feed() {
   console.log('not implement yet');
   return [];
 }

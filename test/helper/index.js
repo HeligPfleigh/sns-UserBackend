@@ -59,6 +59,12 @@ function clearDatabase() {
   });
 }
 
+export function getContext(context) {
+  return {
+    ...context,
+  };
+}
+
 export async function setupTest() {
   await connect();
   await clearDatabase();

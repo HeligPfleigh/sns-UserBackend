@@ -95,12 +95,25 @@ type Author implements User {
   apartments: [Apartment]
   friends: [User]
 }
+
+# Feeds
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean
+  total: Int
+  limit: Int
+}
+
+type Feeds {
+  pageInfo: PageInfo
+  edges: [Post],
+}
 `];
 
 export const resolvers = {
   Apartment: {
-    building (data) {
-      return BuildingsModel.findOne({_id: data.building});
+    building(data) {
+      return BuildingsModel.findOne({ _id: data.building });
     },
   },
   Me: {
@@ -110,7 +123,7 @@ export const resolvers = {
   },
   Post: {
     user(data) {
-      return UsersModel.findOne({_id: data.user});
+      return UsersModel.findOne({ _id: data.user });
     },
   },
   Friend: {

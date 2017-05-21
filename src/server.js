@@ -133,7 +133,7 @@ app.get('*', async (req, res) => {
 // Error handling
 // -----------------------------------------------------------------------------
 app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
-  
+
 });
 
 //
