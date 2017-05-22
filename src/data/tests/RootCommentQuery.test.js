@@ -116,5 +116,8 @@ describe('RootCommentQuery', () => {
 
   afterEach(async () => {
     // clear data
+    await UsersModel.remove({});
+    await PostsModel.remove({});
+    await CommentsModel.remove({});
   });
 });

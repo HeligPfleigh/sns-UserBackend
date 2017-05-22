@@ -23,6 +23,8 @@ type Apartment {
   _id: ID!
   number: Int
   building: Building
+  user: Author
+  isOwner: Boolean
 
   createdAt: Date
   updatedAt: Date
