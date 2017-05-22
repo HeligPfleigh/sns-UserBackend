@@ -71,6 +71,10 @@ const rootResolvers = {
         $cursor: cursor,
         $field: 'author',
         query: {
+          $or: [
+            { author: userId },
+            { user: { $in: friendListByIds } },
+          ],
           $sort: {
             createdAt: -1,
           },
@@ -114,27 +118,3 @@ const executableSchema = makeExecutableSchema({
 });
 
 export default executableSchema;
-
-/**
-> Refactor
-  - short
-  - nice syntax
-
-> api
-> paging
-
-> context la gi
-> root la gi
-
-> paging (test) ---
-
-> mutation
-
-> micro-service
-
-> dataloader
-
-> scalar type
-
-> realtime
-*/
