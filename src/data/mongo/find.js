@@ -88,7 +88,7 @@ const find = (state) => {
           [field]: {
             $lt: cursor,
           },
-        });
+        }, query);
       }
       let q = state.Model.find(rootQuery);
 
@@ -145,7 +145,7 @@ const find = (state) => {
               [field]: {
                 $lte: endCursor,
               },
-            });
+            }, query);
             state.Model.find(endQuery).count((err, tcount) => {
               if (err) reject(err);
               (tcount > 0) ? resolve(true) : resolve(false);

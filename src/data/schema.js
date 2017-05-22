@@ -7,6 +7,7 @@ import {
 import {
   PostsModel,
   FriendsRelationModel as FriendsModel,
+  CommentsModel,
 } from './models';
 import Service from './mongo/service';
 import AddressServices from './apis/AddressServices';
@@ -30,13 +31,14 @@ const toObjectId = (idStr) => {
 const rootSchema = [`
 type Query {
   # A feed of repository submissions
-  feed(limit: Int, cursor: String): Feeds
+  feed(limit: Int, cursor: String): Feeds # done
   post(_id: String!): Post
   user(_id: String): Friend
   # me: Me,
-  apartment(_id: String): Apartment,
-  building(_id: String): Building,
-  notification(_id: String): Notification,
+  apartment(_id: String): Apartment
+  building(_id: String): Building
+  notification(_id: String): Notification
+  comment(_id: String): Comment
 }
 
 type Mutation {
@@ -86,24 +88,27 @@ const rootResolvers = {
         edges: r.data,
       };
     },
-    post(root, { _id }, context) {
+    post(root, { _id }) {
       return PostsService.getPost(_id);
     },
-    apartment(root, { _id }, context) {
+    apartment(root, { _id }) {
       return AddressServices.getApartment(_id);
     },
-    building(root, { _id }, context) {
+    building(root, { _id }) {
       return AddressServices.getBuilding(_id);
     },
-    user(root, { _id }, context) {
+    user(root, { _id }) {
       return UsersService.getUser(_id);
     },
-    notification(root, { _id }, context) {
+    notification(root, { _id }) {
       return NotificationsService.getNotification(_id);
+    },
+    comment(root, { _id }) {
+      return CommentsModel.findOne({ _id });
     },
   },
   Mutation: {
-    acceptFriend(root, { repoFullName }, context) {
+    acceptFriend(root, { repoFullName }) {
       return UsersService.acceptFriend();
     },
   },

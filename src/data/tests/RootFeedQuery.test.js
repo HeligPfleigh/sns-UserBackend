@@ -154,7 +154,7 @@ describe('RootFeedQuery', () => {
   test('should get post by id', async () => {
     let query = `
       {
-        feed {
+        feed (limit: 8) {
           edges {
             _id
             message
@@ -179,17 +179,20 @@ describe('RootFeedQuery', () => {
     const context = getContext({});
     let result = await graphql(schema, query, rootValue, context);
     let messages = result.data.feed.edges.map(m => m.message);
-    expect(result.data.feed.pageInfo.total).toEqual(16);
-    expect(result.data.feed.pageInfo.limit).toEqual(5);
+    expect(result.data.feed.pageInfo.total).toEqual(15);
+    expect(result.data.feed.pageInfo.limit).toEqual(8);
     expect(result.data.feed.pageInfo.hasNextPage).toEqual(true);
-    expect(result.data.feed.edges.length).toEqual(5);
+    expect(result.data.feed.edges.length).toEqual(8);
     expect(messages).toEqual([
       'message1', 'message2', 'message3', 'message4', 'message5',
+      'message6',
+      'message7',
+      'message8',
     ]);
 
     query = `
       {
-        feed (cursor: "${result.data.feed.pageInfo.endCursor}") {
+        feed (cursor: "${result.data.feed.pageInfo.endCursor}", limit: 7) {
           edges {
             _id
             message
@@ -206,11 +209,14 @@ describe('RootFeedQuery', () => {
     result = await graphql(schema, query, rootValue, context);
     messages = result.data.feed.edges.map(m => m.message);
     expect(messages).toEqual([
-      'message6', 'message7', 'message8', 'message9', 'message10',
+      'message9', 'message10', 'message16', 'message17', 'message18', 'message19', 'message20'
     ]);
   });
 
   afterEach(async () => {
     // clear data
+    await PostsModel.remove({});
+    await UsersModel.remove({});
+    await FriendsRelationModel.remove({});
   });
 });
