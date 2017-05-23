@@ -5,6 +5,8 @@ import {
   UsersModel,
   BuildingsModel,
   CommentsModel,
+  ApartmentsModel,
+ FriendsRelationModel,
 } from '../models';
 
 export const schema = [`
@@ -64,8 +66,11 @@ type Comment {
 type Post {
   _id: ID!
   message: String
-  user: Author
-
+  author: Author
+  user : User
+  totalLikes :Int
+  totalComments : Int
+  comments : [Comment]
   createdAt: Date
   updatedAt: Date
 }
@@ -151,19 +156,87 @@ type Feeds {
 
 export const resolvers = {
   Date: DateScalarType,
+  Building: {
+    createdAt(data) {
+      return new Date(data.createdAt);
+    },
+    updatedAt(data) {
+      return new Date(data.updatedAt);
+    },
+  },
   Apartment: {
     building(data) {
       return BuildingsModel.findOne({ _id: data.building });
     },
+    user(data) {
+      return UsersModel.findOne({ _id: data.author });
+    },
+    createdAt(data) {
+      return new Date(data.createdAt);
+    },
+    updatedAt(data) {
+      return new Date(data.updatedAt);
+    },
+  },
+  Notification: {
+    user(data) {
+      return UsersModel.findOne({ _id: data.user });
+    },
+    subject(data) {
+      return PostsModel.findOne({ _id: data.user });
+    },
+    actors(data) {
+      return UsersModel.find({ user: data._id });
+    },
   },
   Me: {
-    posts() {
-      return PostsModel.find({});
+    posts(data) {
+      return PostsModel.find({ user: data._id });
+    },
+    building(data) {
+      return BuildingsModel.find({ _id: data.building });
+    },
+    apartments(data) {
+      return ApartmentsModel.find({ user: data._id });
+    },
+    friends(data) {
+      return FriendsRelationModel.find({ user: data._id, status: 'ACCEPTED' });
+    },
+    friendRequests(data) {
+      return FriendsRelationModel.find({ user: data._id, status: 'PENDING' });
+    },
+    friendSuggestions(data) {
+      return FriendsRelationModel.find().or([{ user: data._id }, { friend: data._id }]);
+    },
+    createdAt(data) {
+      return new Date(data.createdAt);
+    },
+    updatedAt(data) {
+      return new Date(data.updatedAt);
     },
   },
   Post: {
     user(data) {
       return UsersModel.findOne({ _id: data.user });
+    },
+    author(data) {
+      return UsersModel.findOne({ _id: data.author });
+    },
+    totalLikes(data) {
+      return data.likes.length;
+    },
+    totalComments(data) {
+      return CommentsModel.count({
+        post: data._id,
+        reply: { $exists: false },
+      });
+    },
+    comments(data, { _id, limit = 2 }) {
+      const q = { post: data._id, reply: { $exists: false } };
+      if (_id) {
+        q._id = { $lt: _id };
+      }
+      return CommentsModel.find(q).sort({ createdAt: -1 }).limit(limit);
     },
     createdAt(data) {
       return new Date(data.createdAt);
@@ -173,14 +246,45 @@ export const resolvers = {
     },
   },
   Friend: {
-    posts() {
-      return PostsModel.find({});
+    posts(data) {
+      return PostsModel.find({ user: data._id });
+    },
+    building() {
+      return BuildingsModel.find({ });
+    },
+    apartments(data) {
+      return ApartmentsModel.find({ user: data._id });
+    },
+    friends(data) {
+      return FriendsRelationModel.find({ user: data._id, status: 'ACCEPTED' });
+    },
+    createdAt(data) {
+      return new Date(data.createdAt);
+    },
+    updatedAt(data) {
+      return new Date(data.updatedAt);
     },
   },
   Author: {
-    posts() {
-      return PostsModel.find({});
+    posts(data) {
+      return PostsModel.find({ user: data._id });
     },
+    building() {
+      return BuildingsModel.find({});
+    },
+    apartments(data) {
+      return ApartmentsModel.find({ user: data._id });
+    },
+    friends() {
+      return UsersModel.find({});
+    },
+    createdAt(data) {
+      return new Date(data.createdAt);
+    },
+    updatedAt(data) {
+      return new Date(data.updatedAt);
+    },
+
   },
   Comment: {
     post(data) {
