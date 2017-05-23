@@ -249,8 +249,8 @@ export const resolvers = {
     posts(data) {
       return PostsModel.find({ user: data._id });
     },
-    building() {
-      return BuildingsModel.find({ });
+    building(data) {
+      return BuildingsModel.find({ _id: data.building });
     },
     apartments(data) {
       return ApartmentsModel.find({ user: data._id });
@@ -269,8 +269,8 @@ export const resolvers = {
     posts(data) {
       return PostsModel.find({ user: data._id });
     },
-    building() {
-      return BuildingsModel.find({});
+    building(data) {
+      return BuildingsModel.find({ _id: data.building });
     },
     apartments(data) {
       return ApartmentsModel.find({ user: data._id });
