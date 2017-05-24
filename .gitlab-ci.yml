@@ -1,0 +1,23 @@
+image: ruby:2.1
+services:
+  - postgres
+
+before_script:
+  - echo "before_script"
+
+after_script:
+  - echo "after_script"
+
+stages:
+  - build
+  - test
+  - deploy
+
+job1:
+  stage: build
+  script:
+    - echo "execute-script-for-job1"
+  only:
+    - feature/refactor-code
+  tags:
+    - docker
