@@ -31,7 +31,7 @@ const toObjectId = (idStr) => {
 const rootSchema = [`
 type Query {
   # A feed of repository submissions
-  feed(limit: Int, cursor: String): Feeds # done
+  feeds(limit: Int, cursor: String): Feeds # done
   post(_id: String!): Post
   user(_id: String): Friend
   # me: Me,
@@ -39,10 +39,17 @@ type Query {
   building(_id: String): Building
   notification(_id: String): Notification
   comment(_id: String): Comment
+
+  # users,
+  # me,
+  # notifications,
 }
 
 type Mutation {
   acceptFriend (
+    _id: String!
+  ): Friend
+  rejectFriend (
     _id: String!
   ): Friend
 }
@@ -63,7 +70,7 @@ const FeedsService = Service({
 });
 const rootResolvers = {
   Query: {
-    async feed({ request }, { cursor = null, limit = 5 }) {
+    async feeds({ request }, { cursor = null, limit = 5 }) {
       const userId = request.user.id;
       let friendListByIds = await FriendsModel.find({ user: userId }).select('friend _id');
       friendListByIds = friendListByIds.map(v => v.friend);
@@ -110,6 +117,9 @@ const rootResolvers = {
   Mutation: {
     acceptFriend({ request }, { _id }) {
       return UsersService.acceptFriend(request.user.id, _id);
+    },
+    rejectFriend({ request }, { _id }) {
+      return UsersService.rejectFriend(request.user.id, _id);
     },
   },
 };

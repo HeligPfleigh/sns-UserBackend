@@ -25,7 +25,25 @@ async function acceptFriend(userId, friendId) {
   return UsersModel.findOne({ _id: friendId });
 }
 
+async function rejectFriend(userId, friendId) {
+  if (!await FriendsRelationModel.findOne({
+    user: userId,
+    friend: friendId,
+    status: 'PENDING',
+  })) {
+    throw new Error('not found friend request');
+  }
+
+  await FriendsRelationModel.update({
+    user: userId,
+    friend: friendId,
+    status: 'REJECTED',
+  });
+  return UsersModel.findOne({ _id: friendId });
+}
+
 export default {
   getUser,
   acceptFriend,
+  rejectFriend,
 };

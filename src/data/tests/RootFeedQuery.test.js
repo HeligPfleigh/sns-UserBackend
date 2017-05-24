@@ -154,7 +154,7 @@ describe('RootFeedQuery', () => {
   test('should get post by id', async () => {
     let query = `
       {
-        feed (limit: 8) {
+        feeds (limit: 8) {
           edges {
             _id
             message
@@ -178,11 +178,11 @@ describe('RootFeedQuery', () => {
     };
     const context = getContext({});
     let result = await graphql(schema, query, rootValue, context);
-    let messages = result.data.feed.edges.map(m => m.message);
-    expect(result.data.feed.pageInfo.total).toEqual(15);
-    expect(result.data.feed.pageInfo.limit).toEqual(8);
-    expect(result.data.feed.pageInfo.hasNextPage).toEqual(true);
-    expect(result.data.feed.edges.length).toEqual(8);
+    let messages = result.data.feeds.edges.map(m => m.message);
+    expect(result.data.feeds.pageInfo.total).toEqual(15);
+    expect(result.data.feeds.pageInfo.limit).toEqual(8);
+    expect(result.data.feeds.pageInfo.hasNextPage).toEqual(true);
+    expect(result.data.feeds.edges.length).toEqual(8);
     expect(messages).toEqual([
       'message1', 'message2', 'message3', 'message4', 'message5',
       'message6',
@@ -192,7 +192,7 @@ describe('RootFeedQuery', () => {
 
     query = `
       {
-        feed (cursor: "${result.data.feed.pageInfo.endCursor}", limit: 7) {
+        feeds (cursor: "${result.data.feeds.pageInfo.endCursor}", limit: 7) {
           edges {
             _id
             message
@@ -207,7 +207,7 @@ describe('RootFeedQuery', () => {
       }
     `;
     result = await graphql(schema, query, rootValue, context);
-    messages = result.data.feed.edges.map(m => m.message);
+    messages = result.data.feeds.edges.map(m => m.message);
     expect(messages).toEqual([
       'message9', 'message10', 'message16', 'message17', 'message18', 'message19', 'message20'
     ]);
