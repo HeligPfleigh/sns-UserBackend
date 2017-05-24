@@ -21,3 +21,5 @@ job1:
     - feature/refactor-code
   tags:
     - docker
+    - aws
+    - ec2
