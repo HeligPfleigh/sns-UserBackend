@@ -43,7 +43,7 @@ type Query {
 
 type Mutation {
   acceptFriend (
-    userId: String!
+    _id: String!
   ): Friend
 }
 
@@ -108,8 +108,8 @@ const rootResolvers = {
     },
   },
   Mutation: {
-    acceptFriend(root, { repoFullName }) {
-      return UsersService.acceptFriend();
+    acceptFriend({ request }, { _id }) {
+      return UsersService.acceptFriend(request.user.id, _id);
     },
   },
 };

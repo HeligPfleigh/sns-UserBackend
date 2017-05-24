@@ -6,7 +6,7 @@ import {
   BuildingsModel,
   CommentsModel,
   ApartmentsModel,
- FriendsRelationModel,
+  FriendsRelationModel,
 } from '../models';
 
 export const schema = [`
@@ -67,7 +67,7 @@ type Post {
   _id: ID!
   message: String
   author: Author
-  user : User
+  user : Friend
   totalLikes :Int
   totalComments : Int
   comments : [Comment]

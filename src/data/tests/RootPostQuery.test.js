@@ -10,7 +10,7 @@ import { PostsModel, UsersModel } from '../models';
 beforeAll(async () => await setupTest());
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
-const userId = '58f9c2502d4581000484b18a';
+const userId = '58f9c2502d4581023484b18a';
 const postId = '58f9d6b62d4581000484b1a3';
 const userData = {
   _id: userId,
