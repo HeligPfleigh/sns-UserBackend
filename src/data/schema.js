@@ -52,6 +52,9 @@ type Mutation {
   rejectFriend (
     _id: String!
   ): Friend
+  sendFriendRequest(
+    _id : String!
+  ): Friend
 }
 
 schema {
@@ -120,6 +123,9 @@ const rootResolvers = {
     },
     rejectFriend({ request }, { _id }) {
       return UsersService.rejectFriend(request.user.id, _id);
+    },
+    sendFriendRequest({ request }, { _id }) {
+      return UsersService.sendFriendRequest(request.user.id, _id);
     },
   },
 };
