@@ -2,6 +2,10 @@ image: node:6.9.5
 services:
   - mongo:3.4.0
 
+cache:
+  paths:
+  - node_modules/
+
 before_script:
   - echo "before_script"
   - npm install
