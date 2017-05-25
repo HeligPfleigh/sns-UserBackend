@@ -35,6 +35,7 @@ test:
   stage: test
   before_script:
     - echo "before_script test"
+    - npm install
   script:
     - echo "execute-script-for-test"
     - npm run test
