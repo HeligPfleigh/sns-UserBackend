@@ -133,7 +133,7 @@ describe('RootSendFriendRequestMutation', () => {
   test('should check friendId undefined', async () => {
     const query = `
       mutation M {
-        sendFriendRequest(_id:"") {
+        sendFriendRequest {
           _id
           username
         }
@@ -146,8 +146,8 @@ describe('RootSendFriendRequestMutation', () => {
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    expect(result.data.sendFriendRequest).toEqual(null);
-    expect(result.errors[0].message).toEqual('Argument passed in must be a single String of 12 bytes or a string of 24 hex characters');
+    expect(result.data).toEqual(undefined);
+    expect(result.errors[0].message).toEqual('Field "sendFriendRequest" argument "_id" of type "String!" is required but not provided.');
   });
   test('should check userId undefind', async () => {
     const query = `

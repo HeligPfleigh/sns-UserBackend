@@ -55,7 +55,7 @@ async function sendFriendRequest(userId, friendId) {
     throw new Error('userId is undefined');
   }
   if (isUndefined(friendId)) {
-    throw new Error('Argument passed in must be a single String of 12 bytes or a string of 24 hex characters');
+    throw new Error('friendId is undefined');
   }
 
   if (!await UsersModel.findOne({ _id: new ObjectId(userId) })) {
