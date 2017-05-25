@@ -55,6 +55,9 @@ type Mutation {
   sendFriendRequest(
     _id: String!
   ): Friend
+  likePost(
+    _id: String!
+  ): Post
 }
 
 schema {
