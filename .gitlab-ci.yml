@@ -1,9 +1,10 @@
-image: ruby:2.1
+image: node:6.9.5
 services:
-  - postgres
+  - mongo:3.4.0
 
 before_script:
   - echo "before_script"
+  - npm install
 
 after_script:
   - echo "after_script"
@@ -13,10 +14,41 @@ stages:
   - test
   - deploy
 
-job1:
+build:
   stage: build
+  before_script:
+    - echo "before_script build"
   script:
-    - echo "execute-script-for-job1"
+    - echo "execute-script-for-build"
+  after_script:
+    - echo "after_script build"
+  only:
+    - feature/refactor-code
+  tags:
+    - aws ec2
+
+test:
+  stage: test
+  before_script:
+    - echo "before_script test"
+  script:
+    - echo "execute-script-for-test"
+    - npm run test
+  after_script:
+    - echo "after_script test"
+  only:
+    - feature/refactor-code
+  tags:
+    - aws ec2
+
+deploy:
+  stage: deploy
+  before_script:
+    - echo "before_script deploy"
+  script:
+    - echo "execute-script-for-deploy"
+  after_script:
+    - echo "after_script deploy"
   only:
     - feature/refactor-code
   tags:
