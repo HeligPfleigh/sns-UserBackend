@@ -1,3 +1,5 @@
+import isUndefined from 'lodash/isUndefined';
+import { ObjectId } from 'mongodb';
 import {
   UsersModel,
   FriendsRelationModel,
@@ -26,6 +28,12 @@ async function acceptFriend(userId, friendId) {
 }
 
 async function rejectFriend(userId, friendId) {
+  if (isUndefined(userId)) {
+    throw new Error('userId is undefined');
+  }
+  if (isUndefined(friendId)) {
+    throw new Error('friendId is undefined');
+  }
   if (!await FriendsRelationModel.findOne({
     user: userId,
     friend: friendId,
@@ -43,11 +51,26 @@ async function rejectFriend(userId, friendId) {
 }
 
 async function sendFriendRequest(userId, friendId) {
+  if (isUndefined(userId)) {
+    throw new Error('userId is undefined');
+  }
+  if (isUndefined(friendId)) {
+    console.log('aadsad');
+    throw new Error('Argument passed in must be a single String of 12 bytes or a string of 24 hex characters');
+  }
+
+  if (!await UsersModel.findOne({ _id: new ObjectId(userId) })) {
+    throw new Error('userId does not exist');
+  }
+  if (!await UsersModel.findOne({ _id: new ObjectId(friendId) })) {
+    throw new Error('friendId does not exist');
+  }
   await FriendsRelationModel.create({
     user: userId,
     friend: friendId,
     status: 'PENDING',
   });
+
   return UsersModel.findOne({ _id: friendId });
 }
 
