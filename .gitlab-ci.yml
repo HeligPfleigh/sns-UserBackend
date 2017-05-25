@@ -22,6 +22,7 @@ build:
   stage: build
   before_script:
     - echo "before_script build"
+    - npm install
   script:
     - echo "execute-script-for-build"
   after_script:
