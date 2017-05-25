@@ -53,7 +53,7 @@ type Mutation {
     _id: String!
   ): Friend
   sendFriendRequest(
-    _id : String!
+    _id: String!
   ): Friend
 }
 

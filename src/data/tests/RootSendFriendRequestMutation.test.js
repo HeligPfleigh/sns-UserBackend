@@ -133,7 +133,7 @@ describe('RootSendFriendRequestMutation', () => {
   test('should check friendId undefined', async () => {
     const query = `
       mutation M {
-        sendFriendRequest(_id:"${undefined}") {
+        sendFriendRequest(_id:"") {
           _id
           username
         }
@@ -185,7 +185,7 @@ describe('RootSendFriendRequestMutation', () => {
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
     expect(result.data.sendFriendRequest).toEqual(null);
-    expect(result.errors[0].message).toEqual('userId does not exist');
+    expect(result.errors[0].message).toEqual('userId does not exis1t');
   });
   test('should check friendId not exist', async () => {
     const fakeId = '58f9ca042d4581000474b109';
