@@ -1,14 +1,18 @@
-image: node:6.9.5
+image: node:6.10.0
 services:
   - mongo:3.4.0
 
 cache:
   paths:
-  - node_modules/
+    - node_modules/
+    - .yarn
 
 before_script:
   - echo "before_script"
-  - npm install
+  - yarn global add node-gyp
+  - yarn config set cache-folder .yarn
+  - yarn install
+  - yarn run test
 
 after_script:
   - echo "after_script"
@@ -22,7 +26,10 @@ build:
   stage: build
   before_script:
     - echo "before_script build"
-    - npm install
+    - yarn global add node-gyp
+    - yarn config set cache-folder .yarn
+    - yarn install
+    - yarn run test
   script:
     - echo "execute-script-for-build"
   after_script:
