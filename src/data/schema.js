@@ -130,6 +130,9 @@ const rootResolvers = {
     sendFriendRequest({ request }, { _id }) {
       return UsersService.sendFriendRequest(request.user.id, _id);
     },
+    likePost({ request }, { _id }) {
+      return PostsService.likePost(request.user.id, _id);
+    },
   },
 };
 
