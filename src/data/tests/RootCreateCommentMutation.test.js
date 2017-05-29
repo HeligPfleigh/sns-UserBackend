@@ -49,15 +49,8 @@ const postData = {
   __v: 0,
 };
 
-const messageData = {
-  _id: messageId,
-  user: userId,
-  post: postId,
-  message: 'messageData',
-  __v: 0,
-};
 
-describe('RootCommentQuery', () => {
+describe('RootCreateCommentMutation', () => {
   beforeEach(async () => {
     // setup db
     // try {
@@ -65,35 +58,19 @@ describe('RootCommentQuery', () => {
     await user.save();
     const post = new PostsModel(postData);
     await post.save();
-    let message = new CommentsModel(messageData);
-    await message.save();
-    delete messageData._id;
-    for (let i = 5; i > 0; i--) {
-      messageData.message = `messageData${i}`;
-      messageData.reply = messageId;
-      message = new CommentsModel(messageData);
-      await message.save();
-    }
+
     // } catch (e) {
     //   console.log(e.message);
     // }
   });
-  test('should get comment by id', async () => {
+  test('should create comment request', async () => {
     // language=GraphQL
     const query = `
       {
-        comment (_id:"${messageId}") {
+        createNewComment (_id:"${postId}") {
           _id
           message
-          user {
-            _id
-            username
-          }
-          totalReply
-          reply {
-            _id
-            message
-          }
+         
         }
       }
     `;

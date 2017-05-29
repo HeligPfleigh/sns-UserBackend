@@ -62,9 +62,29 @@ async function unlikePost(userId, postId) {
       );
   return PostsModel.findOne({ _id: postId });
 }
+async function createNewPost(userId, message) {
+  if (isUndefined(userId)) {
+    throw new Error('userId is undefined');
+  }
+
+  if (isUndefined(message)) {
+    throw new Error('message is undefined');
+  }
+
+  if (!await UsersModel.findOne({ _id: new ObjectId(userId) })) {
+    throw new Error('userId does not exist');
+  }
+  await PostsModel.create({
+    message,
+    author: userId,
+    user: userId,
+  });
+  return PostsModel.findOne({ user: userId, message });
+}
 export default {
   getPost,
   feed,
   likePost,
   unlikePost,
+  createNewPost,
 };

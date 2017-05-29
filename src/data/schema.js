@@ -14,6 +14,7 @@ import AddressServices from './apis/AddressServices';
 import NotificationsService from './apis/NotificationsService';
 import UsersService from './apis/UsersService';
 import PostsService from './apis/PostsService';
+import CommentService from './apis/CommentService';
 import { schema as schemaType, resolvers as resolversType } from './types';
 
 const { Types: { ObjectId } } = mongoose;
@@ -61,6 +62,15 @@ type Mutation {
   unlikePost(
     _id: String!
   ): Post
+  createNewComment(
+    _id:String!
+    message : String!
+    commentId : String
+  ):Comment
+  createNewPost (
+    _id:String!
+    message:String!
+  ):Post
 }
 
 schema {
@@ -138,6 +148,12 @@ const rootResolvers = {
     },
     unlikePost({ request }, { _id }) {
       return PostsService.unlikePost(request.user.id, _id);
+    },
+    createNewComment({ request }, { postId, message, commentId }) {
+      return CommentService.createNewComment(request.user.id, postId, message, commentId);
+    },
+    createNewPost({ request }, { message }) {
+      return CommentService.createNewPost(request.user.id, message);
     },
   },
 };
