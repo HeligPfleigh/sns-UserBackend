@@ -58,6 +58,9 @@ type Mutation {
   likePost(
     _id: String!
   ): Post
+  unlikePost(
+    _id: String!
+  ): Post
 }
 
 schema {
@@ -132,6 +135,9 @@ const rootResolvers = {
     },
     likePost({ request }, { _id }) {
       return PostsService.likePost(request.user.id, _id);
+    },
+    unlikePost({ request }, { _id }) {
+      return PostsService.unlikePost(request.user.id, _id);
     },
   },
 };

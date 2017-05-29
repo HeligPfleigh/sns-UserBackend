@@ -50,19 +50,20 @@ const userDataA = {
   roles: ['user'],
   __v: 0,
 };
-describe('RootLikePostMutation', () => {
+describe('RootUnLikePostMutation', () => {
   beforeEach(async () => {
     // setup db
     const postModel = new PostsModel(postData);
+    postModel.likes.push(userIdA);
     await postModel.save();
     const userA = new UsersModel(userDataA);
     await userA.save();
   });
 
-  test('should like Post request', async () => {
+  test('should unlike Post request', async () => {
     const query = `
       mutation M { 
-        likePost(_id:"${postId}") {
+        unlikePost(_id:"${postId}") {
           _id
           totalLikes
         }
@@ -77,17 +78,16 @@ describe('RootLikePostMutation', () => {
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    console.log(result);
-    expect(result.data.likePost).toEqual(Object.assign({}, {
+    expect(result.data.unlikePost).toEqual(Object.assign({}, {
       _id: postId,
-      totalLikes: 1,
+      totalLikes: 0,
     }));
   });
 
   test('should check userId undefined', async () => {
     const query = `
       mutation M {
-        likePost(_id:"${postId}") {
+        unlikePost(_id:"${postId}") {
           _id
         }
       }
@@ -99,13 +99,13 @@ describe('RootLikePostMutation', () => {
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    expect(result.data.likePost).toEqual(null);
+    expect(result.data.unlikePost).toEqual(null);
     expect(result.errors[0].message).toEqual('userId is undefined');
   });
   test('should check postId undefind', async () => {
     const query = `
       mutation M {
-        likePost {
+        unlikePost {
           _id
         }
       }
@@ -118,12 +118,12 @@ describe('RootLikePostMutation', () => {
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
     expect(result.data).toEqual(undefined);
-    expect(result.errors[0].message).toEqual('Field "likePost" argument "_id" of type "String!" is required but not provided.');
+    expect(result.errors[0].message).toEqual('Field "unlikePost" argument "_id" of type "String!" is required but not provided.');
   });
   test('should check userId not exist', async () => {
     const query = `
       mutation M {
-        likePost(_id:"${postId}") {
+        unlikePost(_id:"${postId}") {
           _id
         }
       }
@@ -135,14 +135,14 @@ describe('RootLikePostMutation', () => {
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    expect(result.data.likePost).toEqual(null);
+    expect(result.data.unlikePost).toEqual(null);
     expect(result.errors[0].message).toEqual('userId does not exist');
   });
   test('should check postId not exist', async () => {
     const fakeId = '58f9ca042d4581000474b109';
     const query = `
       mutation M {
-        likePost(_id:"${fakeId}") {
+        unlikePost(_id:"${fakeId}") {
           _id
         }
       }
@@ -154,7 +154,7 @@ describe('RootLikePostMutation', () => {
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    expect(result.data.likePost).toEqual(null);
+    expect(result.data.unlikePost).toEqual(null);
     expect(result.errors[0].message).toEqual('postId does not exist');
   });
 
