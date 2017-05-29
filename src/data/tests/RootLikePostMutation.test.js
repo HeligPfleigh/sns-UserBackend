@@ -77,7 +77,6 @@ describe('RootLikePostMutation', () => {
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    console.log(result);
     expect(result.data.likePost).toEqual(Object.assign({}, {
       _id: postId,
       totalLikes: 1,
