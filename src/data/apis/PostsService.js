@@ -32,7 +32,6 @@ async function likePost(userId, postId) {
     { _id: postId },
     { $addToSet: { likes: userId } },
   );
-
   return PostsModel.findOne({ _id: postId });
 }
 export default {

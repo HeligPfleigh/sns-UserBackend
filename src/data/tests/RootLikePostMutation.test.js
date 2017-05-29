@@ -64,7 +64,7 @@ describe('RootLikePostMutation', () => {
       mutation M { 
         likePost(_id:"${postId}") {
           _id
-          likes
+          totalLikes
         }
       }
     `;
@@ -77,8 +77,10 @@ describe('RootLikePostMutation', () => {
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    console.log(result);
-    expect(await result.data.likePost.likes.count()).toEqual(1);
+    expect(result.data.likePost).toEqual(Object.assign({}, {
+      _id: postId,
+      totalLikes: 1,
+    }));
   });
 
   test('should check userId undefined', async () => {
@@ -86,7 +88,6 @@ describe('RootLikePostMutation', () => {
       mutation M {
         likePost(_id:"${postId}") {
           _id
-          likes
         }
       }
     `;
@@ -100,64 +101,61 @@ describe('RootLikePostMutation', () => {
     expect(result.data.likePost).toEqual(null);
     expect(result.errors[0].message).toEqual('userId is undefined');
   });
-  // test('should check postId undefind', async () => {
-  //   const query = `
-  //     mutation M {
-  //       likePost {
-  //         _id
-  //         likes
-  //       }
-  //     }
-  //   `;
-  //   const rootValue = {
-  //     request: {
-  //       user: { userIdA },
-  //     },
-  //   };
-  //   const context = getContext({});
-  //   const result = await graphql(schema, query, rootValue, context);
-  //   expect(result.data.likePost).toEqual(null);
-  //   expect(result.errors[0].message).toEqual('postId is undefined');
-  // });
-  // test('should check userId not exist', async () => {
-  //   const query = `
-  //     mutation M {
-  //       likePost(_id:"${postId}") {
-  //         _id
-  //         likes
-  //       }
-  //     }
-  //   `;
-  //   const rootValue = {
-  //     request: {
-  //       user: { id: '58f9ca042d4581000474b109' },
-  //     },
-  //   };
-  //   const context = getContext({});
-  //   const result = await graphql(schema, query, rootValue, context);
-  //   expect(result.data.likePost).toEqual(null);
-  //   expect(result.errors[0].message).toEqual('userId does not exist');
-  // });
-  // test('should check friendId not exist', async () => {
-  //   const fakeId = '58f9ca042d4581000474b109';
-  //   const query = `
-  //     mutation M {
-  //       sendFriendRequest(_id:"${fakeId}") {
-  //         _id
-  //         username
-  //       }
-  //     }
-  //   `;
-  //   const rootValue = {
-  //     request: {
-  //       user: { id: userIdA },
-  //     },
-  //   };
-  //   const context = getContext({});
-  //   const result = await graphql(schema, query, rootValue, context);
-  //   expect(result.data.sendFriendRequest).toEqual(null);
-  //   expect(result.errors[0].message).toEqual('friendId does not exist');
-  // });
+  test('should check postId undefind', async () => {
+    const query = `
+      mutation M {
+        likePost {
+          _id
+        }
+      }
+    `;
+    const rootValue = {
+      request: {
+        user: { userIdA },
+      },
+    };
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data).toEqual(undefined);
+    expect(result.errors[0].message).toEqual('Field "likePost" argument "_id" of type "String!" is required but not provided.');
+  });
+  test('should check userId not exist', async () => {
+    const query = `
+      mutation M {
+        likePost(_id:"${postId}") {
+          _id
+        }
+      }
+    `;
+    const rootValue = {
+      request: {
+        user: { id: '58f9ca042d4581000474b109' },
+      },
+    };
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.likePost).toEqual(null);
+    expect(result.errors[0].message).toEqual('userId does not exist');
+  });
+  test('should check postId not exist', async () => {
+    const fakeId = '58f9ca042d4581000474b109';
+    const query = `
+      mutation M {
+        likePost(_id:"${fakeId}") {
+          _id
+        }
+      }
+    `;
+    const rootValue = {
+      request: {
+        user: { id: userIdA },
+      },
+    };
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.likePost).toEqual(null);
+    expect(result.errors[0].message).toEqual('postId does not exist');
+  });
 
   afterEach(async () => {
     // clear data
