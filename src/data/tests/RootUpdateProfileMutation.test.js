@@ -48,32 +48,10 @@ describe('RootUpdateProfileMutation', () => {
       firstName: "aa",
       lastName: "aa",
       gender: "aa",
-    };
-//  const newProfile = new InputObjectType({
-//   name: 'ProfileInput',
-//   fields: {
-//     picture: {
-//       type: StringType,
-//       defaultValue:'https://graph.facebook.com/596825810516199/picture?type=large'
-//     },
-//     firstName: {
-//       type: StringType,
-//       defaultValue:'quy'
-//     },
-//     lastName: {
-//       type: StringType,
-//        defaultValue:'duc'
-//     },
-//     gender: {
-//       type: StringType,
-//        defaultValue:'male'
-//     },
-//   },
-//});
+    }
   beforeEach(async () => {
     // setup db
     // try {
-
     const user = new UsersModel(userDataA);
     await user.save();
   });
@@ -81,12 +59,13 @@ describe('RootUpdateProfileMutation', () => {
     // language=GraphQL
     const query = `
       mutation M { 
-        updateProfile( profile: {
-      picture: "abc@gmail.com",
-      firstName: "aa",
-      lastName: "aa",
-      gender: "aa",
-    }) {
+        updateProfile(
+          profile:{ 
+            picture: "abc@gmail.com",
+            firstName: "aa",
+            lastName: "aa",
+            gender: "aa",}) 
+        {
          _id
          profile{
            picture
@@ -106,18 +85,16 @@ describe('RootUpdateProfileMutation', () => {
     const result = await graphql(schema, query, rootValue, context);
     expect(result.data.updateProfile).toEqual(Object.assign({}, {
       _id: userId,
-     profile: newProfile,
+      profile : newProfile,
     }));
   });
   test('should check userId undefined', async () => {
     const query = `
       mutation M {
-        updateProfile(profile: {
-      picture: "abc@gmail.com",
+        updateProfile(profile:{  picture: "abc@gmail.com",
       firstName: "aa",
       lastName: "aa",
-      gender: "aa",
-    }) {
+      gender: "aa",}) {
          _id
         }
       }
@@ -132,12 +109,33 @@ describe('RootUpdateProfileMutation', () => {
     expect(result.data.updateProfile).toEqual(null);
    expect(result.errors[0].message).toEqual('userId is undefined');
  });
+  test('should check userId not exist', async () => {
+    const query = `
+      mutation M {
+        updateProfile(profile:{  picture: "abc@gmail.com",
+        firstName: "aa",
+        lastName: "aa",
+        gender: "aa",}) {
+          _id
+          }
+      }
+    `;
+    const rootValue = {
+      request: {
+        user: { id: '58f9ca042d4581000474b109' },
+      },
+    };
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.updateProfile).toEqual(null);
+    expect(result.errors[0].message).toEqual('userId does not exist');
+  });
   test('should check profile undefined', async () => {
     const query = `
       mutation M {
         updateProfile {
           _id
-        }
+          }
       }
     `;
     const rootValue = {
@@ -149,6 +147,91 @@ describe('RootUpdateProfileMutation', () => {
     const result = await graphql(schema, query, rootValue, context);
     expect(result.data).toEqual(undefined);
     expect(result.errors[0].message).toEqual('Field "updateProfile" argument "profile" of type "ProfileInput!" is required but not provided.');
+  });
+    test('should check gender undefined', async () => {
+    const query = `
+      mutation M {
+        updateProfile(profile:{ 
+         picture: "abc@gmail.com",
+        firstName: "aa",
+        lastName: "aa",
+        }) {
+          _id
+          }
+      }
+    `;
+    const rootValue = {
+      request: {
+        user: { id: userId },
+      },
+    };
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.updateProfile).toEqual(null);
+    expect(result.errors[0].message).toEqual('gender is undefined');
+  });
+   test('should check picture undefined', async () => {
+    const query = `
+      mutation M {
+        updateProfile(profile:{ 
+        firstName: "aa",
+        lastName: "aa",
+        gender: "aa",}) {
+          _id
+          }
+      }
+    `;
+    const rootValue = {
+      request: {
+        user: { id: userId },
+      },
+    };
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.updateProfile).toEqual(null);
+    expect(result.errors[0].message).toEqual('picture is undefined');
+  });
+   test('should check firstName undefined', async () => {
+    const query = `
+      mutation M {
+        updateProfile(profile:{ 
+        picture: "abc@gmail.com",
+        lastName: "aa",
+        gender: "aa",}) {
+          _id
+          }
+      }
+    `;
+    const rootValue = {
+      request: {
+        user: { id: userId },
+      },
+    };
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.updateProfile).toEqual(null);
+    expect(result.errors[0].message).toEqual('firstName is undefined');
+  });
+   test('should check lastName undefined', async () => {
+    const query = `
+      mutation M {
+        updateProfile(profile:{ 
+        picture: "abc@gmail.com",
+        firstName: "aa",
+        gender: "aa",}) {
+          _id
+          }
+      }
+    `;
+    const rootValue = {
+      request: {
+        user: { id: userId },
+      },
+    };
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.updateProfile).toEqual(null);
+    expect(result.errors[0].message).toEqual('lastName is undefined');
   });
   afterEach(async () => {
     // clear data
