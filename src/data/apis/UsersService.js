@@ -1,4 +1,5 @@
 import isUndefined from 'lodash/isUndefined';
+
 import { ObjectId } from 'mongodb';
 import {
   UsersModel,
@@ -72,10 +73,36 @@ async function sendFriendRequest(userId, friendId) {
 
   return UsersModel.findOne({ _id: friendId });
 }
+async function updateProfile(userId, profile) {
+  if (isUndefined(userId)) {
+    throw new Error('userId is undefined');
+  }
+  if (!await UsersModel.findOne({ _id: new ObjectId(userId) })) {
+    throw new Error('userId does not exist');
+  }
+  if (isUndefined(profile)) {
+    throw new Error('profile is undefined');
+  }
+  if (isUndefined(profile.gender)) {
+    throw new Error('gender is undefined');
+  }
+  if (isUndefined(profile.picture)) {
+    throw new Error('picture is undefined');
+  }
+  if (isUndefined(profile.firstName)) {
+    throw new Error('firstName is undefined');
+  }
+  if (isUndefined(profile.lastName)) {
+    throw new Error('lastName is undefined');
+  }
+  await UsersModel.update({ _id: userId }, { $set: { profile } });
 
+  return UsersModel.findOne({ _id: userId });
+}
 export default {
   getUser,
   acceptFriend,
   rejectFriend,
   sendFriendRequest,
+  updateProfile,
 };

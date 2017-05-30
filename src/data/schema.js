@@ -45,7 +45,12 @@ type Query {
   # me,
   # notifications,
 }
-
+input ProfileInput {
+  picture: String
+  firstName: String
+  lastName: String
+  gender:String
+}
 type Mutation {
   acceptFriend (
     _id: String!
@@ -70,6 +75,9 @@ type Mutation {
   createNewPost (
     message:String!
   ):Post
+  updateProfile(
+    profile:ProfileInput!
+    ):Author
 }
 
 schema {
@@ -153,6 +161,10 @@ const rootResolvers = {
     },
     createNewPost({ request }, { message }) {
       return PostsService.createNewPost(request.user.id, message);
+    },
+    updateProfile({ request }, { profile }) {
+      console.log(profile);
+      return UsersService.updateProfile(request.user.id, profile);
     },
   },
 };
