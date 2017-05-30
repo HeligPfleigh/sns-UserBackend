@@ -78,6 +78,8 @@ async function createNewPost(userId, message) {
     message,
     author: userId,
     user: userId,
+    photos: [],
+    likes: [],
   });
   return PostsModel.findOne({ user: userId, message });
 }

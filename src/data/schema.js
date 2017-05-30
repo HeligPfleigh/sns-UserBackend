@@ -68,7 +68,6 @@ type Mutation {
     commentId : String
   ):Comment
   createNewPost (
-    _id:String!
     message:String!
   ):Post
 }
@@ -153,7 +152,7 @@ const rootResolvers = {
       return CommentService.createNewComment(request.user.id, postId, message, commentId);
     },
     createNewPost({ request }, { message }) {
-      return CommentService.createNewPost(request.user.id, message);
+      return PostsService.createNewPost(request.user.id, message);
     },
   },
 };

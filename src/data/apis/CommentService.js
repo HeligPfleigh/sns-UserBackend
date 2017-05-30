@@ -32,10 +32,10 @@ async function createNewComment(userId, postId, message, commentId) {
     user: userId,
     post: postId,
     message,
-    reply: commentId !== 'ok' ? commentId : null,
+    reply: commentId || null,
   });
 
-  return CommentsModel.findOne({ _id: commentId });
+  return CommentsModel.findOne({ user: userId });
 }
 
 

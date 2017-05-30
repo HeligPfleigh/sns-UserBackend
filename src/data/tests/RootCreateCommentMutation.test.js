@@ -12,7 +12,8 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
 const userId = '58f9c2502d4581000484b18a';
 const postId = '58f9d6b62d4581000484b1a3';
-const messageId = '58f9dad44beb380004340bbe';
+const messageData = 'messageData';
+const commentId = '58f9e69e4beb380004340bc4';
 const userData = {
   _id: userId,
   emails: {
@@ -63,14 +64,13 @@ describe('RootCreateCommentMutation', () => {
     //   console.log(e.message);
     // }
   });
-  test('should create comment request', async () => {
+  test('should create comment request for post', async () => {
     // language=GraphQL
     const query = `
-      {
-        createNewComment (_id:"${postId}") {
-          _id
+      mutation M {
+        createNewComment(_id:"${postId}",message:"${messageData}") {
+          user
           message
-         
         }
       }
     `;
@@ -78,17 +78,11 @@ describe('RootCreateCommentMutation', () => {
     const rootValue = {};
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    expect(result.data.comment._id.toString()).toBe(messageId);
-    expect(result.data.comment.message).toBe('messageData');
-    expect(result.data.comment.user).toEqual(Object.assign({}, {
-      _id: userData._id,
-      username: userData.username,
+      console.log(result);
+    expect(result.data.createNewComment).toEqual(Object.assign({}, {
+      user: userId,
+      message: messageData,
     }));
-    expect(result.data.comment.totalReply).toBe(5);
-    const messages = result.data.comment.reply.map(m => m.message);
-    expect(messages).toEqual([
-      'messageData5', 'messageData4', 'messageData3', 'messageData2', 'messageData1',
-    ]);
   });
 
   afterEach(async () => {
