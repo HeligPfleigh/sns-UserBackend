@@ -148,8 +148,8 @@ const rootResolvers = {
     unlikePost({ request }, { _id }) {
       return PostsService.unlikePost(request.user.id, _id);
     },
-    createNewComment({ request }, { postId, message, commentId }) {
-      return CommentService.createNewComment(request.user.id, postId, message, commentId);
+    createNewComment({ request }, { _id, message, commentId }) {
+      return CommentService.createNewComment(request.user.id, _id, message, commentId);
     },
     createNewPost({ request }, { message }) {
       return PostsService.createNewPost(request.user.id, message);

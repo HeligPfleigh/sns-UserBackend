@@ -12,16 +12,16 @@ async function createNewComment(userId, postId, message, commentId) {
   if (isUndefined(userId)) {
     throw new Error('userId is undefined');
   }
-
+  if (isUndefined(commentId)) {
+    throw new Error('commentId is undefined');
+  }
   if (isUndefined(postId)) {
     throw new Error('postId is undefined');
   }
   if (!await PostsModel.findOne({ _id: new ObjectId(postId) })) {
     throw new Error('postId does not exist');
   }
-  if (!await CommentsModel.findOne({ _id: new ObjectId(commentId) })) {
-    throw new Error('commentId does not exist');
-  }
+
   if (!await UsersModel.findOne({ _id: new ObjectId(userId) })) {
     throw new Error('userId does not exist');
   }

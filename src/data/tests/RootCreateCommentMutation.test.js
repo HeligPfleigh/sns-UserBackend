@@ -59,32 +59,116 @@ describe('RootCreateCommentMutation', () => {
     await user.save();
     const post = new PostsModel(postData);
     await post.save();
-
-    // } catch (e) {
-    //   console.log(e.message);
-    // }
   });
   test('should create comment request for post', async () => {
     // language=GraphQL
     const query = `
       mutation M {
-        createNewComment(_id:"${postId}",message:"${messageData}") {
-          user
+        createNewComment(_id:"${postId}",message:"${messageData}",commentId:${null}) {
+          user {
+            _id
+          }
           message
         }
       }
     `;
 
-    const rootValue = {};
+    const rootValue = {
+      request: {
+        user: { id: userId },
+      },
+    };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-      console.log(result);
     expect(result.data.createNewComment).toEqual(Object.assign({}, {
-      user: userId,
+      user: { _id: userId },
       message: messageData,
     }));
   });
-
+  test('should check userId undefind', async () => {
+    const query = `
+      mutation M {
+        createNewComment(_id:"${postId}",message:"${messageData}",commentId:${null}) {
+          user {
+            _id
+          }
+          message
+        }
+      }
+    `;
+    const rootValue = {
+      request: {
+        user: {},
+      },
+    };
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.createNewComment).toEqual(null);
+    expect(result.errors[0].message).toEqual('userId is undefined');
+  });
+  test('should check postId undefined', async () => {
+    const query = `
+      mutation M {
+        createNewComment(message:"${messageData}",commentId:${null}) {
+          user {
+            _id
+          }
+          message
+        }
+      }
+    `;
+    const rootValue = {
+      request: {
+        user: { id: userId },
+      },
+    };
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data).toEqual(undefined);
+    expect(result.errors[0].message).toEqual('Field "createNewComment" argument "_id" of type "String!" is required but not provided.');
+  });
+  test('should check messageData undefined', async () => {
+    const query = `
+      mutation M {
+        createNewComment(_id :"${postId}",commentId:${null}) {
+          user {
+            _id
+          }
+          message
+        }
+      }
+    `;
+    const rootValue = {
+      request: {
+        user: { id: userId },
+      },
+    };
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data).toEqual(undefined);
+    expect(result.errors[0].message).toEqual('Field "createNewComment" argument "message" of type "String!" is required but not provided.');
+  });
+  test('should check commentId undefined', async () => {
+    const query = `
+      mutation M {
+        createNewComment(_id :"${postId}",message:"${messageData}") {
+          user {
+            _id
+          }
+          message
+        }
+      }
+    `;
+    const rootValue = {
+      request: {
+        user: { id: userId },
+      },
+    };
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.createNewComment).toEqual(null);
+    expect(result.errors[0].message).toEqual('commentId is undefined');
+  });
   afterEach(async () => {
     // clear data
     await UsersModel.remove({});

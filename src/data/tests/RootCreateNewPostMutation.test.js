@@ -67,7 +67,6 @@ describe('RootCreateNewPostMutation', () => {
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    console.log(result);
     expect(result.data.createNewPost).toEqual(Object.assign({}, {
       user: {
         _id: userId,
