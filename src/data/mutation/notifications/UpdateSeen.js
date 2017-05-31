@@ -1,10 +1,13 @@
+import {
+  GraphQLString as StringType,
+} from 'graphql';
 import NotificationSchema from '../../schemas/NotificationSchemas';
 import { NotificationsModel } from '../../models';
 
 const updateSeen = {
   type: NotificationSchema,
-  args: {},
-  resolve: ({ request }) => new Promise(async (resolve, reject) => {
+  args: { notificationId: StringType },
+  resolve: ({ request }, { notificationId }) => new Promise(async (resolve, reject) => {
     try {
       const userId = request.user.id;
       if (!userId) {
@@ -12,8 +15,8 @@ const updateSeen = {
       }
 
       const result = await NotificationsModel.update(
-        { user: userId },
-        { $set: { seen: true } },
+        { _id: notificationId },
+        { $set: { seen: true, user: userId } },
         { multi: true },
       );
 

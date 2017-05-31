@@ -15,6 +15,7 @@ import NotificationsService from './apis/NotificationsService';
 import UsersService from './apis/UsersService';
 import PostsService from './apis/PostsService';
 import CommentService from './apis/CommentService';
+
 import { schema as schemaType, resolvers as resolversType } from './types';
 
 const { Types: { ObjectId } } = mongoose;
@@ -77,7 +78,13 @@ type Mutation {
   ):Post
   updateProfile(
     profile:ProfileInput!
-    ):Author
+  ):Author
+  updateSeen(
+    _id:String!
+  ):Notification
+  updateRead(
+    _id:String!
+  ):Notification
 }
 
 schema {
@@ -163,8 +170,13 @@ const rootResolvers = {
       return PostsService.createNewPost(request.user.id, message);
     },
     updateProfile({ request }, { profile }) {
-      console.log(profile);
       return UsersService.updateProfile(request.user.id, profile);
+    },
+    updateSeen({ request }, { _id }) {
+      return NotificationsService.updateSeen(request.user.id, _id);
+    },
+    updateRead({ request }, { _id }) {
+      return NotificationsService.updateRead(request.user.id, _id);
     },
   },
 };
