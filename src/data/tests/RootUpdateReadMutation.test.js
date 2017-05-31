@@ -22,7 +22,7 @@ const notificationData = {
     '58f9d2132d4581000484b1a0',
   ],
   isRead: false,
-  seen: false,
+  seen: true,
   type: 'NEW_POST',
   __v: 0,
 
@@ -67,7 +67,7 @@ describe('RootUpdateReadMutation', () => {
          user {
           _id
          }
-          seen
+          isRead
         }
       }
     `;
@@ -84,14 +84,14 @@ describe('RootUpdateReadMutation', () => {
       user: {
         _id: userIdA,
       },
-      seen: true,
+      isRead: true,
     }));
   });
 
   test('should check userId undefined', async () => {
     const query = `
       mutation M {
-        updateSeen(_id:"${notificationId}") {
+        updateRead(_id:"${notificationId}") {
           _id
         }
       }
