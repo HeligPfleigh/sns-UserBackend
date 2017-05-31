@@ -51,16 +51,16 @@ async function updateRead(userId, notificationId) {
   }
 
   if (!await NotificationsModel.update(
-        { notificationId },
-        { $set: { isRead: true } },
+        { _id: notificationId },
+        { $set: { isRead: true, user: userId } },
       )) {
     throw new Error('Update faild...');
   }
   await NotificationsModel.update(
-        { notificationId },
-        { $set: { isRead: true } },
+        { _id: notificationId },
+        { $set: { isRead: true, user: userId } },
       );
-  return NotificationsModel.findOne({ _id: notificationId });
+  return NotificationsModel.findOne({ user: userId });
 }
 export default {
   updateRead,
