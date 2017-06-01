@@ -227,17 +227,6 @@ describe('RootMeQuery', () => {
     console.warn('missing test case me.friendSuggestions');
 
     // console.log(JSON.stringify(result));
-    // let messages = result.data.feeds.edges.map(m => m.message);
-    // expect(result.data.feeds.pageInfo.total).toEqual(15);
-    // expect(result.data.feeds.pageInfo.limit).toEqual(8);
-    // expect(result.data.feeds.pageInfo.hasNextPage).toEqual(true);
-    // expect(result.data.feeds.edges.length).toEqual(8);
-    // expect(messages).toEqual([
-    //   'message1', 'message2', 'message3', 'message4', 'message5',
-    //   'message6',
-    //   'message7',
-    //   'message8',
-    // ]);
   });
 
   afterEach(async () => {

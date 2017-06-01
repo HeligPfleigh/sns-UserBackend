@@ -1,5 +1,6 @@
 // import { property } from 'lodash';
 import DateScalarType from './DateScalarType';
+import reduce from 'lodash/reduce';
 import {
   PostsModel,
   UsersModel,
@@ -106,8 +107,7 @@ type Me implements User {
   building: [Building]
   apartments: [Apartment]
   friendRequests: [Friend]
-  friendSuggestions: [Friend]  
-
+  friendSuggestions: [Friend]
   totalFriends: Int
   totalNotification: Int
 
@@ -153,7 +153,12 @@ type PageInfo {
 
 type Feeds {
   pageInfo: PageInfo
-  edges: [Post],
+  edges: [Post]
+}
+
+type NotificationsResult {
+  pageInfo: PageInfo
+  edges: [Notification]
 }
 `];
 
@@ -182,14 +187,14 @@ export const resolvers = {
     },
   },
   Notification: {
-    user(data) {
-      return UsersModel.findOne({ _id: data.user });
+    user(notify) {
+      return UsersModel.findOne({ _id: notify.user });
     },
-    subject(data) {
-      return PostsModel.findOne({ _id: data.user });
+    subject(notify) {
+      return PostsModel.findById(notify.subject);
     },
-    actors(data) {
-      return UsersModel.find({ user: data._id });
+    actors(notify) {
+      return UsersModel.find({ _id: { $in: notify.actors } });
     },
   },
   Me: {
@@ -239,7 +244,7 @@ export const resolvers = {
     },
     async friendSuggestions(user) {
       const currentFriends = await FriendsModel.find().or([{ user: user._id }, { friend: user._id }]).select('user friend _id');
-      const ninIds = _.reduce(currentFriends, (result, item) => {
+      const ninIds = reduce(currentFriends, (result, item) => {
         result.push(item.user);
         result.push(item.friend);
         return result;

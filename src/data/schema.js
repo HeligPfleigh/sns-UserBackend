@@ -8,6 +8,7 @@ import {
   PostsModel,
   FriendsRelationModel as FriendsModel,
   CommentsModel,
+  NotificationsModel,
 } from './models';
 import Service from './mongo/service';
 import AddressServices from './apis/AddressServices';
@@ -30,8 +31,7 @@ const toObjectId = (idStr) => {
 
 const rootSchema = [`
 type Query {
-  # A feed of repository submissions
-  feeds(limit: Int, cursor: String): Feeds # done
+  feeds(limit: Int, cursor: String): Feeds
   post(_id: String!): Post
   user(_id: String): Friend
   me: Me,
@@ -39,9 +39,8 @@ type Query {
   building(_id: String): Building
   notification(_id: String): Notification
   comment(_id: String): Comment
-
+  notifications(limit: Int, cursor: String): NotificationsResult
   # users,
-  # notifications,
 }
 
 type Mutation {
@@ -64,6 +63,14 @@ schema {
 
 const FeedsService = Service({
   Model: PostsModel,
+  paginate: {
+    default: 5,
+    max: 10,
+  },
+  cursor: true,
+});
+const NotificationsPagingService = Service({
+  Model: NotificationsModel,
   paginate: {
     default: 5,
     max: 10,
@@ -117,6 +124,22 @@ const rootResolvers = {
     },
     me({ request }) {
       return UsersService.getUser(request.user.id);
+    },
+    async notifications({ request }, { cursor = null, limit = 20 }) {
+      console.log('12');
+      const userId = request.user.id;
+      console.log(userId);
+      const r = await NotificationsPagingService.find({
+        $cursor: cursor,
+        query: {
+          user: userId,
+          $limit: limit,
+        },
+      });
+      return {
+        pageInfo: r.paging,
+        edges: r.data,
+      };
     },
   },
   Mutation: {

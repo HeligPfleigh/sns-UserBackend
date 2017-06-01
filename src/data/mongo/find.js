@@ -143,7 +143,7 @@ const find = (state) => {
           if (endCursor) {
             const endQuery = Object.assign({}, {
               [field]: {
-                $lte: endCursor,
+                $lt: endCursor,
               },
             }, query);
             state.Model.find(endQuery).count((err, tcount) => {
