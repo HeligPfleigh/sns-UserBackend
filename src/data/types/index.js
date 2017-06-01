@@ -60,6 +60,7 @@ type Comment {
   user: Author
   totalReply: Int
   reply: [Comment]
+  parent: String
 
   createdAt: Date
   updatedAt: Date
@@ -73,9 +74,10 @@ type Post {
   totalLikes :Int
   totalComments : Int
   likes :[Author]
-  comments : [Comment]
+  comments( _id: String, limit: Int): [Comment]
   createdAt: Date
   updatedAt: Date
+  isLiked: Boolean
 }
 
 type Profile {
@@ -362,6 +364,9 @@ export const resolvers = {
     },
     reply(data) {
       return CommentsModel.find({ post: data.post, reply: data._id });
+    },
+    parent(comment) {
+      return comment.reply;
     },
   },
 };
