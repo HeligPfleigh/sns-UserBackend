@@ -7,6 +7,8 @@ import {
   CommentsModel,
   ApartmentsModel,
   FriendsRelationModel,
+  FriendsModel,
+  NotificationsModel,
 } from '../models';
 
 export const schema = [`
@@ -99,12 +101,13 @@ type Me implements User {
   profile: Profile
   chatId: String
   posts: [Post]
+  friends: [Friend]
+
   building: [Building]
   apartments: [Apartment]
-  friends: [User]
+  friendRequests: [Friend]
+  friendSuggestions: [Friend]  
 
-  friendRequests: [User]
-  friendSuggestions: [User]  
   totalFriends: Int
   totalNotification: Int
 
@@ -120,7 +123,7 @@ type Friend implements User {
   posts: [Post]
   building: [Building]
   apartments: [Apartment]
-  friends: [User]
+  friends: [Friend]
 
   createdAt: Date
   updatedAt: Date
@@ -190,8 +193,23 @@ export const resolvers = {
     },
   },
   Me: {
-    posts(data) {
-      return PostsModel.find({ user: data._id });
+    posts(user) {
+      return new Promise((resolve, reject) => {
+        const edgesArray = [];
+        const edges = PostsModel.find({ user: user._id }).sort({ createdAt: -1 }).cursor();
+
+        edges.on('data', (res) => {
+          res.likes.indexOf(user._id) !== -1 ? res.isLiked = true : res.isLiked = false;
+          edgesArray.push(res);
+        });
+
+        edges.on('error', (err) => {
+          reject(err);
+        });
+        edges.on('end', () => {
+          resolve(edgesArray);
+        });
+      });
     },
     building(data) {
       return BuildingsModel.find({ _id: data.building });
@@ -199,14 +217,49 @@ export const resolvers = {
     apartments(data) {
       return ApartmentsModel.find({ user: data._id });
     },
-    friends(data) {
-      return FriendsRelationModel.find({ user: data._id, status: 'ACCEPTED' });
+    async friends(user) {
+      let friendListByIds = await FriendsRelationModel.find({
+        user: user._id,
+        status: 'ACCEPTED',
+      }).select('friend _id');
+      friendListByIds = friendListByIds.map(v => v.friend);
+      return UsersModel.find({
+        _id: { $in: friendListByIds },
+      });
     },
-    friendRequests(data) {
-      return FriendsRelationModel.find({ user: data._id, status: 'PENDING' });
+    async friendRequests(user) {
+      let friendListByIds = await FriendsModel.find({
+        friend: user._id,
+        status: 'PENDING',
+      }).select('user _id');
+      friendListByIds = friendListByIds.map(v => v.user);
+      return UsersModel.find({
+        _id: { $in: friendListByIds },
+      });
     },
-    friendSuggestions(data) {
-      return FriendsRelationModel.find().or([{ user: data._id }, { friend: data._id }]);
+    async friendSuggestions(user) {
+      const currentFriends = await FriendsModel.find().or([{ user: user._id }, { friend: user._id }]).select('user friend _id');
+      const ninIds = _.reduce(currentFriends, (result, item) => {
+        result.push(item.user);
+        result.push(item.friend);
+        return result;
+      }, []);
+      ninIds.push(user._id);
+
+      let usersId = await ApartmentsModel.find({
+        user: { $nin: ninIds },
+        building: user.building,
+      }).select('user _id').limit(5);
+      usersId = usersId.map(v => v.user);
+      return UsersModel.find({
+        _id: { $in: usersId },
+      });
+    },
+    totalFriends(user) {
+      return FriendsRelationModel.count({ user: user._id });
+    },
+    totalNotification(user) {
+      return NotificationsModel.count({ user: user._id, seen: false });
     },
     createdAt(data) {
       return new Date(data.createdAt);

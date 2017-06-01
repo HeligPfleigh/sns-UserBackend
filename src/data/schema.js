@@ -34,14 +34,13 @@ type Query {
   feeds(limit: Int, cursor: String): Feeds # done
   post(_id: String!): Post
   user(_id: String): Friend
-  # me: Me,
+  me: Me,
   apartment(_id: String): Apartment
   building(_id: String): Building
   notification(_id: String): Notification
   comment(_id: String): Comment
 
   # users,
-  # me,
   # notifications,
 }
 
@@ -115,6 +114,9 @@ const rootResolvers = {
     },
     comment(root, { _id }) {
       return CommentsModel.findOne({ _id });
+    },
+    me({ request }) {
+      return UsersService.getUser(request.user.id);
     },
   },
   Mutation: {
