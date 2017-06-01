@@ -1,0 +1,68 @@
+image: node:6.10.0
+services:
+  - mongo:3.4.0
+
+cache:
+  paths:
+    - node_modules/
+    - .yarn
+
+before_script:
+  - echo "before_script"
+  - yarn global add node-gyp
+  - yarn config set cache-folder .yarn
+  - yarn install
+  - yarn run test
+
+after_script:
+  - echo "after_script"
+
+stages:
+  - build
+  - test
+  - deploy
+
+build:
+  stage: build
+  before_script:
+    - echo "before_script build"
+    - yarn global add node-gyp
+    - yarn config set cache-folder .yarn
+    - yarn install
+    - yarn run test
+  script:
+    - echo "execute-script-for-build"
+  after_script:
+    - echo "after_script build"
+  only:
+    - feature/refactor-code
+  tags:
+    - aws ec2
+
+test:
+  stage: test
+  before_script:
+    - echo "before_script test"
+    - npm install
+  script:
+    - echo "execute-script-for-test"
+    - npm run test
+  after_script:
+    - echo "after_script test"
+  only:
+    - feature/refactor-code
+  tags:
+    - aws ec2
+
+deploy:
+  stage: deploy
+  before_script:
+    - echo "before_script deploy"
+  script:
+    - echo "execute-script-for-deploy"
+  after_script:
+    - echo "after_script deploy"
+  only:
+    - feature/refactor-code
+  tags:
+    - aws ec2
