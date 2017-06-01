@@ -28,6 +28,7 @@
     "font-awesome": "^4.7.0",
     "graphql": "^0.9.1",
     "graphql-tag": "^1.2.4",
+    "graphql-tools": "^0.11.0",
     "history": "^4.5.1",
     "jsonwebtoken": "^7.2.1",
     "lodash": "^4.17.4",
@@ -66,6 +67,7 @@
     "browser-sync": "^2.18.7",
     "chai": "^3.5.0",
     "chokidar": "^1.6.1",
+    "cross-env": "^5.0.0",
     "editorconfig-tools": "^0.1.1",
     "enzyme": "^2.7.1",
     "eslint": "^3.15.0",
@@ -77,6 +79,7 @@
     "eslint-plugin-react": "^6.9.0",
     "extract-text-webpack-plugin": "2.1.0",
     "glob": "^7.1.1",
+    "jest": "^20.0.3",
     "lint-staged": "^3.3.0",
     "markdown-it": "^8.2.2",
     "mkdirp": "^0.5.1",
@@ -124,7 +127,8 @@
       "__DEV__": true
     },
     "env": {
-      "browser": true
+      "browser": true,
+      "jest": true
     },
     "rules": {
       "import/extensions": "off",
@@ -171,13 +175,36 @@
       "git add"
     ]
   },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.{js}",
+      "!src/**/*.test.{js}"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "statements": 98,
+        "branches": 91,
+        "functions": 98,
+        "lines": 98
+      }
+    },
+    "moduleDirectories": [
+      "node_modules",
+      "src"
+    ],
+    "moduleNameMapper": {
+      "^mongoose$": "<rootDir>/node_modules/mongoose"
+    },
+    "setupTestFrameworkScriptFile": "<rootDir>/test/test-bundler.js",
+    "testRegex": "tests/.*\\.test\\.js$"
+  },
   "scripts": {
     "lint:js": "eslint src tools --fix",
     "lint:css": "stylelint \"src/**/*.{css,less,scss,sss}\"",
     "lint:staged": "lint-staged",
     "lint": "yarn run lint:js && yarn run lint:css",
-    "test": "mocha \"src/**/*.test.js\" --require babel-register --require test/setup.js",
-    "test:watch": "yarn run test -- --reporter min --watch",
+    "test": "cross-env NODE_ENV=test jest --coverage --forceExit --runInBand",
+    "test:watch": "cross-env NODE_ENV=test jest --watchAll",
     "clean": "babel-node tools/run clean",
     "copy": "babel-node tools/run copy",
     "bundle": "babel-node tools/run bundle",
