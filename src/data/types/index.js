@@ -8,7 +8,6 @@ import {
   CommentsModel,
   ApartmentsModel,
   FriendsRelationModel,
-  FriendsModel,
   NotificationsModel,
 } from '../models';
 
@@ -234,7 +233,7 @@ export const resolvers = {
       });
     },
     async friendRequests(user) {
-      let friendListByIds = await FriendsModel.find({
+      let friendListByIds = await FriendsRelationModel.find({
         friend: user._id,
         status: 'PENDING',
       }).select('user _id');
@@ -244,7 +243,7 @@ export const resolvers = {
       });
     },
     async friendSuggestions(user) {
-      const currentFriends = await FriendsModel.find().or([{ user: user._id }, { friend: user._id }]).select('user friend _id');
+      const currentFriends = await FriendsRelationModel.find().or([{ user: user._id }, { friend: user._id }]).select('user friend _id');
       const ninIds = reduce(currentFriends, (result, item) => {
         result.push(item.user);
         result.push(item.friend);
