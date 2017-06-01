@@ -110,7 +110,7 @@ describe('RootCommentQuery', () => {
     expect(result.data.comment.totalReply).toBe(5);
     const messages = result.data.comment.reply.map(m => m.message);
     expect(messages).toEqual([
-      'messageData5', 'messageData4', 'messageData3', 'messageData2', 'messageData1'
+      'messageData5', 'messageData4', 'messageData3', 'messageData2', 'messageData1',
     ]);
   });
 

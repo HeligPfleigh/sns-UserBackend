@@ -36,7 +36,7 @@ const createNewComment = {
         user: request.user.id,
         post: postId,
         message,
-        reply: commentId !== 'ok' ? commentId : null,
+        reply: commentId || null,
       });
       sendCommentNotification(postId, request.user.id);
       resolve(r);

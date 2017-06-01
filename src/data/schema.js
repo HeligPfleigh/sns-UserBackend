@@ -15,6 +15,8 @@ import AddressServices from './apis/AddressServices';
 import NotificationsService from './apis/NotificationsService';
 import UsersService from './apis/UsersService';
 import PostsService from './apis/PostsService';
+import CommentService from './apis/CommentService';
+
 import { schema as schemaType, resolvers as resolversType } from './types';
 
 const { Types: { ObjectId } } = mongoose;
@@ -42,7 +44,12 @@ type Query {
   notifications(limit: Int, cursor: String): NotificationsResult
   # users,
 }
-
+input ProfileInput {
+  picture: String
+  firstName: String
+  lastName: String
+  gender:String
+}
 type Mutation {
   acceptFriend (
     _id: String!
@@ -53,6 +60,29 @@ type Mutation {
   sendFriendRequest(
     _id: String!
   ): Friend
+  likePost(
+    _id: String!
+  ): Post
+  unlikePost(
+    _id: String!
+  ): Post
+  createNewComment(
+    _id:String!
+    message : String!
+    commentId : String
+  ):Comment
+  createNewPost (
+    message:String!
+  ):Post
+  updateProfile(
+    profile:ProfileInput!
+  ):Author
+  updateSeen(
+    _id:String!
+  ):Notification
+  updateRead(
+    _id:String!
+  ):Notification
 }
 
 schema {
@@ -151,6 +181,27 @@ const rootResolvers = {
     },
     sendFriendRequest({ request }, { _id }) {
       return UsersService.sendFriendRequest(request.user.id, _id);
+    },
+    likePost({ request }, { _id }) {
+      return PostsService.likePost(request.user.id, _id);
+    },
+    unlikePost({ request }, { _id }) {
+      return PostsService.unlikePost(request.user.id, _id);
+    },
+    createNewComment({ request }, { _id, message, commentId }) {
+      return CommentService.createNewComment(request.user.id, _id, message, commentId);
+    },
+    createNewPost({ request }, { message }) {
+      return PostsService.createNewPost(request.user.id, message);
+    },
+    updateProfile({ request }, { profile }) {
+      return UsersService.updateProfile(request.user.id, profile);
+    },
+    updateSeen({ request }, { _id }) {
+      return NotificationsService.updateSeen(request.user.id, _id);
+    },
+    updateRead({ request }, { _id }) {
+      return NotificationsService.updateRead(request.user.id, _id);
     },
   },
 };

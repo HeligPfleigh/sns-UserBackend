@@ -73,6 +73,7 @@ type Post {
   user : Friend
   totalLikes :Int
   totalComments : Int
+  likes :[Author]
   comments : [Comment]
   createdAt: Date
   updatedAt: Date
