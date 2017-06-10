@@ -131,7 +131,10 @@ const rootResolvers = {
       });
       return {
         pageInfo: r.paging,
-        edges: r.data,
+        edges: r.data.map((res) => {
+          res.likes.indexOf(userId) !== -1 ? res.isLiked = true : res.isLiked = false;
+          return res;
+        }),
       };
     },
     post(root, { _id }) {

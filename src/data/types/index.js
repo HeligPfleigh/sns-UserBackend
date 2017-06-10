@@ -1,6 +1,6 @@
 // import { property } from 'lodash';
-import DateScalarType from './DateScalarType';
 import reduce from 'lodash/reduce';
+import DateScalarType from './DateScalarType';
 import {
   PostsModel,
   UsersModel,
