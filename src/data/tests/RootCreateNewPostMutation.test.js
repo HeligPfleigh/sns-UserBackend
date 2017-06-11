@@ -74,7 +74,7 @@ describe('RootCreateNewPostMutation', () => {
       message: messageData,
     }));
   });
-  test('should check userId undefined', async () => {
+  test('should check author undefined', async () => {
     const query = `
       mutation M {
         createNewPost(message:"${messageData}") {
@@ -90,7 +90,7 @@ describe('RootCreateNewPostMutation', () => {
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
     expect(result.data.createNewPost).toEqual(null);
-    expect(result.errors[0].message).toEqual('userId is undefined');
+    expect(result.errors[0].message).toEqual('author is undefined');
   });
   test('should check message undefined', async () => {
     const query = `

@@ -12,9 +12,6 @@ async function createNewComment(userId, postId, message, commentId) {
   if (isUndefined(userId)) {
     throw new Error('userId is undefined');
   }
-  if (isUndefined(commentId)) {
-    throw new Error('commentId is undefined');
-  }
   if (isUndefined(postId)) {
     throw new Error('postId is undefined');
   }
@@ -28,14 +25,13 @@ async function createNewComment(userId, postId, message, commentId) {
   if (isUndefined(message)) {
     throw new Error('message is undefined');
   }
-  await CommentsModel.create({
+  const r = await CommentsModel.create({
     user: userId,
     post: postId,
     message,
-    reply: commentId || null,
+    reply: commentId || undefined,
   });
-
-  return CommentsModel.findOne({ user: userId });
+  return r;
 }
 
 

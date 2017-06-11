@@ -33,7 +33,9 @@ async function likePost(userId, postId) {
     { $addToSet: { likes: userId } },
   );
 
-  return PostsModel.findOne({ _id: postId });
+  const p = await PostsModel.findOne({ _id: postId });
+  p.isLiked = true;
+  return p;
 }
 
 async function unlikePost(userId, postId) {
@@ -57,31 +59,29 @@ async function unlikePost(userId, postId) {
     throw new Error('not found like of user in this post');
   }
   await PostsModel.update(
-        { _id: postId },
-        { $pull: { likes: userId } },
-      );
+    { _id: postId },
+    { $pull: { likes: userId } },
+  );
   return PostsModel.findOne({ _id: postId });
 }
-async function createNewPost(userId, message) {
-  if (isUndefined(userId)) {
-    throw new Error('userId is undefined');
+async function createNewPost(author, message, userId) {
+  if (isUndefined(author)) {
+    throw new Error('author is undefined');
   }
-
   if (isUndefined(message)) {
     throw new Error('message is undefined');
   }
-
-  if (!await UsersModel.findOne({ _id: new ObjectId(userId) })) {
-    throw new Error('userId does not exist');
+  if (!await UsersModel.findOne({ _id: new ObjectId(author) })) {
+    throw new Error('author does not exist');
   }
-  await PostsModel.create({
+  const r = await PostsModel.create({
     message,
-    author: userId,
-    user: userId,
+    author,
+    user: userId || author,
     photos: [],
     likes: [],
   });
-  return PostsModel.findOne({ user: userId, message });
+  return r;
 }
 export default {
   getPost,

@@ -68,20 +68,21 @@ type Mutation {
   ): Post
   createNewComment(
     _id:String!
-    message : String!
-    commentId : String
+    message: String!
+    commentId: String
   ):Comment
   createNewPost (
-    message:String!
+    message: String!
+    userId: String
   ):Post
   updateProfile(
-    profile:ProfileInput!
+    profile: ProfileInput!
   ):Author
   updateSeen(
-    _id:String!
+    _id: String!
   ):Notification
   updateRead(
-    _id:String!
+    _id: String!
   ):Notification
 }
 
@@ -159,9 +160,7 @@ const rootResolvers = {
       return UsersService.getUser(request.user.id);
     },
     async notifications({ request }, { cursor = null, limit = 20 }) {
-      console.log('12');
       const userId = request.user.id;
-      console.log(userId);
       const r = await NotificationsPagingService.find({
         $cursor: cursor,
         query: {
@@ -194,8 +193,8 @@ const rootResolvers = {
     createNewComment({ request }, { _id, message, commentId }) {
       return CommentService.createNewComment(request.user.id, _id, message, commentId);
     },
-    createNewPost({ request }, { message }) {
-      return PostsService.createNewPost(request.user.id, message);
+    createNewPost({ request }, { message, userId }) {
+      return PostsService.createNewPost(request.user.id, message, userId);
     },
     updateProfile({ request }, { profile }) {
       return UsersService.updateProfile(request.user.id, profile);
