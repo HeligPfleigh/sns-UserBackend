@@ -307,7 +307,22 @@ export const resolvers = {
   },
   Friend: {
     posts(data) {
-      return PostsModel.find({ user: data._id });
+      return new Promise((resolve, reject) => {
+        const edgesArray = [];
+        const edges = PostsModel.find({ user: data._id }).sort({ createdAt: -1 }).cursor();
+
+        edges.on('data', (res) => {
+          res.likes.indexOf(data._id) !== -1 ? res.isLiked = true : res.isLiked = false;
+          edgesArray.push(res);
+        });
+
+        edges.on('error', (err) => {
+          reject(err);
+        });
+        edges.on('end', () => {
+          resolve(edgesArray);
+        });
+      });
     },
     building(data) {
       return BuildingsModel.find({ _id: data.building });
