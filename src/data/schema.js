@@ -138,8 +138,11 @@ const rootResolvers = {
         }),
       };
     },
-    post(root, { _id }) {
-      return PostsService.getPost(_id);
+    async post({ request }, { _id }) {
+      const userId = request.user.id;
+      const res = await PostsService.getPost(_id);
+      res.likes.indexOf(userId) !== -1 ? res.isLiked = true : res.isLiked = false;
+      return res;
     },
     apartment(root, { _id }) {
       return AddressServices.getApartment(_id);
