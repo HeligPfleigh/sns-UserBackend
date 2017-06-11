@@ -1,10 +1,11 @@
-
+import isEqual from 'lodash/isEqual';
 import isUndefined from 'lodash/isUndefined';
 import { ObjectId } from 'mongodb';
 import {
   UsersModel,
   PostsModel,
 } from '../models';
+import { sendPostNotification } from '../../utils/notifications';
 
 function getPost(postId) {
   return PostsModel.findOne({ _id: postId });
@@ -65,24 +66,33 @@ async function unlikePost(userId, postId) {
   return PostsModel.findOne({ _id: postId });
 }
 async function createNewPost(author, message, userId) {
-  if (isUndefined(author)) {
-    throw new Error('author is undefined');
+  try {
+    if (isUndefined(author)) {
+      throw new Error('author is undefined');
+    }
+    if (isUndefined(message)) {
+      throw new Error('message is undefined');
+    }
+    if (!await UsersModel.findOne({ _id: new ObjectId(author) })) {
+      throw new Error('author does not exist');
+    }
+    // JSON.parse(message);
+    const r = await PostsModel.create({
+      message,
+      author,
+      user: userId || author,
+    });
+
+    if (userId && !isEqual(userId, author)) {
+      sendPostNotification(r._id, author);
+    }
+    r.isLiked = false;
+    return r;
+  } catch (e) {
+    throw e;
   }
-  if (isUndefined(message)) {
-    throw new Error('message is undefined');
-  }
-  if (!await UsersModel.findOne({ _id: new ObjectId(author) })) {
-    throw new Error('author does not exist');
-  }
-  const r = await PostsModel.create({
-    message,
-    author,
-    user: userId || author,
-    photos: [],
-    likes: [],
-  });
-  return r;
 }
+
 export default {
   getPost,
   feed,

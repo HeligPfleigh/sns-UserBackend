@@ -44,7 +44,6 @@ const userDataA = {
 describe('RootCreateNewPostMutation', () => {
   beforeEach(async () => {
     // setup db
-    // try {
     const user = new UsersModel(userDataA);
     await user.save();
   });
