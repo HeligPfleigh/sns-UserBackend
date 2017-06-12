@@ -4,13 +4,18 @@ export const SET_RUNTIME_VARIABLE = 'SET_RUNTIME_VARIABLE';
 
 export const POST_TYPES = ['STATUS', 'EVENT'];
 
-export const NOTIFY_TYPES = ['LIKES', 'COMMENTS', 'NEW_POST'];
-
 export const PENDING = 'PENDING';
 export const ACCEPTED = 'ACCEPTED';
 export const REJECTED = 'REJECTED';
 export const BLOCKED = 'BLOCKED';
 export const NONE = 'NONE';
+
+export const ADMIN = 'ADMIN';
+export const MEMBER = 'MEMBER';
+export const BUILDING_MEMBER_TYPE = [ADMIN, MEMBER];
+export const BUILDING_MEMBER_STATUS = [PENDING, ACCEPTED, REJECTED];
+
+export const NOTIFY_TYPES = ['LIKES', 'COMMENTS', 'NEW_POST'];
 
 export const CONTROL_NEW_CONVERSATION = 'CONTROL_NEW_CONVERSATION';
 export const ADD_USER_NEW_CONVERSATION = 'ADD_USER_NEW_CONVERSATION';

@@ -70,7 +70,13 @@ describe('RootPostQuery', () => {
       }
     `;
 
-    const rootValue = {};
+    const rootValue = {
+      request: {
+        user: {
+          id: userId,
+        },
+      },
+    };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
     expect(result.data.post._id.toString()).toBe(postData._id);
