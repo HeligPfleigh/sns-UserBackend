@@ -13,6 +13,8 @@ import FriendsRelationModel from './FriendsRelationModel';
 import PostsModel from './PostsModel';
 import CommentsModel from './CommentsModel';
 import NotificationsModel from './NotificationsModel';
+import BuildingFeedModel from './BuildingFeedModel';
+import BuildingMembersModel from './BuildingMembersModel';
 import BuildingsModel from './BuildingsModel';
 import ApartmentsModel from './ApartmentsModel';
 
@@ -22,6 +24,8 @@ export {
   PostsModel,
   CommentsModel,
   NotificationsModel,
+  BuildingFeedModel,
+  BuildingMembersModel,
   BuildingsModel,
   ApartmentsModel,
 };
