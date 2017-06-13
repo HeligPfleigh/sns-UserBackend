@@ -13,7 +13,6 @@ const userIdA = '58f9c2502d4581000474b19a';
 const postId = '590310aec900da00047629a8';
 const buildingId = '58da279f0ff5af8c8be59c36';
 const postData = {
-
   _id: postId,
   createdAt: '2017-04-28T09:51:42.263Z',
   updatedAt: '2017-04-28T09:51:42.263Z',
@@ -24,7 +23,6 @@ const postData = {
   photos: [],
   type: 'STATUS',
   __v: 0,
-
 };
 const userDataA = {
   _id: userIdA,
