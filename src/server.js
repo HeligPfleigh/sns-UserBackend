@@ -116,6 +116,15 @@ const graphqlMiddleware = expressGraphQL(req => ({
   graphiql: __DEV__,
   rootValue: { request: req },
   pretty: __DEV__,
+  // A value to pass as the context to the graphql() function from GraphQL.js.
+  // If context is not provided, the request object is passed as the context.
+  // This is an object shared by all resolvers in a particular query,
+  // and is used to contain per-request state, including authentication information,
+  // dataloader instances, and anything else that should be taken into account when
+  // resolving the query.
+  context: {
+    user: req.user,
+  },
 }));
 
 app.use('/graphql', graphqlMiddleware);

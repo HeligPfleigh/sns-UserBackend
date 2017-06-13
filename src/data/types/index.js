@@ -5,6 +5,7 @@ import {
   PostsModel,
   UsersModel,
   BuildingsModel,
+  BuildingFeedModel,
   CommentsModel,
   ApartmentsModel,
   FriendsRelationModel,
@@ -15,10 +16,19 @@ export const schema = [`
 # scalar types
 scalar Date
 
+type Address {
+  country: String
+  city: String
+  state: String
+  street: String
+}
+
 type Building {
   _id: ID!
   name: String
-  
+  address: Address
+  posts: [Post]
+
   createdAt: Date
   updatedAt: Date
 }
@@ -167,6 +177,26 @@ type NotificationsResult {
 export const resolvers = {
   Date: DateScalarType,
   Building: {
+    posts(building, _, { user }) {
+      return new Promise(async (resolve, reject) => {
+        const edgesArray = [];
+        let ids = await BuildingFeedModel.find({ building: building._id }).sort({ createdAt: -1 });
+        ids = ids.map(v => v.post);
+        const edges = PostsModel.find({ _id: { $in: ids } }).cursor();
+
+        edges.on('data', (res) => {
+          res.likes.indexOf(user.id) !== -1 ? res.isLiked = true : res.isLiked = false;
+          edgesArray.push(res);
+        });
+
+        edges.on('error', (err) => {
+          reject(err);
+        });
+        edges.on('end', () => {
+          resolve(edgesArray);
+        });
+      });
+    },
     createdAt(data) {
       return new Date(data.createdAt);
     },
