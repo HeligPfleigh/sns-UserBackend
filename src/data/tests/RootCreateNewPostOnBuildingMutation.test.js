@@ -4,15 +4,31 @@ import {
   getContext,
 } from '../../../test/helper';
 import schema from '../schema';
-import { UsersModel } from '../models';
+import { UsersModel, BuildingsModel, BuildingFeedModel, PostsModel } from '../models';
 
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
+const buildingId = '58da279f0ff5af8c8be59c37';
+const buildingData = {
+  _id: buildingId,
+  name: 'Vinhomes Riverside',
+  address: {
+    country: 'vn',
+    city: 'Ha Noi',
+    state: 'Long Bien',
+    street: 'No.7, Bang Lang 1 Street',
+  },
+  location: {
+    coordinates: [105.7976544, 21.0714764],
+    type: 'Point',
+  },
+  description: 'Vingroup Joint Stock Company',
+  __v: 0,
+};
 const userId = '58f9c1bf2d4581000474b198';
 const messageData = 'message Data';
-const buildingId = '58da279f0ff5af8c8be59c36';
 const userDataA = {
   _id: userId,
   emails: {
@@ -40,18 +56,20 @@ const userDataA = {
   __v: 0,
 };
 
-
-describe('RootCreateNewPostMutation', () => {
+describe('CreateNewPostOnBuildingMutation', () => {
   beforeEach(async () => {
     // setup db
+    const building = new BuildingsModel(buildingData);
+    await building.save();
     const user = new UsersModel(userDataA);
     await user.save();
   });
-  test('should create new post request', async () => {
+
+  test('should create new post on building page', async () => {
     // language=GraphQL
     const query = `
       mutation M { 
-        createNewPost(message:"${messageData}") {
+        createNewPostOnBuilding(message:"${messageData}", buildingId:"${buildingId}") {
           user {
             _id
           }
@@ -59,6 +77,7 @@ describe('RootCreateNewPostMutation', () => {
         }
       }
     `;
+
     const rootValue = {
       request: {
         user: { id: userId },
@@ -66,51 +85,22 @@ describe('RootCreateNewPostMutation', () => {
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    expect(result.data.createNewPost).toEqual(Object.assign({}, {
+    expect(result.data.createNewPostOnBuilding).toEqual(Object.assign({}, {
       user: {
         _id: userId,
       },
       message: messageData,
     }));
+    console.warn('write more test');
   });
-  test('should check author undefined', async () => {
-    const query = `
-      mutation M {
-        createNewPost(message:"${messageData}") {
-          message
-        }
-      }
-    `;
-    const rootValue = {
-      request: {
-        user: {},
-      },
-    };
-    const context = getContext({});
-    const result = await graphql(schema, query, rootValue, context);
-    expect(result.data.createNewPost).toEqual(null);
-    expect(result.errors[0].message).toEqual('author is undefined');
-  });
-  test('should check message undefined', async () => {
-    const query = `
-      mutation M {
-        createNewPost {
-          _id
-        }
-      }
-    `;
-    const rootValue = {
-      request: {
-        user: { id: userId },
-      },
-    };
-    const context = getContext({});
-    const result = await graphql(schema, query, rootValue, context);
-    expect(result.data).toEqual(undefined);
-    expect(result.errors[0].message).toEqual('Field "createNewPost" argument "message" of type "String!" is required but not provided.');
-  });
+
   afterEach(async () => {
     // clear data
+    await BuildingsModel.remove({
+      _id: buildingData._id,
+    });
     await UsersModel.remove({});
+    await BuildingFeedModel.remove({});
+    await PostsModel.remove({});
   });
 });

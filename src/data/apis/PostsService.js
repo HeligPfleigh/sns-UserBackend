@@ -4,6 +4,7 @@ import { ObjectId } from 'mongodb';
 import {
   UsersModel,
   PostsModel,
+  BuildingFeedModel,
 } from '../models';
 import { sendPostNotification } from '../../utils/notifications';
 
@@ -93,10 +94,38 @@ async function createNewPost(author, message, userId) {
   }
 }
 
+async function createNewPostOnBuilding(author, message, buildingId) {
+  try {
+    if (isUndefined(author)) {
+      throw new Error('author is undefined');
+    }
+    if (isUndefined(message)) {
+      throw new Error('message is undefined');
+    }
+    if (!await UsersModel.findOne({ _id: new ObjectId(author) })) {
+      throw new Error('author does not exist');
+    }
+    // JSON.parse(message);
+    const r = await PostsModel.create({
+      message,
+      author,
+      user: author,
+    });
+
+    await BuildingFeedModel.create({ building: buildingId, post: r._id });
+
+    r.isLiked = false;
+    return r;
+  } catch (e) {
+    throw e;
+  }
+}
+
 export default {
   getPost,
   feed,
   likePost,
   unlikePost,
   createNewPost,
+  createNewPostOnBuilding,
 };
