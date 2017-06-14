@@ -84,6 +84,10 @@ type Mutation {
   updateRead(
     _id: String!
   ):Notification
+  createNewPostOnBuilding (
+    message: String!
+    buildingId: String!
+  ):Post
 }
 
 schema {
@@ -197,6 +201,8 @@ const rootResolvers = {
       return CommentService.createNewComment(request.user.id, _id, message, commentId);
     },
     createNewPost({ request }, { message, userId }) {
+      // NOTE:
+      // userId: post on friend wall
       return PostsService.createNewPost(request.user.id, message, userId);
     },
     updateProfile({ request }, { profile }) {
@@ -207,6 +213,11 @@ const rootResolvers = {
     },
     updateRead({ request }, { _id }) {
       return NotificationsService.updateRead(request.user.id, _id);
+    },
+    createNewPostOnBuilding({ request }, { message, buildingId }) {
+      // NOTE:
+      // buildingId: post on building
+      return PostsService.createNewPostOnBuilding(request.user.id, message, buildingId);
     },
   },
 };

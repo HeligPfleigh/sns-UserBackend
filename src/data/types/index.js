@@ -182,7 +182,7 @@ export const resolvers = {
         const edgesArray = [];
         let ids = await BuildingFeedModel.find({ building: building._id }).sort({ createdAt: -1 });
         ids = ids.map(v => v.post);
-        const edges = PostsModel.find({ _id: { $in: ids } }).cursor();
+        const edges = PostsModel.find({ _id: { $in: ids } }).sort({ createdAt: -1 }).cursor();
 
         edges.on('data', (res) => {
           res.likes.indexOf(user.id) !== -1 ? res.isLiked = true : res.isLiked = false;
