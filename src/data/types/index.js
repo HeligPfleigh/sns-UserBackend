@@ -5,12 +5,14 @@ import {
   PostsModel,
   UsersModel,
   BuildingsModel,
+  BuildingMembersModel,
   BuildingFeedModel,
   CommentsModel,
   ApartmentsModel,
   FriendsRelationModel,
   NotificationsModel,
 } from '../models';
+import { ADMIN, ACCEPTED } from '../../constants';
 
 export const schema = [`
 # scalar types
@@ -28,6 +30,7 @@ type Building {
   name: String
   address: Address
   posts: [Post]
+  isAdmin: Boolean
 
   createdAt: Date
   updatedAt: Date
@@ -195,6 +198,18 @@ export const resolvers = {
         edges.on('end', () => {
           resolve(edgesArray);
         });
+      });
+    },
+    isAdmin(building, _, { user }) {
+      if (!user) return false;
+      return new Promise(async (resolve) => {
+        if (await BuildingMembersModel.findOne({
+          building: building._id,
+          user: user.id,
+          type: ADMIN,
+          status: ACCEPTED,
+        })) return resolve(true);
+        return resolve(false);
       });
     },
     createdAt(data) {
