@@ -12,7 +12,7 @@ import {
   FriendsRelationModel,
   NotificationsModel,
 } from '../models';
-import { ADMIN, ACCEPTED } from '../../constants';
+import { ADMIN, ACCEPTED, MEMBER, PENDING } from '../../constants';
 
 export const schema = [`
 # scalar types
@@ -31,6 +31,7 @@ type Building {
   address: Address
   posts: [Post]
   isAdmin: Boolean
+  requests( _id: String, limit: Int): [Friend]
 
   createdAt: Date
   updatedAt: Date
@@ -211,6 +212,19 @@ export const resolvers = {
         })) return resolve(true);
         return resolve(false);
       });
+    },
+    async requests(building, { _id, limit = 2 }) {
+      const q = {
+        building: building._id,
+        type: MEMBER,
+        status: PENDING,
+      };
+      if (_id) {
+        q._id = { $lt: _id };
+      }
+      let bm = await BuildingMembersModel.find(q).sort({ createdAt: -1 }).limit(limit);
+      bm = bm.map(v => v.user);
+      return UsersModel.find({ _id: { $in: bm } });
     },
     createdAt(data) {
       return new Date(data.createdAt);
@@ -404,7 +418,6 @@ export const resolvers = {
     updatedAt(data) {
       return new Date(data.updatedAt);
     },
-
   },
   Comment: {
     post(data) {
