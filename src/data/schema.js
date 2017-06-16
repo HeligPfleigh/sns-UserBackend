@@ -9,6 +9,8 @@ import {
   FriendsRelationModel as FriendsModel,
   CommentsModel,
   NotificationsModel,
+  BuildingMembersModel,
+  UsersModel,
 } from './models';
 import Service from './mongo/service';
 import AddressServices from './apis/AddressServices';
@@ -16,8 +18,8 @@ import NotificationsService from './apis/NotificationsService';
 import UsersService from './apis/UsersService';
 import PostsService from './apis/PostsService';
 import CommentService from './apis/CommentService';
-
 import { schema as schemaType, resolvers as resolversType } from './types';
+import { ADMIN, PENDING, REJECTED, ACCEPTED } from '../constants';
 
 const { Types: { ObjectId } } = mongoose;
 
@@ -88,6 +90,14 @@ type Mutation {
     message: String!
     buildingId: String!
   ):Post
+  acceptRequestForJoiningBuilding(
+    buildingId: String!
+    userId: String!
+  ):Friend
+  rejectRequestForJoiningBuilding(
+    buildingId: String!
+    userId: String!
+  ):Friend
 }
 
 schema {
@@ -218,6 +228,67 @@ const rootResolvers = {
       // NOTE:
       // buildingId: post on building
       return PostsService.createNewPostOnBuilding(request.user.id, message, buildingId);
+    },
+    async acceptRequestForJoiningBuilding({ request }, { buildingId, userId }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: buildingId,
+        user: request.user.id,
+      });
+      if (!isAdmin || isAdmin.type !== ADMIN) {
+        throw new Error('you don\'t have permission to reject request');
+      }
+      const record = await BuildingMembersModel.findOne({
+        building: buildingId,
+        user: userId,
+      });
+      if (!record) {
+        throw new Error('not found the request');
+      }
+      if (record.status !== PENDING) {
+        return UsersModel.findOne({ _id: userId });
+      }
+      // NOTE: what happens if we lost connection to db
+      await BuildingMembersModel.update({
+        building: buildingId,
+        user: userId,
+      }, {
+        $set: {
+          status: ACCEPTED,
+        },
+      });
+      return UsersModel.findOne({ _id: userId });
+      // return new Promise(async (resolve, reject) => {
+      //   setTimeout(reject, 5000);
+      // });
+    },
+    async rejectRequestForJoiningBuilding({ request }, { buildingId, userId }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: buildingId,
+        user: request.user.id,
+      });
+      if (!isAdmin || isAdmin.type !== ADMIN) {
+        throw new Error('you don\'t have permission to reject request');
+      }
+      const record = await BuildingMembersModel.findOne({
+        building: buildingId,
+        user: userId,
+      });
+      if (!record) {
+        throw new Error('not found the request');
+      }
+      if (record.status !== PENDING) {
+        return UsersModel.findOne({ _id: userId });
+      }
+      // NOTE: what happens if we lost connection to db
+      await BuildingMembersModel.update({
+        building: buildingId,
+        user: userId,
+      }, {
+        $set: {
+          status: REJECTED,
+        },
+      });
+      return UsersModel.findOne({ _id: userId });
     },
   },
 };
