@@ -23,17 +23,17 @@ async function updateSeen(userId, notificationId) {
   }
 
   if (!await NotificationsModel.update(
-         { _id: notificationId },
-        { $set: { seen: true, user: userId } },
-        { multi: true },
-      )) {
+    { _id: notificationId },
+    { $set: { seen: true, user: userId } },
+    { multi: true },
+  )) {
     throw new Error('Update faild...');
   }
   await NotificationsModel.update(
-        { _id: notificationId },
-        { $set: { seen: true, user: userId } },
-        { multi: true },
-      );
+    { _id: notificationId },
+    { $set: { seen: true, user: userId } },
+    { multi: true },
+  );
   return NotificationsModel.findOne({ user: userId });
 }
 async function updateRead(userId, notificationId) {
@@ -51,15 +51,15 @@ async function updateRead(userId, notificationId) {
   }
 
   if (!await NotificationsModel.update(
-        { _id: notificationId },
-        { $set: { isRead: true, user: userId } },
-      )) {
+    { _id: notificationId },
+    { $set: { isRead: true, user: userId } },
+  )) {
     throw new Error('Update faild...');
   }
   await NotificationsModel.update(
-        { _id: notificationId },
-        { $set: { isRead: true, user: userId } },
-      );
+    { _id: notificationId },
+    { $set: { isRead: true, user: userId } },
+  );
   return NotificationsModel.findOne({ user: userId });
 }
 export default {
