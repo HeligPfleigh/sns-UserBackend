@@ -54,6 +54,17 @@ enum NotificationType {
   NEW_POST
 }
 
+enum PrivacyType {
+  PUBLIC
+  FRIEND
+  ONLY_ME
+}
+
+enum PostType {
+  STATUS
+  EVENT
+}
+
 type Notification {
   _id: ID!
   user: Author!
@@ -89,9 +100,12 @@ type Post {
   totalComments : Int
   likes :[Author]
   comments( _id: String, limit: Int): [Comment]
+  privacy: PrivacyType!
+  type: PostType!
+  isLiked: Boolean
+
   createdAt: Date
   updatedAt: Date
-  isLiked: Boolean
 }
 
 type Profile {
