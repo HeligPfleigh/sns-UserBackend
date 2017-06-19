@@ -6,7 +6,10 @@ import {
   PostsModel,
   BuildingFeedModel,
 } from '../models';
-import { sendPostNotification } from '../../utils/notifications';
+import {
+  sendPostNotification,
+  sendLikeNotification,
+} from '../../utils/notifications';
 
 function getPost(postId) {
   return PostsModel.findOne({ _id: postId });
@@ -20,7 +23,6 @@ async function likePost(userId, postId) {
   if (isUndefined(userId)) {
     throw new Error('userId is undefined');
   }
-
   if (isUndefined(postId)) {
     throw new Error('postId is undefined');
   }
@@ -37,6 +39,8 @@ async function likePost(userId, postId) {
 
   const p = await PostsModel.findOne({ _id: postId });
   p.isLiked = true;
+
+  sendLikeNotification(postId, userId);
   return p;
 }
 
@@ -44,7 +48,6 @@ async function unlikePost(userId, postId) {
   if (isUndefined(userId)) {
     throw new Error('userId is undefined');
   }
-
   if (isUndefined(postId)) {
     throw new Error('postId is undefined');
   }
@@ -54,16 +57,13 @@ async function unlikePost(userId, postId) {
   if (!await UsersModel.findOne({ _id: new ObjectId(userId) })) {
     throw new Error('userId does not exist');
   }
-  if (!await PostsModel.findOne({
-    _id: postId,
-    likes: { $in: [userId] },
-  })) {
-    throw new Error('not found like of user in this post');
-  }
-  await PostsModel.update(
+  const result = await PostsModel.update(
     { _id: postId },
     { $pull: { likes: userId } },
   );
+  if (result.nModified !== 1) {
+    throw new Error('Update faild...');
+  }
   return PostsModel.findOne({ _id: postId });
 }
 async function createNewPost(author, message, userId) {
