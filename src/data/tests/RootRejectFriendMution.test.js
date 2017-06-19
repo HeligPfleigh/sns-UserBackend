@@ -138,6 +138,8 @@ describe('RootRejectFriendMutation', () => {
       _id: userDataC._id,
       username: userDataC.username,
     }));
+    expect(await FriendsRelationModel.count()).toEqual(1);
+    await f.remove({});
   });
 
   test('should throw new error', async () => {

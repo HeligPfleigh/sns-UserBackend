@@ -93,6 +93,15 @@ const userDataC = {
   __v: 0,
 };
 
+const friendsRelationData = {
+  _id: '58f9c2828259b01965387c89',
+  friend: userIdC,
+  user: userIdA,
+  status: 'PENDING',
+  isSubscribe: true,
+  __v: 0,
+};
+
 describe('RootAcceptFriendMutation', () => {
   beforeEach(async () => {
     // setup db
@@ -106,6 +115,8 @@ describe('RootAcceptFriendMutation', () => {
 
   test('should get Friend data', async () => {
     // language=GraphQL
+    const f = new FriendsRelationModel(friendsRelationData);
+    await f.save();
     const query = `
       mutation M { 
         acceptFriend (_id:"${userIdC}") {
@@ -129,6 +140,30 @@ describe('RootAcceptFriendMutation', () => {
       username: userDataC.username,
     }));
     expect(await FriendsRelationModel.count()).toEqual(2);
+    await f.remove({});
+  });
+
+  test('should throw new error', async () => {
+    // language=GraphQL
+    const query = `
+      mutation M { 
+        rejectFriend (_id:"${userIdC}") {
+          _id
+          username
+        }
+      }
+    `;
+    const rootValue = {
+      request: {
+        user: {
+          id: userIdA,
+        },
+      },
+    };
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.rejectFriend).toEqual(null);
+    expect(result.errors[0].message).toEqual('not found friend request');
   });
 
   afterEach(async () => {

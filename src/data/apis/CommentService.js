@@ -1,4 +1,3 @@
-
 import isUndefined from 'lodash/isUndefined';
 import { ObjectId } from 'mongodb';
 import {
@@ -6,7 +5,9 @@ import {
   CommentsModel,
   PostsModel,
 } from '../models';
-
+import {
+  sendCommentNotification,
+} from '../../utils/notifications';
 
 async function createNewComment(userId, postId, message, commentId) {
   if (isUndefined(userId)) {
@@ -18,7 +19,6 @@ async function createNewComment(userId, postId, message, commentId) {
   if (!await PostsModel.findOne({ _id: new ObjectId(postId) })) {
     throw new Error('postId does not exist');
   }
-
   if (!await UsersModel.findOne({ _id: new ObjectId(userId) })) {
     throw new Error('userId does not exist');
   }
@@ -31,6 +31,8 @@ async function createNewComment(userId, postId, message, commentId) {
     message,
     reply: commentId || undefined,
   });
+  sendCommentNotification(postId, userId);
+
   return r;
 }
 

@@ -11,6 +11,19 @@ function getUser(userId) {
 }
 
 async function acceptFriend(userId, friendId) {
+  if (isUndefined(userId)) {
+    throw new Error('userId is undefined');
+  }
+  if (isUndefined(friendId)) {
+    throw new Error('friendId is undefined');
+  }
+  if (!await FriendsRelationModel.findOne({
+    user: userId,
+    friend: friendId,
+    status: 'PENDING',
+  })) {
+    throw new Error('not found friend request');
+  }
   await FriendsRelationModel.update({
     user: userId,
     friend: friendId,
@@ -58,7 +71,6 @@ async function sendFriendRequest(userId, friendId) {
   if (isUndefined(friendId)) {
     throw new Error('friendId is undefined');
   }
-
   if (!await UsersModel.findOne({ _id: new ObjectId(userId) })) {
     throw new Error('userId does not exist');
   }
@@ -69,6 +81,7 @@ async function sendFriendRequest(userId, friendId) {
     user: userId,
     friend: friendId,
     status: 'PENDING',
+    isSubscribe: true,
   });
 
   return UsersModel.findOne({ _id: friendId });
