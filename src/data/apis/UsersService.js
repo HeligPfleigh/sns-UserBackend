@@ -71,7 +71,6 @@ async function sendFriendRequest(userId, friendId) {
   if (isUndefined(friendId)) {
     throw new Error('friendId is undefined');
   }
-
   if (!await UsersModel.findOne({ _id: new ObjectId(userId) })) {
     throw new Error('userId does not exist');
   }
@@ -82,6 +81,7 @@ async function sendFriendRequest(userId, friendId) {
     user: userId,
     friend: friendId,
     status: 'PENDING',
+    isSubscribe: true,
   });
 
   return UsersModel.findOne({ _id: friendId });
