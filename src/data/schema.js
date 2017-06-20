@@ -19,7 +19,7 @@ import UsersService from './apis/UsersService';
 import PostsService from './apis/PostsService';
 import CommentService from './apis/CommentService';
 import { schema as schemaType, resolvers as resolversType } from './types';
-import { ADMIN, PENDING, REJECTED, ACCEPTED } from '../constants';
+import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC } from '../constants';
 
 const { Types: { ObjectId } } = mongoose;
 
@@ -50,7 +50,7 @@ input ProfileInput {
   picture: String
   firstName: String
   lastName: String
-  gender:String
+  gender: String
 }
 type Mutation {
   acceptFriend (
@@ -76,6 +76,7 @@ type Mutation {
   createNewPost (
     message: String!
     userId: String
+    privacy: PrivacyType
   ):Post
   updateProfile(
     profile: ProfileInput!
@@ -210,10 +211,10 @@ const rootResolvers = {
     createNewComment({ request }, { _id, message, commentId }) {
       return CommentService.createNewComment(request.user.id, _id, message, commentId);
     },
-    createNewPost({ request }, { message, userId }) {
+    createNewPost({ request }, { message, userId, privacy = PUBLIC }) {
       // NOTE:
       // userId: post on friend wall
-      return PostsService.createNewPost(request.user.id, message, userId);
+      return PostsService.createNewPost(request.user.id, message, userId, privacy);
     },
     updateProfile({ request }, { profile }) {
       return UsersService.updateProfile(request.user.id, profile);

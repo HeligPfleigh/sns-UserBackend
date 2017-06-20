@@ -133,7 +133,6 @@ type Me implements User {
   chatId: String
   posts: [Post]
   friends: [Friend]
-
   building: [Building]
   apartments: [Apartment]
   friendRequests: [Friend]
