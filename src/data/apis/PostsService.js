@@ -110,7 +110,7 @@ async function createNewPostOnBuilding(author, message, buildingId) {
     const r = await PostsModel.create({
       message,
       author,
-      user: author,
+      building: buildingId,
     });
 
     await BuildingFeedModel.create({ building: buildingId, post: r._id });

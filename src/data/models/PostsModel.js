@@ -26,13 +26,17 @@ const PostSchema = new Schema({
     type: ObjectId,
     ref: 'User',
     index: true,
-    required: true,
   },
   author: {
     type: ObjectId,
     ref: 'User',
     index: true,
     required: true,
+  },
+  building: {
+    type: ObjectId,
+    ref: 'Building',
+    index: true,
   },
   photos: {
     type: Array,

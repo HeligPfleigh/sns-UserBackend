@@ -5,6 +5,7 @@ import {
 } from '../../../test/helper';
 import { PostsModel, UsersModel, FriendsRelationModel } from '../models';
 import schema from '../schema';
+import { PUBLIC, ONLY_ME } from '../../constants';
 
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
@@ -131,6 +132,11 @@ describe('RootFeedQuery', () => {
         // post on userA's wall by user A
         postData.user = userIdA;
         postData.author = userIdA;
+        if (i === 10) {
+          postData.privacy = ONLY_ME;
+        } else {
+          postData.privacy = PUBLIC;
+        }
       } else if (i <= 15 && i > 10) {
         // post on userB's wall by user B
         postData.user = userIdB;
@@ -143,6 +149,11 @@ describe('RootFeedQuery', () => {
         // post on userC's wall by user C
         postData.user = userIdC;
         postData.author = userIdC;
+        if (i === 20) {
+          postData.privacy = ONLY_ME;
+        } else {
+          postData.privacy = PUBLIC;
+        }
       }
       post = new PostsModel(postData);
       await post.save();
@@ -179,12 +190,16 @@ describe('RootFeedQuery', () => {
     const context = getContext({});
     let result = await graphql(schema, query, rootValue, context);
     let messages = result.data.feeds.edges.map(m => m.message);
-    expect(result.data.feeds.pageInfo.total).toEqual(15);
+    expect(result.data.feeds.pageInfo.total).toEqual(14);
     expect(result.data.feeds.pageInfo.limit).toEqual(8);
     expect(result.data.feeds.pageInfo.hasNextPage).toEqual(true);
     expect(result.data.feeds.edges.length).toEqual(8);
     expect(messages).toEqual([
-      'message1', 'message2', 'message3', 'message4', 'message5',
+      'message1',
+      'message2',
+      'message3',
+      'message4',
+      'message5',
       'message6',
       'message7',
       'message8',
@@ -209,7 +224,7 @@ describe('RootFeedQuery', () => {
     result = await graphql(schema, query, rootValue, context);
     messages = result.data.feeds.edges.map(m => m.message);
     expect(messages).toEqual([
-      'message9', 'message10', 'message16', 'message17', 'message18', 'message19', 'message20'
+      'message9', 'message10', 'message16', 'message17', 'message18', 'message19',
     ]);
   });
 

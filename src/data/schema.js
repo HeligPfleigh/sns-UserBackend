@@ -19,7 +19,7 @@ import UsersService from './apis/UsersService';
 import PostsService from './apis/PostsService';
 import CommentService from './apis/CommentService';
 import { schema as schemaType, resolvers as resolversType } from './types';
-import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC } from '../constants';
+import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND } from '../constants';
 
 const { Types: { ObjectId } } = mongoose;
 
@@ -136,8 +136,11 @@ const rootResolvers = {
         $field: 'author',
         query: {
           $or: [
-            { author: userId },
-            { user: { $in: friendListByIds } },
+            { author: userId }, // post from me
+            {
+              user: { $in: friendListByIds },
+              privacy: { $in: [PUBLIC, FRIEND] },
+            }, // or my friend feeds
           ],
           $sort: {
             createdAt: -1,

@@ -95,10 +95,11 @@ type Post {
   _id: ID!
   message: String
   author: Author
-  user : Friend
-  totalLikes :Int
-  totalComments : Int
-  likes :[Author]
+  user: Friend
+  building: Building
+  totalLikes: Int
+  totalComments: Int
+  likes: [Author]
   comments( _id: String, limit: Int): [Comment]
   privacy: PrivacyType!
   type: PostType!
@@ -353,6 +354,9 @@ export const resolvers = {
     },
     author(data) {
       return UsersModel.findOne({ _id: data.author });
+    },
+    building(data) {
+      return BuildingsModel.findOne({ _id: data.building });
     },
     totalLikes(data) {
       return data.likes.length;
