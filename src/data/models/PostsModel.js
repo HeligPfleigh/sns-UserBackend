@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import timestamp from 'mongoose-timestamp';
-import { POST_TYPES } from '../../constants';
+import { POST_TYPES, POST_PRIVACY, PUBLIC, STATUS } from '../../constants';
 
 const { Schema } = mongoose;
 const { Types: { ObjectId } } = Schema;
@@ -11,7 +11,15 @@ const PostSchema = new Schema({
     required: true,
     trim: true,
     enum: POST_TYPES,
-    default: POST_TYPES[0],
+    default: STATUS,
+    index: true,
+  },
+  privacy: {
+    type: String,
+    required: true,
+    trim: true,
+    enum: POST_PRIVACY,
+    default: PUBLIC,
     index: true,
   },
   user: {

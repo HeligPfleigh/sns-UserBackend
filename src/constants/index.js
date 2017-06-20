@@ -2,7 +2,9 @@
 
 export const SET_RUNTIME_VARIABLE = 'SET_RUNTIME_VARIABLE';
 
-export const POST_TYPES = ['STATUS', 'EVENT'];
+export const STATUS = 'STATUS';
+export const EVENT = 'EVENT';
+export const POST_TYPES = [STATUS, EVENT];
 
 export const PENDING = 'PENDING';
 export const ACCEPTED = 'ACCEPTED';

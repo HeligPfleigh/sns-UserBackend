@@ -66,7 +66,7 @@ async function unlikePost(userId, postId) {
   }
   return PostsModel.findOne({ _id: postId });
 }
-async function createNewPost(author, message, userId) {
+async function createNewPost(author, message, userId, privacy) {
   try {
     if (isUndefined(author)) {
       throw new Error('author is undefined');
@@ -82,6 +82,7 @@ async function createNewPost(author, message, userId) {
       message,
       author,
       user: userId || author,
+      privacy,
     });
 
     if (userId && !isEqual(userId, author)) {

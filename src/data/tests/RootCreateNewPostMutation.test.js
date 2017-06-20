@@ -3,6 +3,7 @@ import {
   setupTest,
   getContext,
 } from '../../../test/helper';
+import { PUBLIC, FRIEND, ONLY_ME } from '../../constants';
 import schema from '../schema';
 import { UsersModel } from '../models';
 
@@ -40,22 +41,23 @@ const userDataA = {
   __v: 0,
 };
 
-
 describe('RootCreateNewPostMutation', () => {
   beforeEach(async () => {
     // setup db
     const user = new UsersModel(userDataA);
     await user.save();
   });
+
   test('should create new post request', async () => {
     // language=GraphQL
-    const query = `
+    let query = `
       mutation M { 
         createNewPost(message:"${messageData}") {
           user {
             _id
           }
           message
+          privacy
         }
       }
     `;
@@ -65,14 +67,56 @@ describe('RootCreateNewPostMutation', () => {
       },
     };
     const context = getContext({});
-    const result = await graphql(schema, query, rootValue, context);
+    let result = await graphql(schema, query, rootValue, context);
     expect(result.data.createNewPost).toEqual(Object.assign({}, {
       user: {
         _id: userId,
       },
       message: messageData,
+      privacy: PUBLIC,
+    }));
+
+    query = `
+      mutation M { 
+        createNewPost(message:"${messageData}",privacy:${FRIEND}) {
+          user {
+            _id
+          }
+          message
+          privacy
+        }
+      }
+    `;
+    result = await graphql(schema, query, rootValue, context);
+    expect(result.data.createNewPost).toEqual(Object.assign({}, {
+      user: {
+        _id: userId,
+      },
+      message: messageData,
+      privacy: FRIEND,
+    }));
+
+    query = `
+      mutation M { 
+        createNewPost(message:"${messageData}",privacy:${ONLY_ME}) {
+          user {
+            _id
+          }
+          message
+          privacy
+        }
+      }
+    `;
+    result = await graphql(schema, query, rootValue, context);
+    expect(result.data.createNewPost).toEqual(Object.assign({}, {
+      user: {
+        _id: userId,
+      },
+      message: messageData,
+      privacy: ONLY_ME,
     }));
   });
+
   test('should check author undefined', async () => {
     const query = `
       mutation M {
