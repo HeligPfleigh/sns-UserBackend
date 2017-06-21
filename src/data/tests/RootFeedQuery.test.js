@@ -141,6 +141,13 @@ describe('RootFeedQuery', () => {
         // post on userB's wall by user B
         postData.user = userIdB;
         postData.author = userIdB;
+        if (i === 14) {
+          postData.privacy = PUBLIC;
+          postData.building = buildingId;
+        } else {
+          delete postData.building;
+          postData.building = undefined;
+        }
       } else if (i === 16) {
         // post on userC's wall by user A
         postData.user = userIdC;
@@ -190,7 +197,7 @@ describe('RootFeedQuery', () => {
     const context = getContext({});
     let result = await graphql(schema, query, rootValue, context);
     let messages = result.data.feeds.edges.map(m => m.message);
-    expect(result.data.feeds.pageInfo.total).toEqual(14);
+    expect(result.data.feeds.pageInfo.total).toEqual(15);
     expect(result.data.feeds.pageInfo.limit).toEqual(8);
     expect(result.data.feeds.pageInfo.hasNextPage).toEqual(true);
     expect(result.data.feeds.edges.length).toEqual(8);
@@ -224,7 +231,7 @@ describe('RootFeedQuery', () => {
     result = await graphql(schema, query, rootValue, context);
     messages = result.data.feeds.edges.map(m => m.message);
     expect(messages).toEqual([
-      'message9', 'message10', 'message16', 'message17', 'message18', 'message19',
+      'message9', 'message10', 'message14', 'message16', 'message17', 'message18', 'message19',
     ]);
   });
 

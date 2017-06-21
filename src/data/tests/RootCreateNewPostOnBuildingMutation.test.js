@@ -70,7 +70,7 @@ describe('CreateNewPostOnBuildingMutation', () => {
     const query = `
       mutation M { 
         createNewPostOnBuilding(message:"${messageData}", buildingId:"${buildingId}") {
-          user {
+          building {
             _id
           }
           message
@@ -86,8 +86,8 @@ describe('CreateNewPostOnBuildingMutation', () => {
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
     expect(result.data.createNewPostOnBuilding).toEqual(Object.assign({}, {
-      user: {
-        _id: userId,
+      building: {
+        _id: buildingId,
       },
       message: messageData,
     }));

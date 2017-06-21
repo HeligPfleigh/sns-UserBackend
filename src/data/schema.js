@@ -127,6 +127,7 @@ const rootResolvers = {
   Query: {
     async feeds({ request }, { cursor = null, limit = 5 }) {
       const userId = request.user.id;
+      const me = await UsersModel.findOne({ _id: userId });
       let friendListByIds = await FriendsModel.find({ user: userId }).select('friend _id');
       friendListByIds = friendListByIds.map(v => v.friend);
       friendListByIds.push(userId);
@@ -140,7 +141,11 @@ const rootResolvers = {
             {
               user: { $in: friendListByIds },
               privacy: { $in: [PUBLIC, FRIEND] },
-            }, // or my friend feeds
+            },
+            {
+              building: me.building,
+              privacy: { $in: [PUBLIC] },
+            },
           ],
           $sort: {
             createdAt: -1,
