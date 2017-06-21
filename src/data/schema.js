@@ -19,7 +19,7 @@ import UsersService from './apis/UsersService';
 import PostsService from './apis/PostsService';
 import CommentService from './apis/CommentService';
 import { schema as schemaType, resolvers as resolversType } from './types';
-import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC } from '../constants';
+import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND } from '../constants';
 
 const { Types: { ObjectId } } = mongoose;
 
@@ -127,6 +127,7 @@ const rootResolvers = {
   Query: {
     async feeds({ request }, { cursor = null, limit = 5 }) {
       const userId = request.user.id;
+      const me = await UsersModel.findOne({ _id: userId });
       let friendListByIds = await FriendsModel.find({ user: userId }).select('friend _id');
       friendListByIds = friendListByIds.map(v => v.friend);
       friendListByIds.push(userId);
@@ -136,8 +137,15 @@ const rootResolvers = {
         $field: 'author',
         query: {
           $or: [
-            { author: userId },
-            { user: { $in: friendListByIds } },
+            { author: userId }, // post from me
+            {
+              user: { $in: friendListByIds },
+              privacy: { $in: [PUBLIC, FRIEND] },
+            },
+            {
+              building: me.building,
+              privacy: { $in: [PUBLIC] },
+            },
           ],
           $sort: {
             createdAt: -1,

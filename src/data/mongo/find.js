@@ -89,6 +89,8 @@ const find = (state) => {
             $lt: cursor,
           },
         }, query);
+      } else {
+        rootQuery = Object.assign({}, query);
       }
       let q = state.Model.find(rootQuery);
 
