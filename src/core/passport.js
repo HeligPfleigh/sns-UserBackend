@@ -1,25 +1,9 @@
-/**
- * React Starter Kit (https://www.reactstarterkit.com/)
- *
- * Copyright © 2014-present Kriasoft, LLC. All rights reserved.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE.txt file in the root directory of this source tree.
- */
-
-/**
- * Passport.js reference implementation.
- * The database schema used in this sample is available at
- * https://github.com/membership/membership.db/tree/master/postgres
- */
-
-import passport from 'passport';
 import moment from 'moment';
-import { Strategy as FacebookStrategy } from 'passport-facebook';
-import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
+import passport from 'passport';
+import FacebookTokenStrategy from 'passport-facebook-token';
 
-// import { User, UserLogin, UserClaim, UserProfile } from '../data/models';
 import * as admin from 'firebase-admin';
 import * as firebase from 'firebase';
 import _ from 'lodash';
@@ -89,25 +73,19 @@ export async function getLongTermToken(accessToken) {
   const longlivedTokenObject = JSON.parse(await longlivedTokenRequest.text());
   // long-lived tokens will expire in about 60 days
   // so we want to refresh it every 50 days
-
   return {
     tokenExpire: moment().add(50, 'days').toDate(),
     accessToken: longlivedTokenObject.access_token,
   };
 }
+
 /**
  * Sign in with Facebook.
  */
-passport.use(new FacebookStrategy({
+passport.use(new FacebookTokenStrategy({
   clientID: config.auth.facebook.id,
   clientSecret: config.auth.facebook.secret,
-  callbackURL: config.auth.facebook.callBackURL,
-  profileFields: ['name', 'email', 'link', 'locale', 'timezone', 'gender'],
-  passReqToCallback: true,
-}, (req, accessToken, refreshToken, profile, done) => {
-  /* eslint-disable no-underscore-dangle */
-  // const loginName = 'facebook';
-  // const claimType = 'urn:facebook:access_token';
+}, (accessToken, refreshToken, profile, done) => {
   const fooBar = async () => {
     const longlivedToken = await getLongTermToken(accessToken);
     let user = await UsersModel.findOne({
@@ -135,6 +113,7 @@ passport.use(new FacebookStrategy({
         },
         chatId: chatToken && chatToken.chatId,
       });
+
       ApartmentsModel.create({
         number: '27',
         building: ObjectId('58da279f0ff5af8c8be59c36'),
@@ -153,6 +132,7 @@ passport.use(new FacebookStrategy({
     } else {
       chatToken = await getChatToken({ chatId: user && user.chatId });
     }
+
     createChatUserIfNotExits(user);
     done(null, {
       id: user._id,
