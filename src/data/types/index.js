@@ -12,7 +12,7 @@ import {
   FriendsRelationModel,
   NotificationsModel,
 } from '../models';
-import { ADMIN, ACCEPTED, MEMBER, PENDING } from '../../constants';
+import { ADMIN, ACCEPTED, MEMBER, PENDING, PUBLIC, FRIEND } from '../../constants';
 
 export const schema = [`
 # scalar types
@@ -273,13 +273,13 @@ export const resolvers = {
     },
   },
   Me: {
-    posts(user) {
+    posts(data) {
       return new Promise((resolve, reject) => {
         const edgesArray = [];
-        const edges = PostsModel.find({ user: user._id }).sort({ createdAt: -1 }).cursor();
+        const edges = PostsModel.find({ user: data._id }).sort({ createdAt: -1 }).cursor();
 
         edges.on('data', (res) => {
-          res.likes.indexOf(user._id) !== -1 ? res.isLiked = true : res.isLiked = false;
+          res.likes.indexOf(data._id) !== -1 ? res.isLiked = true : res.isLiked = false;
           edgesArray.push(res);
         });
 
@@ -382,10 +382,24 @@ export const resolvers = {
     },
   },
   Friend: {
-    posts(data) {
-      return new Promise((resolve, reject) => {
+    posts(data, _, { user }) {
+      return new Promise(async (resolve, reject) => {
+        // check if they are friend
+        const r = await FriendsRelationModel.findOne({
+          friend: user.id,
+          user: data._id,
+          status: ACCEPTED,
+        });
+        const select = {
+          user: data._id,
+        };
+        if (r) {
+          select.privacy = [PUBLIC, FRIEND];
+        } else {
+          select.privacy = [PUBLIC];
+        }
         const edgesArray = [];
-        const edges = PostsModel.find({ user: data._id }).sort({ createdAt: -1 }).cursor();
+        const edges = PostsModel.find(select).sort({ createdAt: -1 }).cursor();
 
         edges.on('data', (res) => {
           res.likes.indexOf(data._id) !== -1 ? res.isLiked = true : res.isLiked = false;

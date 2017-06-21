@@ -188,7 +188,11 @@ describe('RootMeQuery', () => {
     result = await graphql(schema, query, rootValue, context);
     const messages = result.data.me.posts.map(m => m.message);
     expect(messages).toEqual([
-      'message1', 'message2', 'message3', 'message4', 'message5',
+      'message1',
+      'message2',
+      'message3',
+      'message4',
+      'message5',
       'message6',
       'message7',
       'message8',

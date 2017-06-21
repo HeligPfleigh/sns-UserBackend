@@ -231,7 +231,13 @@ describe('RootFeedQuery', () => {
     result = await graphql(schema, query, rootValue, context);
     messages = result.data.feeds.edges.map(m => m.message);
     expect(messages).toEqual([
-      'message9', 'message10', 'message14', 'message16', 'message17', 'message18', 'message19',
+      'message9',
+      'message10',
+      'message14',
+      'message16',
+      'message17',
+      'message18',
+      'message19',
     ]);
   });
 

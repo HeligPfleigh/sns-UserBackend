@@ -4,17 +4,19 @@ import {
   getContext,
 } from '../../../test/helper';
 import schema from '../schema';
-import { UsersModel } from '../models';
+import { UsersModel, FriendsRelationModel, PostsModel } from '../models';
+import { PUBLIC, FRIEND, ONLY_ME } from '../../constants';
 
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
-const userId = '58f9c2502d4581000484b20a';
-const buildingId = '58da279f0ff5af8c8be60c23';
-
-const userData = {
-  _id: userId,
+const userIdA = '58f9c2502d4581000484b18a';
+const userIdB = '58f9c1bf2d4581000484b188';
+const userIdC = '58f9ca042d4581000484b197';
+const buildingId = '58da279f0ff5af8c8be59c36';
+const userDataA = {
+  _id: userIdA,
   emails: {
     address: 'muakhoc90@gmail.com',
     verified: true,
@@ -38,35 +40,192 @@ const userData = {
   __v: 0,
 };
 
+const userDataB = {
+  _id: userIdB,
+  emails: {
+    address: 'particle4dev@gmail.com',
+    verified: true,
+  },
+  username: 'particle4dev',
+  profile: {
+    picture: 'https://graph.facebook.com/596825810516199/picture?type=large',
+    firstName: 'Nam',
+    lastName: 'Hoang',
+    gender: 'male',
+  },
+  building: buildingId,
+  services: {
+    facebook: {
+      accessToken: 'EAAJpgxDr0K0BAADXzQ67vyDOb3owgMqhvQtze4QQm8dfLkH1Exnt6D3kPbKT6ZB11HyZADOiwkFwvpuHX1ZCVp2fKy63jONwh1UGKQiy7KvK6yzUSpfiIIz63RN4ZB8GNa8qIpxbnoXhV9CVgsMSqgMoRoi5Bi4ZD',
+      tokenExpire: '2017-06-10T08:24:30.744Z',
+    },
+  },
+  chatId: '4p4vIMzYwUhiFiqbBMggcbAItX03',
+  roles: [
+    'user',
+  ],
+  __v: 0,
+};
+
+const userDataC = {
+  _id : userIdC,
+  emails: {
+    address: 'thanhtt@gmail.com',
+    verified: true,
+  },
+  username: 'thanhtt',
+  profile: {
+    picture: 'https://graph.facebook.com/10155107388459788/picture?type=large',
+    firstName: 'Thanh',
+    lastName: 'Tran Trung',
+    gender: 'male',
+  },
+  building: buildingId,
+  services: {
+    facebook: {
+      accessToken: 'EAAJpgxDr0K0BAKl9n9Mgelw8NMtmmLyJdKu88s0iyUBHyuJuUowITGLpPWgSLbD0tznv7XteIzx83cZBcKmzIqft3pqtWBcG4UCnQAFAnLHJOsLFm71CWVZAcoWEj1sq3AnZCZBdGMTgK6QJhm53pOOurGXPOB4ZD',
+      tokenExpire: '2017-06-10T08:59:48.074Z',
+    },
+  },
+  chatId: 'i3yXrXoLUCNthP7BaBr5dnU3fjt2',
+  roles: [
+    'user',
+  ],
+  __v: 0,
+};
+
+const friendsRelationData = {
+  _id: '58f9c3ac2d4581000484b193',
+  user: userIdA,
+  friend: userIdC,
+  isSubscribe: true,
+  status: 'ACCEPTED',
+  __v: 0,
+};
+
+const postData = {
+  message: '{\'entityMap\':{},\'blocks\':[{\'key\':\'4gvpl\',\'text\':\'Viet nam tuoi dep\',\'type\':\'unstyled\',\'depth\':0,\'inlineStyleRanges\':[],\'entityRanges\':[],\'data\':{}}]}',
+  user: userIdA,
+  author: userIdA,
+  likes: ['58f9d2132d4581000484b1a0'],
+  photos: [],
+  type: 'STATUS',
+  __v: 0,
+};
+
 describe('RootUserQuery', () => {
   beforeEach(async () => {
     // setup db
-    const user = new UsersModel(userData);
-    await user.save();
+    const userA = new UsersModel(userDataA);
+    await userA.save();
+    const userB = new UsersModel(userDataB);
+    await userB.save();
+    const userC = new UsersModel(userDataC);
+    await userC.save();
+    const friendsRelation = new FriendsRelationModel(friendsRelationData);
+    await friendsRelation.save();
+    let post = null;
+    for (let i = 20; i > 0; i--) {
+      postData.message = `message${i}`;
+      if (i <= 10) {
+        // post on userA's wall by user A
+        postData.user = userIdA;
+        postData.author = userIdA;
+        if (i === 7) {
+          postData.privacy = ONLY_ME;
+        } else if (i === 6) {
+          postData.privacy = FRIEND;
+        } else {
+          postData.privacy = PUBLIC;
+        }
+      } else if (i <= 15 && i > 10) {
+        // post on userB's wall by user B
+        postData.user = userIdB;
+        postData.author = userIdB;
+      } else if (i === 16) {
+        // post on userC's wall by user A
+        postData.user = userIdC;
+        postData.author = userIdA;
+      } else if (i <= 20 && i > 16) {
+        // post on userC's wall by user C
+        postData.user = userIdC;
+        postData.author = userIdC;
+      }
+      post = new PostsModel(postData);
+      await post.save();
+    }
   });
 
   test('should get user by id', async () => {
     // language=GraphQL
     const query = `
       {
-        user (_id:"${userId}") {
+        user (_id:"${userIdA}") {
           _id
+          posts {
+            _id
+            message
+          }
         }
       }
     `;
 
-    const rootValue = {};
-    const context = getContext({});
-    const result = await graphql(schema, query, rootValue, context);
-    expect(result.data.user).toEqual(Object.assign({}, {
-      _id: userData._id,
-    }));
+    let rootValue = {
+      request: {
+        user: {
+          id: userIdC,
+        },
+      },
+    };
+    let context = getContext({
+      user: {
+        id: userIdC,
+      },
+    });
+    let result = await graphql(schema, query, rootValue, context);
+    let messages = result.data.user.posts.map(m => m.message);
+    expect(messages).toEqual([
+      'message1',
+      'message2',
+      'message3',
+      'message4',
+      'message5',
+      'message6',
+      'message8',
+      'message9',
+      'message10',
+    ]);
+
+    rootValue = {
+      request: {
+        user: {
+          id: userIdB,
+        },
+      },
+    };
+    context = getContext({
+      user: {
+        id: userIdB,
+      },
+    });
+    result = await graphql(schema, query, rootValue, context);
+    messages = result.data.user.posts.map(m => m.message);
+    expect(messages).toEqual([
+      'message1',
+      'message2',
+      'message3',
+      'message4',
+      'message5',
+      'message8',
+      'message9',
+      'message10',
+    ]);
   });
 
   afterEach(async () => {
     // clear data
     await UsersModel.remove({
-      _id: userData._id,
+      _id: userIdA,
     });
   });
 });
