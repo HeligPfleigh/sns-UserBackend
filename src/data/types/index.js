@@ -196,8 +196,17 @@ export const resolvers = {
   Date: DateScalarType,
   Building: {
     posts(building, _, { user }) {
+      if (!user) return [];
       return new Promise(async (resolve, reject) => {
         const edgesArray = [];
+        const r = await BuildingMembersModel.findOne({
+          user: user.id,
+          building: building._id,
+          status: ACCEPTED,
+        });
+        if (!r) {
+          return resolve([]);
+        }
         let ids = await BuildingFeedModel.find({ building: building._id }).sort({ createdAt: -1 });
         ids = ids.map(v => v.post);
         const edges = PostsModel.find({ _id: { $in: ids } }).sort({ createdAt: -1 }).cursor();
@@ -206,7 +215,6 @@ export const resolvers = {
           res.likes.indexOf(user.id) !== -1 ? res.isLiked = true : res.isLiked = false;
           edgesArray.push(res);
         });
-
         edges.on('error', (err) => {
           reject(err);
         });

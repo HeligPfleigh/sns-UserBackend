@@ -5,7 +5,7 @@ import {
 } from '../../../test/helper';
 import schema from '../schema';
 import { BuildingsModel, BuildingFeedModel, BuildingMembersModel, PostsModel } from '../models';
-import { ADMIN, ACCEPTED } from '../../constants';
+import { ADMIN, ACCEPTED, MEMBER } from '../../constants';
 
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
@@ -118,6 +118,7 @@ describe('RootBuildingQuery', () => {
       posts: [],
       isAdmin: true,
     }));
+
     await BuildingMembersModel.remove({
       building: buildingId,
       user: userId,
@@ -129,6 +130,12 @@ describe('RootBuildingQuery', () => {
   test('should get posts on building by id', async () => {
     const b = new BuildingFeedModel(buildingFeed);
     await b.save();
+    await BuildingMembersModel.create({
+      building: buildingId,
+      user: userId,
+      type: MEMBER,
+      status: ACCEPTED,
+    });
     // language=GraphQL
     const query = `
       {
@@ -143,7 +150,7 @@ describe('RootBuildingQuery', () => {
 
     const rootValue = {};
     const context = getContext({
-      user: { id: '58f9c1bf2d4581000484b188' },
+      user: { id: userId },
     });
     const result = await graphql(schema, query, rootValue, context);
     expect(result.data.building).toEqual(Object.assign({}, {
@@ -154,6 +161,37 @@ describe('RootBuildingQuery', () => {
     }));
 
     await b.remove();
+    await BuildingMembersModel.remove({
+      building: buildingId,
+      user: userId,
+      type: MEMBER,
+      status: ACCEPTED,
+    });
+  });
+
+  test('should get empty posts if user is not member of building', async () => {
+    const userId2 = '59f9c2502d4581000484b18a';
+    // language=GraphQL
+    const query = `
+      {
+        building (_id:"${buildingId}") {
+          _id
+          posts {
+            _id
+          }
+        }
+      }
+    `;
+
+    const rootValue = {};
+    const context = getContext({
+      user: { id: userId2 },
+    });
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.building).toEqual(Object.assign({}, {
+      _id: buildingData._id,
+      posts: [],
+    }));
   });
 
   afterEach(async () => {
