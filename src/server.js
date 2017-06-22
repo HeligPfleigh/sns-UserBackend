@@ -15,25 +15,15 @@ import bodyParser from 'body-parser';
 import expressJwt from 'express-jwt';
 import expressGraphQL from 'express-graphql';
 import jwt from 'jsonwebtoken';
-// import React from 'react';
-// import ReactDOM from 'react-dom/server';
-// import { renderToStringWithData } from 'react-apollo';
-// import UniversalRouter from 'universal-router';
-// import PrettyError from 'pretty-error';
-
-// import createApolloClient from './core/createApolloClient';
-// import passport, { verifiedChatToken } from './core/passport';
 
 import passport from './core/passport';
 import schema from './data/schema';
 
-// import assets from './assets.json'; // eslint-disable-line import/no-unresolved
-// import configureStore from './store/configureStore';
-// import { setRuntimeVariable } from './actions/runtime';
 import config from './config';
 import Mongoose from './data/mongoose';
-// import chat from './core/chat';
+
 const { port, auth, databaseUrl } = config;
+
 // Create connect database
 Mongoose.connect(databaseUrl, {});
 
@@ -84,26 +74,28 @@ app.use(expressJwt({
     return req.cookies.id_token;
   },
 }));
+
 app.use(passport.initialize());
 
 if (__DEV__) {
   app.enable('trust proxy');
 }
-app.get('/auth/facebook',
-  passport.authenticate('facebook', { scope: ['email', 'user_location'], session: false }),
-);
-app.get('/auth/facebook/return',
-  passport.authenticate('facebook', { failureRedirect: '/login', session: false }),
-  (req, res) => {
+
+app.post('/auth/facebook', (req, res, next) => {
+  passport.authenticate('facebook-token', (error, user) => {
+    if (error || !user) {
+      return res.status(401).json({
+        error,
+      });
+    }
     const expiresIn = 60 * 60 * 24 * 180;
-    const token = jwt.sign(req.user, auth.jwt.secret, { expiresIn });
+    const token = jwt.sign(user, auth.jwt.secret, { expiresIn });
     res.cookie('id_token', token, { maxAge: 1000 * expiresIn });
-    res.redirect('/');
-  },
-);
+    return res.status(200).json(user);
+  })(req, res, next);
+});
 
 app.get('/auth/logout', (req, res) => {
-// app.post('/logout', (req, res) => {
   res.clearCookie('id_token');
   res.redirect('/');
 });
