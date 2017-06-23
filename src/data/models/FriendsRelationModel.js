@@ -33,6 +33,21 @@ const FriendsRelationSchema = new Schema({
 // https://github.com/drudge/mongoose-timestamp
 FriendsRelationSchema.plugin(timestamp);
 
-const FriendsRelation = mongoose.model('FriendsRelation', FriendsRelationSchema);
+const FriendsRelationModel = mongoose.model('FriendsRelation', FriendsRelationSchema);
 
-export default FriendsRelation;
+// (async () => {
+//   const userId = '58f9c1bf2d4581000484b188';
+//   const friendId = '58f9d2132d4581000484b1a0';
+//   await FriendsRelationModel.remove({
+//     user: friendId,
+//     friend: userId,
+//   });
+//   await FriendsRelationModel.create({
+//     user: friendId,
+//     friend: userId,
+//     status: 'PENDING',
+//     isSubscribe: true,
+//   });
+// })();
+
+export default FriendsRelationModel;

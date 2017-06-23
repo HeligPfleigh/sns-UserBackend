@@ -127,7 +127,10 @@ describe('RootSendFriendRequestMutation', () => {
       _id: userDataC._id,
       username: userDataC.username,
     }));
-    expect(await FriendsRelationModel.count()).toEqual(1);
+    expect(await FriendsRelationModel.count({
+      user: userIdA,
+      friend: userIdC,
+    })).toEqual(1);
   });
 
   test('should check friendId undefined', async () => {

@@ -18,8 +18,8 @@ async function acceptFriend(userId, friendId) {
     throw new Error('friendId is undefined');
   }
   if (!await FriendsRelationModel.findOne({
-    user: userId,
-    friend: friendId,
+    user: friendId,
+    friend: userId,
     status: 'PENDING',
   })) {
     throw new Error('not found friend request');
@@ -49,16 +49,16 @@ async function rejectFriend(userId, friendId) {
     throw new Error('friendId is undefined');
   }
   if (!await FriendsRelationModel.findOne({
-    user: userId,
-    friend: friendId,
+    user: friendId,
+    friend: userId,
     status: 'PENDING',
   })) {
     throw new Error('not found friend request');
   }
 
   await FriendsRelationModel.update({
-    user: userId,
-    friend: friendId,
+    user: friendId,
+    friend: userId,
     status: 'REJECTED',
   });
   return UsersModel.findOne({ _id: friendId });
