@@ -119,7 +119,7 @@ describe('RootRejectFriendMutation', () => {
     await f.save();
     const query = `
       mutation M { 
-        rejectFriend (_id:"${userIdC}") {
+        rejectFriend (_id:"${userIdA}") {
           _id
           username
         }
@@ -128,15 +128,15 @@ describe('RootRejectFriendMutation', () => {
     const rootValue = {
       request: {
         user: {
-          id: userIdA,
+          id: userIdC,
         },
       },
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
     expect(result.data.rejectFriend).toEqual(Object.assign({}, {
-      _id: userDataC._id,
-      username: userDataC.username,
+      _id: userDataA._id,
+      username: userDataA.username,
     }));
     expect(await FriendsRelationModel.count()).toEqual(1);
     await f.remove({});
