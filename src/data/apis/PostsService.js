@@ -5,11 +5,13 @@ import {
   UsersModel,
   PostsModel,
   BuildingFeedModel,
+  FriendsRelationModel,
 } from '../models';
 import {
   sendPostNotification,
   sendLikeNotification,
 } from '../../utils/notifications';
+import { ACCEPTED } from '../../constants';
 
 function getPost(postId) {
   return PostsModel.findOne({ _id: postId });
@@ -19,6 +21,7 @@ function feed() {
   console.log('not implement yet');
   return [];
 }
+
 async function likePost(userId, postId) {
   if (isUndefined(userId)) {
     throw new Error('userId is undefined');
@@ -76,6 +79,13 @@ async function createNewPost(author, message, userId, privacy) {
     }
     if (!await UsersModel.findOne({ _id: new ObjectId(author) })) {
       throw new Error('author does not exist');
+    }
+    if (userId && !await FriendsRelationModel.findOne({
+      friend: author,
+      user: userId,
+      status: ACCEPTED,
+    })) {
+      throw new Error('You are not user friend');
     }
     // JSON.parse(message);
     const r = await PostsModel.create({

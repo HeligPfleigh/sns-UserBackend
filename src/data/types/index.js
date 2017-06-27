@@ -154,6 +154,7 @@ type Friend implements User {
   building: [Building]
   apartments: [Apartment]
   friends: [Friend]
+  isFriend: Boolean
 
   createdAt: Date
   updatedAt: Date
@@ -430,6 +431,13 @@ export const resolvers = {
     },
     friends(data) {
       return FriendsRelationModel.find({ user: data._id, status: 'ACCEPTED' });
+    },
+    async isFriend(data, _, { user }) {
+      return !!await FriendsRelationModel.findOne({
+        friend: user.id,
+        user: data._id,
+        status: ACCEPTED,
+      });
     },
     createdAt(data) {
       return new Date(data.createdAt);
