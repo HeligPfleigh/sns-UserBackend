@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import timestamps from 'mongoose-timestamp';
+import bcrypt from 'bcrypt';
 
 // http://mongoosejs.com/docs/promises.html
 mongoose.Promise = global.Promise;
@@ -26,11 +27,22 @@ const EmailSchema = new Schema({
   _id: false,
 });
 
+const PhoneSchema = new Schema({
+  number: String,
+  code: String,
+  verified: Boolean,
+}, {
+  _id: false,
+});
+
 const UserSchema = new Schema({
   username: {
     type: String,
     required: true,
+    trim: true,
   },
+  password: String,
+  phone: PhoneSchema,
   emails: EmailSchema,
   profile: Schema.Types.Mixed,
   services: Schema.Types.Mixed,
@@ -48,13 +60,15 @@ const UserSchema = new Schema({
   },
 });
 
-// indexes
-// UserSchema.index({
-//   'title': 1
-// });
-
 // plugins
 UserSchema.plugin(timestamps);
+
+// methods ======================
+// generating a hash
+UserSchema.methods.generateHash = password => bcrypt.hashSync(password, bcrypt.genSaltSync(), null);
+
+// checking if password is valid
+UserSchema.methods.validPassword = password => bcrypt.compareSync(password, this.password);
 
 const UserModel = mongoose.model('User', UserSchema);
 
