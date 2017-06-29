@@ -1,6 +1,8 @@
 import moment from 'moment';
 import jwt from 'jsonwebtoken';
 import passport from 'passport';
+import bcrypt from 'bcrypt';
+import { Strategy as LocalStrategy } from 'passport-local';
 import FacebookTokenStrategy from 'passport-facebook-token';
 import * as admin from 'firebase-admin';
 import * as firebase from 'firebase';
@@ -64,6 +66,65 @@ export async function verifiedChatToken(req, res) {
   }
   return null;
 }
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+  UsersModel.findById(id, (err, user) => {
+    done(err, user);
+  });
+});
+
+/**
+ * Sign in with Local.
+ */
+passport.use(new LocalStrategy({
+  session: false,
+}, (username, password, done) => {
+  const fooBar = async () => {
+    const options = {
+      $or: [
+        { username },
+        { 'phone.number': username, 'phone.verified': true },
+        { 'emails.address': username, 'emails.verified': true },
+      ],
+    };
+
+    const user = await UsersModel.findOne(options);
+    if (!user) {
+      return done({
+        name: 'IncorrectUsernameError',
+        message: 'Tài khoản đăng nhập không tồn tại.',
+      });
+    }
+
+    // check if a hashed user's password is equal to a value saved in the database
+    // return UsersModel.validPassword(user.password);
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return done({
+        name: 'IncorrectPasswordError',
+        message: 'Mật khẩu không đúng.',
+      });
+    }
+
+    const { services: { facebook: { accessToken } } } = user;
+    const chatToken = accessToken && await getChatToken({ accessToken });
+    return done(null, {
+      id: user._id || '',
+      profile: user.profile || {},
+      email: user.emails.address || '',
+      roles: user.roles || [],
+      chatToken: chatToken && chatToken.token,
+      chatExp: moment().add(1, 'hours').unix(),
+      chatId: user && user.chatId,
+    });
+  };
+
+  fooBar().catch(done);
+}));
 
 /**
  * Sign in with Facebook.
