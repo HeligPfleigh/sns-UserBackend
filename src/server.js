@@ -39,13 +39,16 @@ global.navigator.userAgent = global.navigator.userAgent || 'all';
 //
 // Register Node.js middleware
 // -----------------------------------------------------------------------------
+// if (__DEV__) {
+//   app.use(cors());
+// } else {
 const whitelist = [
   'http://localhost:3003',
+  'http://localhost:3006',
   'http://sns.mttjsc.com',
   'http://sns-app.herokuapp.com',
   'https://sns-app.herokuapp.com',
   'https://sns.mttjsc.com',
-  '*',
 ];
 const corsOptions = {
   origin: (origin, callback) => {
@@ -55,6 +58,7 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
+// }
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());

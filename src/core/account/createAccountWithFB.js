@@ -5,7 +5,9 @@ import fetch from '../fetch';
 import {
   UsersModel,
   ApartmentsModel,
+  BuildingMembersModel,
 } from '../../data/models';
+import { ACCEPTED, MEMBER } from '../../constants';
 
 const { Types: { ObjectId } } = mongoose;
 const building = ObjectId('58da279f0ff5af8c8be59c36');
@@ -65,6 +67,12 @@ export default async function (accessToken, profile, chatToken) {
     building,
     user: data._id,
     isOwner: true,
+  });
+  BuildingMembersModel.create({
+    user: data.id,
+    building,
+    status: ACCEPTED,
+    type: MEMBER,
   });
 
   return data;

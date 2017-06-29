@@ -9,10 +9,12 @@ const BuildingMembersSchema = new Schema({
   building: {
     type: ObjectId,
     ref: 'Building',
+    required: true,
   },
   user: {
     type: ObjectId,
     ref: 'User',
+    required: true,
   },
   type: {
     type: String,
