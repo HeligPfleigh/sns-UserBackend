@@ -14,10 +14,10 @@ import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import expressJwt from 'express-jwt';
 import expressGraphQL from 'express-graphql';
-import jwt from 'jsonwebtoken';
 
 import passport from './core/passport';
 import schema from './data/schema';
+import { generateToken, EXPIRES_IN } from './utils/token';
 
 import config from './config';
 import Mongoose from './data/mongoose';
@@ -88,9 +88,8 @@ app.post('/auth/facebook', (req, res, next) => {
         error,
       });
     }
-    const expiresIn = 60 * 60 * 24 * 180;
-    const token = jwt.sign(user, auth.jwt.secret, { expiresIn });
-    res.cookie('id_token', token, { maxAge: 1000 * expiresIn });
+    const token = generateToken(user);
+    res.cookie('id_token', token, { maxAge: 1000 * EXPIRES_IN });
     return res.status(200).json(user);
   })(req, res, next);
 });

@@ -1,19 +1,18 @@
 import moment from 'moment';
 import jwt from 'jsonwebtoken';
-import mongoose from 'mongoose';
 import passport from 'passport';
 import FacebookTokenStrategy from 'passport-facebook-token';
-
 import * as admin from 'firebase-admin';
 import * as firebase from 'firebase';
-import _ from 'lodash';
+import omit from 'lodash/omit';
+import pick from 'lodash/pick';
 import config from '../config';
+import createAccountWithFB from './account/createAccountWithFB';
 import {
   UsersModel,
-  ApartmentsModel,
 } from '../data/models';
-import fetch from './fetch';
 import chat from './chat';
+import { generateToken, EXPIRES_IN } from '../utils/token';
 
 export const defaultAdminApp = admin.initializeApp({
   credential: admin.credential.cert(config.auth.firebaseAdmin),
@@ -37,19 +36,18 @@ async function getChatToken({ accessToken, chatId }) {
   }
   return result;
 }
+
 function createChatUserIfNotExits(user) {
   const refUser = defaultAdminApp.database().ref('users');
   if (user && user.chatId) {
     refUser.child(user.chatId).once('value', (snap) => {
       const userData = snap.val();
       if (!userData || !userData.uid) {
-        refUser.child(user.chatId).set(Object.assign({ uid: user.chatId }, _.pick(user, ['id', 'username', 'profile'])));
+        refUser.child(user.chatId).set(Object.assign({ uid: user.chatId }, pick(user, ['id', 'username', 'profile'])));
       }
     });
   }
 }
-
-const { Types: { ObjectId } } = mongoose;
 
 export async function verifiedChatToken(req, res) {
   try {
@@ -57,26 +55,14 @@ export async function verifiedChatToken(req, res) {
     if (user && user.chatToken && user.chatExp && moment(user.chatExp).diff(new Date()) < 0) {
       const chatToken = await defaultAdminApp.auth().createCustomToken(user.chatId);
       req.user = { ...user, chatToken, chatExp: moment().add(0, 'hours').unix() };
-      const expiresIn = 60 * 60 * 24 * 180;
-      const token = jwt.sign(_.omit(req.user, ['exp', 'iat']), config.auth.jwt.secret, { expiresIn });
-      res.cookie('id_token', token, { maxAge: 1000 * expiresIn });
+      const token = generateToken(omit(req.user, ['exp', 'iat']));
+      res.cookie('id_token', token, { maxAge: 1000 * EXPIRES_IN });
       return req.user;
     }
   } catch (error) {
     return error;
   }
   return null;
-}
-
-export async function getLongTermToken(accessToken) {
-  const longlivedTokenRequest = await fetch(`https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=${config.auth.facebook.id}&fb_exchange_token=${accessToken}&client_secret=${config.auth.facebook.secret}`);
-  const longlivedTokenObject = JSON.parse(await longlivedTokenRequest.text());
-  // long-lived tokens will expire in about 60 days
-  // so we want to refresh it every 50 days
-  return {
-    tokenExpire: moment().add(50, 'days').toDate(),
-    accessToken: longlivedTokenObject.access_token,
-  };
 }
 
 /**
@@ -87,62 +73,40 @@ passport.use(new FacebookTokenStrategy({
   clientSecret: config.auth.facebook.secret,
 }, (accessToken, refreshToken, profile, done) => {
   const fooBar = async () => {
-    const longlivedToken = await getLongTermToken(accessToken);
-    let user = await UsersModel.findOne({
-      'emails.address': profile._json.email,
-    });
-    let chatToken;
-    if (!user) {
-      chatToken = await getChatToken({ accessToken });
-      user = await UsersModel.create({
-        emails: {
-          address: profile._json.email,
-          verified: true,
-        },
-        username: profile._json.email.replace(/@.*$/, ''),
-        profile: {
-          gender: profile._json.gender,
-          lastName: profile._json.last_name,
-          firstName: profile._json.first_name,
-          picture: `https://graph.facebook.com/${profile.id}/picture?type=large`,
-        },
-        building: ObjectId('58da279f0ff5af8c8be59c36'),
-        roles: ['user'],
-        services: {
-          facebook: longlivedToken,
-        },
-        chatId: chatToken && chatToken.chatId,
+    try {
+      let user = await UsersModel.findOne({
+        'emails.address': profile._json.email,
       });
+      let chatToken;
+      if (!user) {
+        chatToken = await getChatToken({ accessToken });
+        user = await createAccountWithFB(accessToken, profile, chatToken);
+      } else if (!(user && user.chatId)) {
+        chatToken = await getChatToken({ accessToken });
+        await UsersModel.update({
+          _id: user._id,
+        }, {
+          $set: {
+            chatId: chatToken && chatToken.chatId,
+          },
+        });
+      } else {
+        chatToken = await getChatToken({ chatId: user && user.chatId });
+      }
 
-      ApartmentsModel.create({
-        number: '27',
-        building: ObjectId('58da279f0ff5af8c8be59c36'),
-        user: user._id,
-        isOwner: true,
+      createChatUserIfNotExits(user);
+      done(null, {
+        id: user._id,
+        profile: user.profile,
+        email: (user.emails && user.emails.address) || '',
+        roles: user.roles,
+        chatToken: chatToken && chatToken.token,
+        chatExp: moment().add(1, 'hours').unix(),
+        chatId: user && user.chatId,
       });
-    } else if (!(user && user.chatId)) {
-      chatToken = await getChatToken({ accessToken });
-      await UsersModel.update({
-        _id: user._id,
-      }, {
-        $set: {
-          chatId: chatToken && chatToken.chatId,
-        },
-      });
-    } else {
-      chatToken = await getChatToken({ chatId: user && user.chatId });
+    } catch (e) {
+      console.log(e);
     }
-
-    createChatUserIfNotExits(user);
-    done(null, {
-      id: user._id,
-      profile: user.profile,
-      email: user.emails.address,
-      roles: user.roles,
-      chatToken: chatToken && chatToken.token,
-      chatExp: moment().add(1, 'hours').unix(),
-      chatId: user && user.chatId,
-    });
   };
 
   fooBar().catch(done);
