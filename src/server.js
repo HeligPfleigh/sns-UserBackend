@@ -85,8 +85,21 @@ if (__DEV__) {
   app.enable('trust proxy');
 }
 
+app.post('/auth/login', (req, res, next) => {
+  passport.authenticate('local', async (error, user) => {
+    if (error || !user) {
+      return res.status(401).json({
+        error,
+      });
+    }
+    const token = generateToken(user);
+    res.cookie('id_token', token, { maxAge: 1000 * EXPIRES_IN });
+    return res.status(200).json(user);
+  })(req, res, next);
+});
+
 app.post('/auth/facebook', (req, res, next) => {
-  passport.authenticate('facebook-token', (error, user) => {
+  passport.authenticate('facebook-token', async (error, user) => {
     if (error || !user) {
       return res.status(401).json({
         error,
