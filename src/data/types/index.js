@@ -411,7 +411,7 @@ export const resolvers = {
         const edges = PostsModel.find(select).sort({ createdAt: -1 }).cursor();
 
         edges.on('data', (res) => {
-          res.likes.indexOf(data._id) !== -1 ? res.isLiked = true : res.isLiked = false;
+          res.likes.indexOf(user.id) !== -1 ? res.isLiked = true : res.isLiked = false;
           edgesArray.push(res);
         });
 

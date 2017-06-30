@@ -68,7 +68,7 @@ const userDataB = {
 };
 
 const userDataC = {
-  _id : userIdC,
+  _id: userIdC,
   emails: {
     address: 'thanhtt@gmail.com',
     verified: true,
@@ -107,7 +107,7 @@ const postData = {
   message: '{\'entityMap\':{},\'blocks\':[{\'key\':\'4gvpl\',\'text\':\'Viet nam tuoi dep\',\'type\':\'unstyled\',\'depth\':0,\'inlineStyleRanges\':[],\'entityRanges\':[],\'data\':{}}]}',
   user: userIdA,
   author: userIdA,
-  likes: ['58f9d2132d4581000484b1a0'],
+  likes: ['58f9d2132d4581000484b1a0', userIdC],
   photos: [],
   type: 'STATUS',
   __v: 0,
@@ -165,6 +165,7 @@ describe('RootUserQuery', () => {
           posts {
             _id
             message
+            isLiked
           }
         }
       }
@@ -183,6 +184,10 @@ describe('RootUserQuery', () => {
       },
     });
     let result = await graphql(schema, query, rootValue, context);
+    const unLikedPost = result.data.user.posts.filter((p) => {
+      return !p.isLiked;
+    });
+    expect(unLikedPost.length).toEqual(0);
     let messages = result.data.user.posts.map(m => m.message);
     expect(messages).toEqual([
       'message1',
