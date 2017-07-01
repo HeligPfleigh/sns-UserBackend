@@ -72,33 +72,31 @@ type Mutation {
     _id:String!
     message: String!
     commentId: String
-  ):Comment
+  ): Comment
   createNewPost (
     message: String!
     userId: String
     privacy: PrivacyType
-  ):Post
+  ): Post
   updateProfile(
     profile: ProfileInput!
-  ):Author
-  updateSeen(
-    _id: String!
-  ):Notification
+  ): Author
+  updateSeen: Notification
   updateRead(
     _id: String!
-  ):Notification
+  ): Notification
   createNewPostOnBuilding (
     message: String!
     buildingId: String!
-  ):Post
+  ): Post
   acceptRequestForJoiningBuilding(
     buildingId: String!
     userId: String!
-  ):Friend
+  ): Friend
   rejectRequestForJoiningBuilding(
     buildingId: String!
     userId: String!
-  ):Friend
+  ): Friend
 }
 
 schema {
