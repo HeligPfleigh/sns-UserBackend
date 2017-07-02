@@ -8,6 +8,7 @@ import {
   BuildingMembersModel,
 } from '../../data/models';
 import { ACCEPTED, MEMBER } from '../../constants';
+import removeToneVN from '../../utils/removeToneVN';
 
 const { Types: { ObjectId } } = mongoose;
 const building = ObjectId('58da279f0ff5af8c8be59c36');
@@ -44,9 +45,9 @@ export default async function (accessToken, profile, chatToken) {
   if (profile && profile._json && profile._json.email) {
     u.username = profile._json.email.replace(/@.*$/, '');
   } else if (profile && profile._json && profile._json.last_name && profile._json.first_name) {
-    u.username = `${profile._json.last_name}_${profile._json.first_name}`;
+    u.username = removeToneVN(`${profile._json.last_name}_${profile._json.first_name}`.replace(/\s/g, ''));
   } else if (profile.displayName) {
-    u.username = profile.displayName.replace(/\s/g, '');
+    u.username = removeToneVN(profile.displayName.replace(/\s/g, ''));
   }
   // email
   if (profile && profile._json && profile._json.email) {

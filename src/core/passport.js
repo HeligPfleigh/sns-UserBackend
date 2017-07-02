@@ -15,6 +15,7 @@ import {
 } from '../data/models';
 import chat from './chat';
 import { generateToken, EXPIRES_IN } from '../utils/token';
+import removeToneVN from '../utils/removeToneVN';
 
 export const defaultAdminApp = admin.initializeApp({
   credential: admin.credential.cert(config.auth.firebaseAdmin),
@@ -134,10 +135,25 @@ passport.use(new FacebookTokenStrategy({
   clientSecret: config.auth.facebook.secret,
 }, (accessToken, refreshToken, profile, done) => {
   const fooBar = async () => {
+    console.log('login with pw', profile);
     try {
-      let user = await UsersModel.findOne({
-        'emails.address': profile._json.email,
-      });
+      let user = null;
+      if (profile._json.email) {
+        user = await UsersModel.findOne({
+          'emails.address': profile._json.email,
+        });
+      } else {
+        let username = null;
+        if (profile && profile._json && profile._json.last_name && profile._json.first_name) {
+          username = removeToneVN(`${profile._json.last_name}_${profile._json.first_name}`.replace(/\s/g, ''));
+        } else if (profile.displayName) {
+          username = removeToneVN(profile.displayName.replace(/\s/g, ''));
+        }
+        user = await UsersModel.findOne({
+          username,
+        });
+      }
+      console.log(user, 'user');
       let chatToken;
       if (!user) {
         chatToken = await getChatToken({ accessToken });
