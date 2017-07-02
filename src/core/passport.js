@@ -135,7 +135,6 @@ passport.use(new FacebookTokenStrategy({
   clientSecret: config.auth.facebook.secret,
 }, (accessToken, refreshToken, profile, done) => {
   const fooBar = async () => {
-    console.log('login with pw', profile);
     try {
       let user = null;
       if (profile._json.email) {
@@ -153,7 +152,6 @@ passport.use(new FacebookTokenStrategy({
           username,
         });
       }
-      console.log(user, 'user');
       let chatToken;
       if (!user) {
         chatToken = await getChatToken({ accessToken });
