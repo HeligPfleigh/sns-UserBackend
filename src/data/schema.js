@@ -188,6 +188,9 @@ const rootResolvers = {
       const r = await NotificationsPagingService.find({
         $cursor: cursor,
         query: {
+          $sort: {
+            createdAt: -1,
+          },
           user: userId,
           $limit: limit,
         },
