@@ -52,6 +52,7 @@ enum NotificationType {
   LIKES
   COMMENTS
   NEW_POST
+  ACCEPTED_FRIEND
 }
 
 enum PrivacyType {
