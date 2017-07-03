@@ -116,7 +116,7 @@ passport.use(new LocalStrategy({
     return done(null, {
       id: user._id || '',
       profile: user.profile || {},
-      email: user.emails.address || '',
+      email: (user.emails && user.emails.address) || '',
       roles: user.roles || [],
       chatToken: chatToken && chatToken.token,
       chatExp: moment().add(1, 'hours').unix(),
