@@ -10,6 +10,7 @@ import {
   COMMENTS,
   NEW_POST,
   ACCEPTED_FRIEND,
+  FRIEND_REQUEST,
 } from '../constants';
 
 const getUserFollow = async (postId, userId, status) => {
@@ -65,9 +66,19 @@ async function sendAcceptFriendNotification(userIDA, userIDR) {
   return r;
 }
 
+async function sendFriendRequestNotification(userIDA, userIDR) {
+  const r = await NotificationsModel.create({
+    user: userIDR,
+    actors: [userIDA],
+    type: FRIEND_REQUEST,
+  });
+  return r;
+}
+
 export {
   sendLikeNotification,
   sendCommentNotification,
   sendPostNotification,
   sendAcceptFriendNotification,
+  sendFriendRequestNotification,
 };

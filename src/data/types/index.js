@@ -53,6 +53,7 @@ enum NotificationType {
   COMMENTS
   NEW_POST
   ACCEPTED_FRIEND
+  FRIEND_REQUEST
 }
 
 enum PrivacyType {
