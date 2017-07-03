@@ -1,10 +1,12 @@
 import isUndefined from 'lodash/isUndefined';
-
 import { ObjectId } from 'mongodb';
 import {
   UsersModel,
   FriendsRelationModel,
 } from '../models';
+import {
+  sendAcceptFriendNotification,
+} from '../../utils/notifications';
 
 function getUser(userId) {
   return UsersModel.findOne({ _id: userId });
@@ -38,6 +40,8 @@ async function acceptFriend(userId, friendId) {
     status: 'ACCEPTED',
     isSubscribe: true,
   } }, { upsert: true });
+  sendAcceptFriendNotification(userId, friendId);
+
   return UsersModel.findOne({ _id: friendId });
 }
 

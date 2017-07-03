@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import timestamp from 'mongoose-timestamp';
-import { NOTIFY_TYPES } from '../../constants';
+import { NOTIFY_TYPES, LIKES } from '../../constants';
 
 const { Schema } = mongoose;
 const { Types: { ObjectId } } = Schema;
@@ -16,7 +16,7 @@ const NotificationSchema = new Schema({
     required: true,
     trim: true,
     enum: NOTIFY_TYPES,
-    default: NOTIFY_TYPES[0],
+    default: LIKES,
     index: true,
   },
   seen: {

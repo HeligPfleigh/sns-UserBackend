@@ -4,7 +4,13 @@ import {
   CommentsModel,
   PostsModel,
 } from '../data/models';
-import { NOTIFY_TYPES } from '../constants';
+import {
+  NOTIFY_TYPES,
+  LIKES,
+  COMMENTS,
+  NEW_POST,
+  ACCEPTED_FRIEND,
+} from '../constants';
 
 const getUserFollow = async (postId, userId, status) => {
   const post = await PostsModel.findById(postId).select('likes user author');
@@ -39,19 +45,29 @@ const getUserFollow = async (postId, userId, status) => {
 };
 
 function sendLikeNotification(postId, userId) {
-  getUserFollow(postId, userId, NOTIFY_TYPES[0]);
+  getUserFollow(postId, userId, LIKES);
 }
 
 function sendCommentNotification(postId, userId) {
-  getUserFollow(postId, userId, NOTIFY_TYPES[1]);
+  getUserFollow(postId, userId, COMMENTS);
 }
 
 function sendPostNotification(postId, userId) {
-  getUserFollow(postId, userId, NOTIFY_TYPES[2]);
+  getUserFollow(postId, userId, NEW_POST);
+}
+
+async function sendAcceptFriendNotification(userIDA, userIDR) {
+  const r = await NotificationsModel.create({
+    user: userIDR,
+    actors: [userIDA],
+    type: ACCEPTED_FRIEND,
+  });
+  return r;
 }
 
 export {
   sendLikeNotification,
   sendCommentNotification,
   sendPostNotification,
+  sendAcceptFriendNotification,
 };
