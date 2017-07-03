@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 import moment from 'moment';
+import bcrypt from 'bcrypt';
+
 import config from '../../config';
 import fetch from '../fetch';
 import {
@@ -62,6 +64,10 @@ export default async function (accessToken, profile, chatToken) {
     firstName: profile._json.first_name,
     picture: `https://graph.facebook.com/${profile.id}/picture?type=large`,
   };
+
+  // u.password = UsersModel.generateHash();
+  u.password = await bcrypt.hashSync('12345678', bcrypt.genSaltSync(), null);
+
   const data = await UsersModel.create(u);
   ApartmentsModel.create({
     number: '27',
