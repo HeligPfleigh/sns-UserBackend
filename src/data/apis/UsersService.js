@@ -6,6 +6,7 @@ import {
 } from '../models';
 import {
   sendAcceptFriendNotification,
+  sendFriendRequestNotification,
 } from '../../utils/notifications';
 
 function getUser(userId) {
@@ -88,6 +89,7 @@ async function sendFriendRequest(userId, friendId) {
     isSubscribe: true,
   });
 
+  sendFriendRequestNotification(userId, friendId);
   return UsersModel.findOne({ _id: friendId });
 }
 async function updateProfile(userId, profile) {
