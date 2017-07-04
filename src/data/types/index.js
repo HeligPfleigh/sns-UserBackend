@@ -329,7 +329,17 @@ export const resolvers = {
       });
     },
     async friendSuggestions(user) {
-      const currentFriends = await FriendsRelationModel.find().or([{ user: user._id }, { friend: user._id }]).select('user friend _id');
+      const currentFriends = await FriendsRelationModel
+      .find({
+        $or: [
+          { user: user._id },
+          { friend: user._id },
+        ],
+        status: {
+          $in: ['PENDING', 'ACCEPTED', 'BLOCKED'],
+        },
+      })
+      .select('user friend _id');
       const ninIds = reduce(currentFriends, (result, item) => {
         result.push(item.user);
         result.push(item.friend);
