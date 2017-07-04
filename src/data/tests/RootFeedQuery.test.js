@@ -169,7 +169,8 @@ describe('RootFeedQuery', () => {
     //   console.log(e.message);
     // }
   });
-  test('should get post by id', async () => {
+
+  test('should get feed', async () => {
     let query = `
       {
         feeds (limit: 8) {
@@ -238,6 +239,84 @@ describe('RootFeedQuery', () => {
       'message17',
       'message18',
       'message19',
+    ]);
+  });
+
+  test('should get feed when user A and C is not friend', async () => {
+    await FriendsRelationModel.update({
+      _id: friendsRelationData._id,
+    }, {
+      $set: {
+        isSubscribe: false,
+        status: 'REJECTED',
+      },
+    });
+
+    let query = `
+      {
+        feeds (limit: 8) {
+          edges {
+            _id
+            message
+          }
+          pageInfo {
+            total
+            limit
+            endCursor
+            hasNextPage
+          }
+        }
+      }
+    `;
+
+    const rootValue = {
+      request: {
+        user: {
+          id: userIdA,
+        },
+      },
+    };
+    const context = getContext({});
+    let result = await graphql(schema, query, rootValue, context);
+    let messages = result.data.feeds.edges.map(m => m.message);
+    expect(result.data.feeds.pageInfo.total).toEqual(12);
+    expect(result.data.feeds.pageInfo.limit).toEqual(8);
+    expect(result.data.feeds.pageInfo.hasNextPage).toEqual(true);
+    expect(result.data.feeds.edges.length).toEqual(8);
+    expect(messages).toEqual([
+      'message1',
+      'message2',
+      'message3',
+      'message4',
+      'message5',
+      'message6',
+      'message7',
+      'message8',
+    ]);
+
+    query = `
+      {
+        feeds (cursor: "${result.data.feeds.pageInfo.endCursor}", limit: 7) {
+          edges {
+            _id
+            message
+          }
+          pageInfo {
+            total
+            limit
+            endCursor
+            hasNextPage
+          }
+        }
+      }
+    `;
+    result = await graphql(schema, query, rootValue, context);
+    messages = result.data.feeds.edges.map(m => m.message);
+    expect(messages).toEqual([
+      'message9',
+      'message10',
+      'message14',
+      'message16',
     ]);
   });
 
