@@ -209,6 +209,7 @@ describe('RootCreateNewPostMutation', () => {
     expect(result.data.createNewPost).toEqual(null);
     expect(result.errors[0].message).toEqual('author is undefined');
   });
+
   test('should check message undefined', async () => {
     const query = `
       mutation M {
@@ -227,6 +228,28 @@ describe('RootCreateNewPostMutation', () => {
     expect(result.data).toEqual(undefined);
     expect(result.errors[0].message).toEqual('Field "createNewPost" argument "message" of type "String!" is required but not provided.');
   });
+
+  test('should throw error when message is empty string', async () => {
+    const query = `
+      mutation M {
+        createNewPost(message:"    ") {
+          _id
+        }
+      }
+    `;
+    const rootValue = {
+      request: {
+        user: { id: userId },
+      },
+    };
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data).toEqual({
+      createNewPost: null,
+    });
+    expect(result.errors[0].message).toEqual('you can not create a new post with empty message');
+  });
+
   afterEach(async () => {
     // clear data
     await UsersModel.remove({});

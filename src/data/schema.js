@@ -226,6 +226,9 @@ const rootResolvers = {
     createNewPost({ request }, { message, userId, privacy = PUBLIC }) {
       // NOTE:
       // userId: post on friend wall
+      if (!message.trim()) {
+        throw new Error('you can not create a new post with empty message');
+      }
       return PostsService.createNewPost(request.user.id, message, userId, privacy);
     },
     updateProfile({ request }, { profile }) {
