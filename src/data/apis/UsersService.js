@@ -64,8 +64,11 @@ async function rejectFriend(userId, friendId) {
   await FriendsRelationModel.update({
     user: friendId,
     friend: userId,
+    status: 'PENDING',
+  }, { $set: {
     status: 'REJECTED',
-  });
+    isSubscribe: false,
+  } }, { upsert: true });
   return UsersModel.findOne({ _id: friendId });
 }
 
