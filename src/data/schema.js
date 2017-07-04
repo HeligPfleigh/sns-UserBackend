@@ -126,7 +126,10 @@ const rootResolvers = {
     async feeds({ request }, { cursor = null, limit = 5 }) {
       const userId = request.user.id;
       const me = await UsersModel.findOne({ _id: userId });
-      let friendListByIds = await FriendsModel.find({ user: userId }).select('friend _id');
+      let friendListByIds = await FriendsModel.find({
+        user: userId,
+        isSubscribe: true,
+      }).select('friend _id');
       friendListByIds = friendListByIds.map(v => v.friend);
       friendListByIds.push(userId);
       friendListByIds = friendListByIds.map(toObjectId);
