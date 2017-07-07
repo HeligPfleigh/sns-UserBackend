@@ -46,7 +46,7 @@ function createChatUserIfNotExits(user) {
     refUser.child(user.chatId).once('value', (snap) => {
       const userData = snap.val();
       if (!userData || !userData.uid) {
-        refUser.child(user.chatId).set(Object.assign({ uid: user.chatId }, pick(user, ['id', 'username', 'profile'])));
+        refUser.child(user.chatId).set(Object.assign({ uid: user.chatId }, pick(user, ['_id', 'username', 'profile'])));
       }
     });
   }
