@@ -111,14 +111,18 @@ passport.use(new LocalStrategy({
       });
     }
 
-    const { services: { facebook: { accessToken } } } = user;
-    const chatToken = accessToken && await getChatToken({ accessToken });
+    let chatToken = null;
+    if (user.service && user.service.facebook) {
+      const { services: { facebook: { accessToken } } } = user;
+      chatToken = accessToken && await getChatToken({ accessToken });
+    }
+
     return done(null, {
       id: user._id || '',
       profile: user.profile || {},
       email: (user.emails && user.emails.address) || '',
       roles: user.roles || [],
-      chatToken: chatToken && chatToken.token,
+      chatToken: (chatToken && chatToken.token) || '',
       chatExp: moment().add(1, 'hours').unix(),
       chatId: user && user.chatId,
     });
