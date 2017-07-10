@@ -22,6 +22,7 @@ const EmailSchema = new Schema({
   verified: {
     type: Boolean,
     required: true,
+    default: false,
   },
 }, {
   _id: false,
@@ -50,6 +51,7 @@ const UserSchema = new Schema({
     required: true,
     type: [String],
     validate: rolesvalidator,
+    default: ['user'],
   },
   building: {
     type: ObjectId,
