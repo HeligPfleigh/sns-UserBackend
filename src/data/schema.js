@@ -78,6 +78,9 @@ type Mutation {
     userId: String
     privacy: PrivacyType
   ): Post
+  deletePost (
+    _id:String!
+  ): Post
   updateProfile(
     profile: ProfileInput!
   ): Author
@@ -230,6 +233,15 @@ const rootResolvers = {
         throw new Error('you can not create a new post with empty message');
       }
       return PostsService.createNewPost(request.user.id, message, userId, privacy);
+    },
+    deletePost({ request }, { _id }) {
+      // console.log(request.user.id, _id, 'deletePost');
+      // return new Promise((resolve) => {
+      //   resolve({
+      //     _id,
+      //   });
+      // });
+      return PostsModel.findOne({ _id });
     },
     updateProfile({ request }, { profile }) {
       return UsersService.updateProfile(request.user.id, profile);
