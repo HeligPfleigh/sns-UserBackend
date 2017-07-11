@@ -81,6 +81,10 @@ type Mutation {
   deletePost (
     _id:String!
   ): Post
+  deletePostOnBuilding (
+    postId: String!
+    buildingId: String!
+  ): Post
   updateProfile(
     profile: ProfileInput!
   ): Author
@@ -238,20 +242,41 @@ const rootResolvers = {
     async deletePost({ request }, { _id }) {
       const p = await PostsModel.findOne({
         _id,
-        user: request.user.id,
+        author: request.user.id,
       });
       if (!p) {
         throw new Error('not found the post');
       }
       await PostsModel.update({
         _id,
-        user: request.user.id,
+        author: request.user.id,
       }, {
         $set: {
           isDeleted: true,
         }
       });
       return p;
+    },
+    async deletePostOnBuilding({ request }, { postId, buildingId }) {
+      const p = await PostsModel.findOne({
+        _id: postId,
+        author: request.user.id,
+        building: buildingId,
+      });
+      if (!p) {
+        throw new Error('not found the post');
+      }
+      await PostsModel.update({
+        _id: postId,
+        author: request.user.id,
+        building: buildingId,
+      }, {
+        $set: {
+          isDeleted: true,
+        }
+      });
+      return p;
+
     },
     updateProfile({ request }, { profile }) {
       return UsersService.updateProfile(request.user.id, profile);
