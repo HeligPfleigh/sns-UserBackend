@@ -151,6 +151,7 @@ const rootResolvers = {
               privacy: { $in: [PUBLIC] },
             },
           ],
+          isDeleted: { $exists: false },
           $sort: {
             createdAt: -1,
           },
@@ -234,14 +235,23 @@ const rootResolvers = {
       }
       return PostsService.createNewPost(request.user.id, message, userId, privacy);
     },
-    deletePost({ request }, { _id }) {
-      // console.log(request.user.id, _id, 'deletePost');
-      // return new Promise((resolve) => {
-      //   resolve({
-      //     _id,
-      //   });
-      // });
-      return PostsModel.findOne({ _id });
+    async deletePost({ request }, { _id }) {
+      const p = await PostsModel.findOne({
+        _id,
+        user: request.user.id,
+      });
+      if (!p) {
+        throw new Error('not found the post');
+      }
+      await PostsModel.update({
+        _id,
+        user: request.user.id,
+      }, {
+        $set: {
+          isDeleted: true,
+        }
+      });
+      return p;
     },
     updateProfile({ request }, { profile }) {
       return UsersService.updateProfile(request.user.id, profile);

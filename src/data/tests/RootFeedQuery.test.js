@@ -132,6 +132,12 @@ describe('RootFeedQuery', () => {
         // post on userA's wall by user A
         postData.user = userIdA;
         postData.author = userIdA;
+        if (i === 7) {
+          postData.isDeleted = true;
+        } else {
+          delete postData.isDeleted;
+          postData.isDeleted = undefined;
+        }
         if (i === 10) {
           postData.privacy = ONLY_ME;
         } else {
@@ -198,7 +204,7 @@ describe('RootFeedQuery', () => {
     const context = getContext({});
     let result = await graphql(schema, query, rootValue, context);
     let messages = result.data.feeds.edges.map(m => m.message);
-    expect(result.data.feeds.pageInfo.total).toEqual(15);
+    expect(result.data.feeds.pageInfo.total).toEqual(14);
     expect(result.data.feeds.pageInfo.limit).toEqual(8);
     expect(result.data.feeds.pageInfo.hasNextPage).toEqual(true);
     expect(result.data.feeds.edges.length).toEqual(8);
@@ -209,8 +215,8 @@ describe('RootFeedQuery', () => {
       'message4',
       'message5',
       'message6',
-      'message7',
       'message8',
+      'message9',
     ]);
 
     query = `
@@ -232,7 +238,6 @@ describe('RootFeedQuery', () => {
     result = await graphql(schema, query, rootValue, context);
     messages = result.data.feeds.edges.map(m => m.message);
     expect(messages).toEqual([
-      'message9',
       'message10',
       'message14',
       'message16',
@@ -279,7 +284,7 @@ describe('RootFeedQuery', () => {
     const context = getContext({});
     let result = await graphql(schema, query, rootValue, context);
     let messages = result.data.feeds.edges.map(m => m.message);
-    expect(result.data.feeds.pageInfo.total).toEqual(12);
+    expect(result.data.feeds.pageInfo.total).toEqual(11);
     expect(result.data.feeds.pageInfo.limit).toEqual(8);
     expect(result.data.feeds.pageInfo.hasNextPage).toEqual(true);
     expect(result.data.feeds.edges.length).toEqual(8);
@@ -290,8 +295,8 @@ describe('RootFeedQuery', () => {
       'message4',
       'message5',
       'message6',
-      'message7',
       'message8',
+      'message9',
     ]);
 
     query = `
@@ -313,7 +318,6 @@ describe('RootFeedQuery', () => {
     result = await graphql(schema, query, rootValue, context);
     messages = result.data.feeds.edges.map(m => m.message);
     expect(messages).toEqual([
-      'message9',
       'message10',
       'message14',
       'message16',

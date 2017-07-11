@@ -22,6 +22,10 @@ const PostSchema = new Schema({
     default: PUBLIC,
     index: true,
   },
+  isDeleted: {
+    type: Boolean,
+    index: true,
+  },
   user: {
     type: ObjectId,
     ref: 'User',
