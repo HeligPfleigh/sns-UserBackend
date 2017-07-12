@@ -131,6 +131,12 @@ describe('RootMeQuery', () => {
         // post on userA's wall by user A
         postData.user = userIdA;
         postData.author = userIdA;
+        if (i === 7) {
+          postData.isDeleted = true;
+        } else {
+          delete postData.isDeleted;
+          postData.isDeleted = undefined;
+        }
       } else if (i <= 15 && i > 10) {
         // post on userB's wall by user B
         postData.user = userIdB;
@@ -194,7 +200,6 @@ describe('RootMeQuery', () => {
       'message4',
       'message5',
       'message6',
-      'message7',
       'message8',
       'message9',
       'message10',

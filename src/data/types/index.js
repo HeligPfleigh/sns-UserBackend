@@ -287,7 +287,10 @@ export const resolvers = {
     posts(data) {
       return new Promise((resolve, reject) => {
         const edgesArray = [];
-        const edges = PostsModel.find({ user: data._id }).sort({ createdAt: -1 }).cursor();
+        const edges = PostsModel.find({
+          user: data._id,
+          isDeleted: { $exists: false },
+        }).sort({ createdAt: -1 }).cursor();
 
         edges.on('data', (res) => {
           res.likes.indexOf(data._id) !== -1 ? res.isLiked = true : res.isLiked = false;

@@ -11,6 +11,7 @@ import {
   NotificationsModel,
   BuildingMembersModel,
   UsersModel,
+  BuildingFeedModel,
 } from './models';
 import Service from './mongo/service';
 import AddressServices from './apis/AddressServices';
@@ -77,6 +78,13 @@ type Mutation {
     message: String!
     userId: String
     privacy: PrivacyType
+  ): Post
+  deletePost (
+    _id:String!
+  ): Post
+  deletePostOnBuilding (
+    postId: String!
+    buildingId: String!
   ): Post
   updateProfile(
     profile: ProfileInput!
@@ -148,6 +156,7 @@ const rootResolvers = {
               privacy: { $in: [PUBLIC] },
             },
           ],
+          isDeleted: { $exists: false },
           $sort: {
             createdAt: -1,
           },
@@ -230,6 +239,49 @@ const rootResolvers = {
         throw new Error('you can not create a new post with empty message');
       }
       return PostsService.createNewPost(request.user.id, message, userId, privacy);
+    },
+    async deletePost({ request }, { _id }) {
+      const p = await PostsModel.findOne({
+        _id,
+        author: request.user.id,
+      });
+      if (!p) {
+        throw new Error('not found the post');
+      }
+      await PostsModel.update({
+        _id,
+        author: request.user.id,
+      }, {
+        $set: {
+          isDeleted: true,
+        }
+      });
+      return p;
+    },
+    async deletePostOnBuilding({ request }, { postId, buildingId }) {
+      const p = await PostsModel.findOne({
+        _id: postId,
+        author: request.user.id,
+        building: buildingId,
+      });
+      if (!p) {
+        throw new Error('not found the post');
+      }
+      await PostsModel.update({
+        _id: postId,
+        author: request.user.id,
+        building: buildingId,
+      }, {
+        $set: {
+          isDeleted: true,
+        }
+      });
+      await BuildingFeedModel.remove({
+        building: buildingId,
+        post: postId,
+      });
+      return p;
+
     },
     updateProfile({ request }, { profile }) {
       return UsersService.updateProfile(request.user.id, profile);
