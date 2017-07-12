@@ -1,4 +1,5 @@
 import isUndefined from 'lodash/isUndefined';
+import isEmpty from 'lodash/isEmpty';
 import bcrypt from 'bcrypt';
 import { ObjectId } from 'mongodb';
 import {
@@ -12,6 +13,21 @@ import {
 
 function getUser(userId) {
   return UsersModel.findOne({ _id: userId });
+}
+
+async function checkExistUser(username) {
+  const options = {
+    $or: [
+      { username },
+      { 'phone.number': username },
+      { 'emails.address': username },
+    ],
+  };
+  const user = await UsersModel.findOne(options);
+  if (isEmpty(user)) {
+    return false;
+  }
+  return true;
 }
 
 async function acceptFriend(userId, friendId) {
@@ -166,6 +182,7 @@ async function createUser(params) {
 }
 
 export default {
+  checkExistUser,
   createUser,
   getUser,
   acceptFriend,

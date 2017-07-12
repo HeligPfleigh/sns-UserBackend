@@ -86,6 +86,19 @@ if (__DEV__) {
   app.enable('trust proxy');
 }
 
+app.post('/auth/check_user', async (req, res) => {
+  try {
+    const { username } = req.body;
+    if (!username) {
+      throw new Error('Not exist params');
+    }
+    const status = await UsersService.checkExistUser(username);
+    res.status(200).json({ status });
+  } catch (error) {
+    res.status(500).send({ status: false });
+  }
+});
+
 app.post('/auth/register', async (req, res) => {
   try {
     const user = await UsersService.createUser(req.body);
