@@ -1,7 +1,7 @@
 export const port = 3005;
 export const host = `localhost:${port}`;
 
-export const databaseUrl = 'mongodb://localhost:27017/sns_test';
+export const databaseUrl = process.env.DATABASE_URL || 'mongodb://localhost:27017/sns_test';
 
 export const auth = {
   facebook: {
