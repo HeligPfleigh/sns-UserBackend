@@ -1,4 +1,6 @@
 import isUndefined from 'lodash/isUndefined';
+import isEmpty from 'lodash/isEmpty';
+import bcrypt from 'bcrypt';
 import { ObjectId } from 'mongodb';
 import {
   UsersModel,
@@ -11,6 +13,21 @@ import {
 
 function getUser(userId) {
   return UsersModel.findOne({ _id: userId });
+}
+
+async function checkExistUser(username) {
+  const options = {
+    $or: [
+      { username },
+      { 'phone.number': username },
+      { 'emails.address': username },
+    ],
+  };
+  const user = await UsersModel.findOne(options);
+  if (isEmpty(user)) {
+    return false;
+  }
+  return true;
 }
 
 async function acceptFriend(userId, friendId) {
@@ -95,6 +112,7 @@ async function sendFriendRequest(userId, friendId) {
   sendFriendRequestNotification(userId, friendId);
   return UsersModel.findOne({ _id: friendId });
 }
+
 async function updateProfile(userId, profile) {
   if (isUndefined(userId)) {
     throw new Error('userId is undefined');
@@ -121,7 +139,51 @@ async function updateProfile(userId, profile) {
 
   return UsersModel.findOne({ _id: userId });
 }
+
+async function createUser(params) {
+  const {
+    username,
+    password,
+    phone: {
+      number: phoneNumber,
+    },
+    emails: {
+      address: emailAddress,
+    },
+  } = params;
+
+  if (isUndefined(password)) {
+    throw new Error('password is undefined');
+  }
+
+  if (isUndefined(username)) {
+    throw new Error('username is undefined');
+  }
+
+  if (isUndefined(emailAddress)) {
+    throw new Error('email is undefined');
+  }
+
+  if (await UsersModel.findOne({ username })) {
+    throw new Error('username is exist');
+  }
+
+  if (await UsersModel.findOne({ 'phone.number': phoneNumber })) {
+    throw new Error('Phone number is exist');
+  }
+
+  if (await UsersModel.findOne({ 'emails.address': emailAddress })) {
+    throw new Error('Email address is exist');
+  }
+
+  params.password = bcrypt.hashSync(params.password, bcrypt.genSaltSync(), null);
+  const user = await UsersModel.create(params);
+  return user;
+}
+
 export default {
+  checkExistUser,
+  createUser,
   getUser,
   acceptFriend,
   rejectFriend,

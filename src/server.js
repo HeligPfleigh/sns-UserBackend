@@ -21,6 +21,7 @@ import { generateToken, EXPIRES_IN } from './utils/token';
 
 import config from './config';
 import Mongoose from './data/mongoose';
+import UsersService from './data/apis/UsersService';
 
 const { port, auth, databaseUrl } = config;
 
@@ -85,8 +86,30 @@ if (__DEV__) {
   app.enable('trust proxy');
 }
 
+app.post('/auth/check_user', async (req, res) => {
+  try {
+    const { username } = req.body;
+    if (!username) {
+      throw new Error('Not exist params');
+    }
+    const status = await UsersService.checkExistUser(username);
+    res.status(200).json({ status });
+  } catch (error) {
+    res.status(500).send({ status: false });
+  }
+});
+
+app.post('/auth/register', async (req, res) => {
+  try {
+    const user = await UsersService.createUser(req.body);
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
 app.post('/auth/login', (req, res, next) => {
-  passport.authenticate('local', async (error, user) => {
+  passport.authenticate('local', (error, user) => {
     if (error || !user) {
       return res.status(401).json({
         error,
@@ -99,7 +122,7 @@ app.post('/auth/login', (req, res, next) => {
 });
 
 app.post('/auth/facebook', (req, res, next) => {
-  passport.authenticate('facebook-token', async (error, user) => {
+  passport.authenticate('facebook-token', (error, user) => {
     if (error || !user) {
       return res.status(401).json({
         error,
@@ -150,7 +173,8 @@ app.get('*', async (req, res) => {
 // Error handling
 // -----------------------------------------------------------------------------
 app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
-
+  console.log('Error handling');
+  console.log(err);
 });
 
 //
