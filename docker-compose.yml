@@ -1,0 +1,36 @@
+version: '2'
+services:
+  mongo:
+    image: mongo:3.2
+    volumes:
+      - ./mongo:/data/db
+    ports:
+      - "28018:27017"
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=mongodb://mongo:27017/sns_test
+    volumes:
+      - ./logs:/usr/src/app/logs
+      - ./public:/usr/src/app/public
+      - ./src:/usr/src/app/src
+      - ./tools:/usr/src/app/tools
+      - ./.bootstraprc:/usr/src/app/.bootstraprc
+      - ./.editorconfig:/usr/src/app/.editorconfig
+      - ./.flowconfig:/usr/src/app/.flowconfig
+      - ./.gitignore:/usr/src/app/.gitignore
+      - ./.gitattributes:/usr/src/app/.gitattributes
+      - ./.travis.yml:/usr/src/app/.travis.yml
+      - ./.vscode:/usr/src/app/.vscode
+      - ./.yarnclean:/usr/src/app/.yarnclean
+      - ./package.json:/usr/src/app/package.json
+      - ./build:/usr/src/app/buildbin
+      - ./yarn-error.log:/usr/src/app/yarn-error.log
+      - ./yarn.lock:/usr/src/app/yarn.lock
+      - ./test:/usr/src/app/test
+    ports:
+      - "6868:3005"
+    depends_on:
+      - mongo

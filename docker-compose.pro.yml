@@ -1,0 +1,20 @@
+version: "2"
+
+services:
+  mongo:
+    image: mongo:3.2
+    ports:
+      - 28018:27017
+    volumes:
+      - ./mongo:/data/db
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.pro
+    environment:
+      - DATABASE_URL=mongodb://mongo:27017/sns
+    ports:
+      - 6868:8081
+    depends_on:
+      - mongo
