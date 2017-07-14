@@ -6,6 +6,7 @@ import {
   UsersModel,
   FriendsRelationModel,
 } from '../models';
+import { getChatToken, createChatUserIfNotExits } from '../../core/passport';
 import {
   sendAcceptFriendNotification,
   sendFriendRequestNotification,
@@ -176,9 +177,18 @@ async function createUser(params) {
     throw new Error('Email address is exist');
   }
 
-  params.password = bcrypt.hashSync(params.password, bcrypt.genSaltSync(), null);
-  const user = await UsersModel.create(params);
-  return user;
+  params.password = bcrypt.hashSync(password, bcrypt.genSaltSync(), null);
+
+  // Connect user with account firebase
+  const chatToken = await getChatToken({ email: emailAddress, password });
+  const user = {
+    ...params,
+    chatId: chatToken && chatToken.chatId,
+  };
+
+  createChatUserIfNotExits(user);
+  const result = await UsersModel.create(user);
+  return result;
 }
 
 export default {
