@@ -205,7 +205,7 @@
     "lint:staged": "lint-staged",
     "lint": "yarn run lint:js && yarn run lint:css",
     "test": "cross-env NODE_ENV=test jest --coverage --forceExit --runInBand",
-    "testC": "cross-env NODE_ENV=test jest ./src/data/tests/RootDeletePostOnBuildingMutation.test.js --forceExit --runInBand",
+    "testC": "cross-env NODE_ENV=test jest ./src/data/tests/RootSearchQuery.test.js --forceExit --runInBand",
     "test:watch": "cross-env NODE_ENV=test jest --watchAll",
     "clean": "babel-node tools/run clean",
     "copy": "babel-node tools/run copy",

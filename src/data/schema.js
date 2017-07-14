@@ -45,6 +45,7 @@ type Query {
   notification(_id: String): Notification
   comment(_id: String): Comment
   notifications(limit: Int, cursor: String): NotificationsResult
+  search(keyword: String!): [Friend]
   # users,
 }
 input ProfileInput {
@@ -212,6 +213,41 @@ const rootResolvers = {
         edges: r.data,
       };
     },
+    async search({ request }, { keyword }) {
+      // no select password
+      const userId = request.user.id;
+      let friendListByIds = await FriendsModel.find({
+        user: userId,
+        status: ACCEPTED,
+      }).select('friend _id');
+      friendListByIds = friendListByIds.map(v => v.friend);
+      friendListByIds.push(userId);
+      friendListByIds = friendListByIds.map(toObjectId);
+      const r = await UsersModel.find({
+        _id: { $in: friendListByIds },
+        $or: [
+          {
+            'profile.firstName': {
+              $regex: keyword,
+              $options: 'i',
+            },
+          },
+          {
+            'profile.lastName': {
+              $regex: keyword,
+              $options: 'i',
+            },
+          },
+        // {
+        //   "emails.address": /c/,
+        // },
+        // {
+        //   "username": /c/,
+        // }
+        ],
+      }).limit(5);
+      return r;
+    },
   },
   Mutation: {
     acceptFriend({ request }, { _id }) {
@@ -254,7 +290,7 @@ const rootResolvers = {
       }, {
         $set: {
           isDeleted: true,
-        }
+        },
       });
       return p;
     },
@@ -274,14 +310,13 @@ const rootResolvers = {
       }, {
         $set: {
           isDeleted: true,
-        }
+        },
       });
       await BuildingFeedModel.remove({
         building: buildingId,
         post: postId,
       });
       return p;
-
     },
     updateProfile({ request }, { profile }) {
       return UsersService.updateProfile(request.user.id, profile);
