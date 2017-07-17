@@ -14,7 +14,8 @@ const userIdA = '58f9c2502d4581023484b18a';
 const userIdB = '58f9c1bf2d4581000484b188';
 const userIdC = '58f9ca042d4581000484b197';
 const buildingId = '58da279f0ff5af8c8be59c36';
-const keyword = 'th';
+const keywordA = 'th';
+const keywordB = 'u';
 
 const userDataA = {
   _id: userIdA,
@@ -115,11 +116,11 @@ describe('RootPostQuery', () => {
     const friendsRelation = new FriendsRelationModel(friendsRelationData);
     await friendsRelation.save();
   });
-  test('should get user in list friends by keyword', async () => {
+  test('Get user in list friends by keyword', async () => {
     // language=GraphQL
     const query = `
       {
-        search (keyword: '${keyword}'){
+        search (keyword: "${keywordA}"){
           _id
           profile {
             picture
@@ -153,7 +154,33 @@ describe('RootPostQuery', () => {
     // language=GraphQL
     const query = `
       {
-        search (keyword: '${keyword}'){
+        search (keyword: "${keywordA}"){
+          _id
+          profile {
+            picture
+            firstName
+            lastName
+          }
+        }
+      }        
+    `;
+    const rootValue = {
+      request: {
+        user: {
+          id: userIdB,
+        },
+      },
+    };
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.search).toEqual([]);
+  });
+
+  test('No user matched the keyword in my name', async () => {
+    // language=GraphQL
+    const query = `
+      {
+        search (keyword: "${keywordB}"){
           _id
           profile {
             picture
