@@ -22,14 +22,23 @@ export const defaultAdminApp = admin.initializeApp({
   databaseURL: config.auth.firebase.databaseURL,
 });
 
-async function getChatToken({ accessToken, chatId }) {
+export async function getChatToken({ email, password, accessToken, chatId }) {
   let result = {};
   try {
     if (chatId) {
       result.token = await defaultAdminApp.auth().createCustomToken(chatId);
     } else {
-      const credential = await firebase.auth.FacebookAuthProvider.credential(accessToken);
-      const loginResult = await chat.service.auth().signInWithCredential(credential);
+      let loginResult;
+      if (email && password) {
+        try {
+          loginResult = await firebase.auth().signInWithEmailAndPassword(email, password);
+        } catch (error) {
+          loginResult = await firebase.auth().createUserWithEmailAndPassword(email, password);
+        }
+      } else {
+        const credential = await firebase.auth.FacebookAuthProvider.credential(accessToken);
+        loginResult = await chat.service.auth().signInWithCredential(credential);
+      }
       const token = await defaultAdminApp.auth().createCustomToken(loginResult.uid);
       result = { chatId: loginResult.uid, token };
     }
@@ -40,7 +49,7 @@ async function getChatToken({ accessToken, chatId }) {
   return result;
 }
 
-function createChatUserIfNotExits(user) {
+export function createChatUserIfNotExits(user) {
   const refUser = defaultAdminApp.database().ref('users');
   if (user && user.chatId) {
     refUser.child(user.chatId).once('value', (snap) => {
@@ -83,13 +92,13 @@ passport.deserializeUser((id, done) => {
  */
 passport.use(new LocalStrategy({
   session: false,
-}, (username, password, done) => {
+}, (usernameVal, passwordVal, done) => {
   const fooBar = async () => {
     const options = {
       $or: [
-        { username },
-        { 'phone.number': username, 'phone.verified': true },
-        { 'emails.address': username, 'emails.verified': true },
+        { username: usernameVal },
+        { 'phone.number': usernameVal, 'phone.verified': true },
+        { 'emails.address': usernameVal, 'emails.verified': true },
       ],
     };
 
@@ -103,7 +112,7 @@ passport.use(new LocalStrategy({
 
     // check if a hashed user's password is equal to a value saved in the database
     // return UsersModel.validPassword(user.password);
-    const validPassword = await bcrypt.compare(password, user.password);
+    const validPassword = await bcrypt.compare(passwordVal, user.password);
     if (!validPassword) {
       return done({
         name: 'IncorrectPasswordError',
@@ -112,9 +121,11 @@ passport.use(new LocalStrategy({
     }
 
     let chatToken = null;
-    if (user.service && user.service.facebook) {
-      const { services: { facebook: { accessToken } } } = user;
-      chatToken = accessToken && await getChatToken({ accessToken });
+    const { emails: { address: email }, password, chatId } = user;
+    if (chatId) {
+      chatToken = await getChatToken({ chatId });
+    } else if (email && password) {
+      chatToken = await getChatToken({ email, password: passwordVal });
     }
 
     return done(null, {
