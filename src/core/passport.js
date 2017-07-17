@@ -17,10 +17,14 @@ import chat from './chat';
 import { generateToken, EXPIRES_IN } from '../utils/token';
 import removeToneVN from '../utils/removeToneVN';
 
-export const defaultAdminApp = admin.initializeApp({
-  credential: admin.credential.cert(config.auth.firebaseAdmin),
-  databaseURL: config.auth.firebase.databaseURL,
-});
+let defaultAdminApp = null;
+if (process.env.NODE_ENV !== 'test') {
+  // Dont initializeApp in test enviroment
+  defaultAdminApp = admin.initializeApp({
+    credential: admin.credential.cert(config.auth.firebaseAdmin),
+    databaseURL: config.auth.firebase.databaseURL,
+  });
+}
 
 export async function getChatToken({ email, password, accessToken, chatId }) {
   let result = {};
