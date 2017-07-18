@@ -45,7 +45,7 @@ type Query {
   notification(_id: String): Notification
   comment(_id: String): Comment
   notifications(limit: Int, cursor: String): NotificationsResult
-  search(keyword: String!): [Friend]
+  search(keyword: String!, numberOfFriends: Int): [Friend]
   # users,
 }
 input ProfileInput {
@@ -213,7 +213,7 @@ const rootResolvers = {
         edges: r.data,
       };
     },
-    async search({ request }, { keyword }) {
+    async search({ request }, { keyword, numberOfFriends = 1000 }) {
       // no select password
       const userId = request.user.id;
       let friendListByIds = await FriendsModel.find({
@@ -221,7 +221,6 @@ const rootResolvers = {
         status: ACCEPTED,
       }).select('friend _id');
       friendListByIds = friendListByIds.map(v => v.friend);
-      friendListByIds.push(userId);
       friendListByIds = friendListByIds.map(toObjectId);
       const r = await UsersModel.find({
         _id: { $in: friendListByIds },
@@ -238,14 +237,8 @@ const rootResolvers = {
               $options: 'i',
             },
           },
-        // {
-        //   "emails.address": /c/,
-        // },
-        // {
-        //   "username": /c/,
-        // }
         ],
-      }).limit(5);
+      }).limit(numberOfFriends);
       return r;
     },
   },
