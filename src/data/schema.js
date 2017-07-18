@@ -221,6 +221,7 @@ const rootResolvers = {
         status: ACCEPTED,
       }).select('friend _id');
       friendListByIds = friendListByIds.map(v => v.friend);
+      // friendListByIds.push(userId);
       friendListByIds = friendListByIds.map(toObjectId);
       const r = await UsersModel.find({
         _id: { $in: friendListByIds },
