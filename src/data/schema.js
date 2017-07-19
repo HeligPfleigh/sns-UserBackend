@@ -80,6 +80,10 @@ type Mutation {
     userId: String
     privacy: PrivacyType
   ): Post
+  editPost (
+    _id: String!
+    message: String!
+  ): Post
   deletePost (
     _id:String!
   ): Post
@@ -221,7 +225,7 @@ const rootResolvers = {
         status: ACCEPTED,
       }).select('friend _id');
       friendListByIds = friendListByIds.map(v => v.friend);
-      friendListByIds.push(userId);
+      // friendListByIds.push(userId);
       friendListByIds = friendListByIds.map(toObjectId);
       const r = await UsersModel.find({
         _id: { $in: friendListByIds },
@@ -392,6 +396,24 @@ const rootResolvers = {
         },
       });
       return UsersModel.findOne({ _id: userId });
+    },
+    async editPost({ request }, { _id, message }) {
+      const p = await PostsModel.findOne({
+        _id,
+      });
+      if (!p) {
+        throw new Error('not found the post');
+      }
+      await PostsModel.update({
+        _id,
+      }, {
+        $set: {
+          message,
+        },
+      });
+      return PostsModel.findOne({
+        _id,
+      });
     },
   },
 };
