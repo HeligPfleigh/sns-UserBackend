@@ -14,8 +14,6 @@ const userIdA = '58f9c2502d4581023484b18a';
 const userIdB = '58f9c1bf2d4581000484b188';
 const userIdC = '58f9ca042d4581000484b197';
 const buildingId = '58da279f0ff5af8c8be59c36';
-const keywordA = 'th';
-const keywordB = 'u';
 
 const userDataA = {
   _id: userIdA,
@@ -39,6 +37,7 @@ const userDataA = {
   },
   chatId: 'cLq7UcjYopQ5tLGmiR9nnHaKzIR2',
   roles: ['user'],
+  search: 'Duc Linh Duc Linh  D u c Du c  L i n h Li nh Lin h',
   __v: 0,
 };
 
@@ -65,7 +64,7 @@ const userDataB = {
   chatId: '4p4vIMzYwUhiFiqbBMggcbAItX03',
   roles: ['user'],
   __v: 0,
-
+  search: 'Nam Hoang Nam Hoang  N a m Na m  H o a n g Ho an g Hoa ng Hoan g',
 };
 
 const userDataC = {
@@ -93,6 +92,7 @@ const userDataC = {
     'user',
   ],
   __v: 0,
+  search: 'Thanh Tran Trung Thanh Tran Trung  T h a n h Th an h Tha nh Than h  T r a n Tr an Tra n  T r u n g Tr un g Tru ng Trun g',
 };
 
 const friendsRelationData = {
@@ -118,6 +118,7 @@ describe('RootPostQuery', () => {
   });
   test('Get user in list friends by keyword', async () => {
     // language=GraphQL
+    const keywordA = 'th';
     const query = `
       {
         search (keyword: "${keywordA}"){
@@ -150,11 +151,12 @@ describe('RootPostQuery', () => {
     }));
   });
 
-  test('No user matched the keyword', async () => {
+  test('No user matched the keyword in my name', async () => {
     // language=GraphQL
+    const keywordB = 'za';
     const query = `
       {
-        search (keyword: "${keywordA}"){
+        search (keyword: "${keywordB}"){
           _id
           profile {
             picture
@@ -176,11 +178,19 @@ describe('RootPostQuery', () => {
     expect(result.data.search).toEqual([]);
   });
 
-  test('No user matched the keyword in my name', async () => {
+  test('No user matched the keyword when user in different building ', async () => {
     // language=GraphQL
+    await UsersModel.update({
+      _id: userIdC,
+    }, {
+      $set: {
+        building: '58da279f0ff5af8c8be59c70',
+      },
+    });
+    const keywordA = 'th';
     const query = `
       {
-        search (keyword: "${keywordB}"){
+        search (keyword: "${keywordA}"){
           _id
           profile {
             picture
