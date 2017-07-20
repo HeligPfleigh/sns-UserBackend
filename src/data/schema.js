@@ -220,30 +220,21 @@ const rootResolvers = {
     async search({ request }, { keyword, numberOfFriends = 1000 }) {
       // no select password
       const userId = request.user.id;
-      let friendListByIds = await FriendsModel.find({
-        user: userId,
-        status: ACCEPTED,
-      }).select('friend _id');
-      friendListByIds = friendListByIds.map(v => v.friend);
-      // friendListByIds.push(userId);
-      friendListByIds = friendListByIds.map(toObjectId);
+      const u = await UsersModel.findOne({
+        _id: userId,
+      });
       const r = await UsersModel.find({
-        _id: { $in: friendListByIds },
-        $or: [
-          {
-            'profile.firstName': {
-              $regex: keyword,
-              $options: 'i',
-            },
-          },
-          {
-            'profile.lastName': {
-              $regex: keyword,
-              $options: 'i',
-            },
-          },
-        ],
-      }).limit(numberOfFriends);
+        _id: { $nin: [u._id] },
+        building: u.building,
+        $text: {
+          $search: keyword,
+          $caseSensitive: false,
+        },
+      }, {
+        score: { $meta: 'textScore' },
+      })
+      .sort({ score: { $meta: 'textScore' } })
+      .limit(numberOfFriends);
       return r;
     },
   },

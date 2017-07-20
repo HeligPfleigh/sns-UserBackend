@@ -18,3 +18,37 @@ export default function removeToneVN(str) {
 
   return strRemoved;
 }
+
+function chunkString(str, length) {
+  return str.match(new RegExp('.{1,' + length + '}', 'g'));
+}
+
+function splitWord(word) {
+  const length = word.length;
+  let result = '';
+  for (let i = 1; i < length; i++) {
+    result += ` ${chunkString(word, i).join(' ')}`;
+  }
+  return result;
+}
+
+export function generateSearchField(user) {
+  let search = '';
+  if (user && user.profile && user.profile.firstName) {
+    search += `${user.profile.firstName.trim()} `;
+  }
+  if (user && user.profile && user.profile.lastName) {
+    search += `${user.profile.lastName.trim()} `;
+  }
+  // search = first name + last name
+  if (search.length > 0) {
+    search = search.trim();
+    search = `${removeToneVN(search)} ${search}`;
+  }
+  // split to one word
+  const os = search.split(' ').filter((item, pos, self) => self.indexOf(item) === pos);
+  for (let i = 0; i < os.length; i++) {
+    search += ` ${splitWord(os[i])}`;
+  }
+  return search;
+}
