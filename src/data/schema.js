@@ -224,15 +224,12 @@ const rootResolvers = {
         _id: userId,
       });
       const r = await UsersModel.find({
-        $or: [
-          { building: u.building },
-          {
-            $text: {
-              $search: keyword,
-              $caseSensitive: false,
-            },
-          },
-        ],
+        _id: { $nin: [u._id] },
+        building: u.building,
+        $text: {
+          $search: keyword,
+          $caseSensitive: false,
+        },
       }, {
         score: { $meta: 'textScore' },
       })
