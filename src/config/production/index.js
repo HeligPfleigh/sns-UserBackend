@@ -3,6 +3,17 @@ export const host = `localhost:${port}`;
 
 export const databaseUrl = process.env.DATABASE_URL || 'mongodb://mongo:27017/sns';
 
+export const mailer = {
+  smtp: {
+    service: 'Gmail',
+    auth: {
+      user: 'sns.mail.center@gmail.com',
+      pass: 'Mtt2016a@',
+    },
+  },
+  from: '"SNS SERVICE" <sns.mail.center@gmail.com>',
+};
+
 export const auth = {
   facebook: {
     id: process.env.FACEBOK_ID || '669818893191009',
