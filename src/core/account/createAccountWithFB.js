@@ -10,7 +10,7 @@ import {
   BuildingMembersModel,
 } from '../../data/models';
 import { ACCEPTED, MEMBER } from '../../constants';
-import removeToneVN from '../../utils/removeToneVN';
+import removeToneVN, { generateSearchField } from '../../utils/removeToneVN';
 
 const { Types: { ObjectId } } = mongoose;
 const building = ObjectId('58da279f0ff5af8c8be59c36');
@@ -65,8 +65,11 @@ export default async function (accessToken, profile, chatToken) {
     picture: `https://graph.facebook.com/${profile.id}/picture?type=large`,
   };
 
+  // NOTE: update search here
+
   // u.password = UsersModel.generateHash();
   u.password = await bcrypt.hashSync('12345678', bcrypt.genSaltSync(), null);
+  u.search = generateSearchField(u);
 
   const data = await UsersModel.create(u);
   ApartmentsModel.create({

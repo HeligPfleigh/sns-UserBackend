@@ -11,6 +11,7 @@ import {
   sendAcceptFriendNotification,
   sendFriendRequestNotification,
 } from '../../utils/notifications';
+import { generateSearchField } from '../../utils/removeToneVN';
 
 function getUser(userId) {
   return UsersModel.findOne({ _id: userId });
@@ -185,8 +186,11 @@ async function createUser(params) {
     ...params,
     chatId: chatToken && chatToken.chatId,
   };
+  user.search = generateSearchField(user);
 
   createChatUserIfNotExits(user);
+  // NOTE: update search here
+
   const result = await UsersModel.create(user);
   return result;
 }

@@ -60,6 +60,11 @@ const UserSchema = new Schema({
   chatId: {
     type: String,
   },
+  search: String,
+});
+
+UserSchema.index({
+  search: 'text',
 });
 
 // plugins
