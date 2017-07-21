@@ -42,6 +42,11 @@ const PostSchema = new Schema({
     ref: 'Building',
     index: true,
   },
+  sharing: {
+    type: ObjectId,
+    ref: 'Post',
+    index: true,
+  },
   photos: {
     type: Array,
   },

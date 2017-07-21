@@ -106,7 +106,7 @@ type Post {
   privacy: PrivacyType!
   type: PostType!
   isLiked: Boolean
-
+  sharing: Post
   createdAt: Date
   updatedAt: Date
 }
@@ -381,6 +381,9 @@ export const resolvers = {
     },
     building(data) {
       return BuildingsModel.findOne({ _id: data.building });
+    },
+    sharing(data) {
+      return PostsModel.findOne({ _id: data.sharing });
     },
     totalLikes(data) {
       return data.likes.length;

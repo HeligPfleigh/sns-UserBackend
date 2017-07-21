@@ -1,4 +1,5 @@
 import merge from 'lodash/merge';
+import isUndefined from 'lodash/isUndefined';
 import mongoose from 'mongoose';
 import {
   // buildSchemaFromTypeDefinitions,
@@ -110,6 +111,9 @@ type Mutation {
     buildingId: String!
     userId: String!
   ): Friend
+  sharingPost(
+    _id: String!
+  ): Post
 }
 
 schema {
@@ -399,6 +403,27 @@ const rootResolvers = {
       return PostsModel.findOne({
         _id,
       });
+    },
+    async sharingPost({ request }, { _id }) {
+      const author = request.user.id;
+      if (!await PostsModel.findOne({ _id })) {
+        throw new Error('Not found the post');
+      }
+      if (isUndefined(author)) {
+        throw new Error('author is undefined');
+      }
+      if (!await UsersModel.findOne({ _id: author })) {
+        throw new Error('author does not exist');
+      }
+      // JSON.parse(message);
+      const r = await PostsModel.create({
+        author,
+        user: author,
+        privacy: PUBLIC,
+        sharing: _id,
+      });
+      r.isLiked = false;
+      return r;
     },
   },
 };
