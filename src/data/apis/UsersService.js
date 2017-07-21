@@ -12,6 +12,7 @@ import {
   sendFriendRequestNotification,
 } from '../../utils/notifications';
 import { generateSearchField } from '../../utils/removeToneVN';
+import Mailer from '../../core/mailer';
 
 function getUser(userId) {
   return UsersModel.findOne({ _id: userId });
@@ -192,6 +193,21 @@ async function createUser(params) {
   // NOTE: update search here
 
   const result = await UsersModel.create(user);
+  if (result) {
+    const mailObject = {
+      to: emailAddress,
+      subject: 'SNS-SERVICE: Kích hoạt tài khoản',
+      template: 'registration',
+      lang: 'vi-vn',
+      data: {
+        username,
+        email: emailAddress,
+      },
+    };
+
+    await Mailer.sendMail(mailObject);
+  }
+
   return result;
 }
 
