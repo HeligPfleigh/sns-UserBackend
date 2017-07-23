@@ -7,7 +7,7 @@ import { UsersModel } from '../../models';
 
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000; 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
 // const userId = '58f9c2502d4581000484b20a';
 const buildingId = '58da279f0ff5af8c8be60c23';

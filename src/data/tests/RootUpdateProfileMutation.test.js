@@ -1,4 +1,4 @@
-import { graphql,GraphQLString as StringType,
+import { graphql, GraphQLString as StringType,
   GraphQLInputObjectType as InputObjectType } from 'graphql';
 import {
   setupTest,
@@ -149,7 +149,7 @@ describe('RootUpdateProfileMutation', () => {
     expect(result.errors[0].message).toEqual('Field "updateProfile" argument "profile" of type "ProfileInput!" is required but not provided.');
   });
   test('should check gender undefined', async () => {
-      const query = `
+    const query = `
       mutation M {
         updateProfile(profile:{ 
          picture: "abc@gmail.com",
@@ -160,18 +160,18 @@ describe('RootUpdateProfileMutation', () => {
           }
       }
     `;
-      const rootValue = {
+    const rootValue = {
       request: {
         user: { id: userId },
       },
     };
-      const context = getContext({});
-      const result = await graphql(schema, query, rootValue, context);
-      expect(result.data.updateProfile).toEqual(null);
-      expect(result.errors[0].message).toEqual('gender is undefined');
-    });
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.updateProfile).toEqual(null);
+    expect(result.errors[0].message).toEqual('gender is undefined');
+  });
   test('should check picture undefined', async () => {
-     const query = `
+    const query = `
       mutation M {
         updateProfile(profile:{ 
         firstName: "aa",
@@ -181,18 +181,18 @@ describe('RootUpdateProfileMutation', () => {
           }
       }
     `;
-     const rootValue = {
+    const rootValue = {
       request: {
         user: { id: userId },
       },
     };
-     const context = getContext({});
-     const result = await graphql(schema, query, rootValue, context);
-     expect(result.data.updateProfile).toEqual(null);
-     expect(result.errors[0].message).toEqual('picture is undefined');
-   });
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.updateProfile).toEqual(null);
+    expect(result.errors[0].message).toEqual('picture is undefined');
+  });
   test('should check firstName undefined', async () => {
-     const query = `
+    const query = `
       mutation M {
         updateProfile(profile:{ 
         picture: "abc@gmail.com",
@@ -202,18 +202,18 @@ describe('RootUpdateProfileMutation', () => {
           }
       }
     `;
-     const rootValue = {
+    const rootValue = {
       request: {
         user: { id: userId },
       },
     };
-     const context = getContext({});
-     const result = await graphql(schema, query, rootValue, context);
-     expect(result.data.updateProfile).toEqual(null);
-     expect(result.errors[0].message).toEqual('firstName is undefined');
-   });
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.updateProfile).toEqual(null);
+    expect(result.errors[0].message).toEqual('firstName is undefined');
+  });
   test('should check lastName undefined', async () => {
-     const query = `
+    const query = `
       mutation M {
         updateProfile(profile:{ 
         picture: "abc@gmail.com",
@@ -223,16 +223,16 @@ describe('RootUpdateProfileMutation', () => {
           }
       }
     `;
-     const rootValue = {
+    const rootValue = {
       request: {
         user: { id: userId },
       },
     };
-     const context = getContext({});
-     const result = await graphql(schema, query, rootValue, context);
-     expect(result.data.updateProfile).toEqual(null);
-     expect(result.errors[0].message).toEqual('lastName is undefined');
-   });
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.updateProfile).toEqual(null);
+    expect(result.errors[0].message).toEqual('lastName is undefined');
+  });
   afterEach(async () => {
     // clear data
     await UsersModel.remove({});

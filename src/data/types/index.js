@@ -18,6 +18,16 @@ export const schema = [`
 # scalar types
 scalar Date
 
+# An object with an ID.
+interface Node {
+  _id: ID!
+}
+
+
+
+
+
+
 type Address {
   country: String
   city: String
@@ -333,16 +343,16 @@ export const resolvers = {
     },
     async friendSuggestions(user) {
       const currentFriends = await FriendsRelationModel
-      .find({
-        $or: [
-          { user: user._id },
-          { friend: user._id },
-        ],
-        status: {
-          $in: ['PENDING', 'ACCEPTED', 'BLOCKED'],
-        },
-      })
-      .select('user friend _id');
+        .find({
+          $or: [
+            { user: user._id },
+            { friend: user._id },
+          ],
+          status: {
+            $in: ['PENDING', 'ACCEPTED', 'BLOCKED'],
+          },
+        })
+        .select('user friend _id');
       const ninIds = reduce(currentFriends, (result, item) => {
         result.push(item.user);
         result.push(item.friend);
