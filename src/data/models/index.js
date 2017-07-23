@@ -6,7 +6,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE.txt file in the root directory of this source tree.
  */
-  /* eslint-disable prefer-default-export */
+/* eslint-disable prefer-default-export */
 
 import UsersModel from './UsersModel';
 import FriendsRelationModel from './FriendsRelationModel';

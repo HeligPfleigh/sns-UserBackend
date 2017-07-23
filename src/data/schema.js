@@ -237,8 +237,8 @@ const rootResolvers = {
       }, {
         score: { $meta: 'textScore' },
       })
-      .sort({ score: { $meta: 'textScore' } })
-      .limit(numberOfFriends);
+        .sort({ score: { $meta: 'textScore' } })
+        .limit(numberOfFriends);
       return r;
     },
   },

@@ -2,7 +2,6 @@ import * as firebase from 'firebase';
 import EventEmitter from 'events';
 
 export class FirebaseProvider {
-
   constructor(config) {
     const defaultApp = firebase.initializeApp(config);
     this.service = defaultApp;
