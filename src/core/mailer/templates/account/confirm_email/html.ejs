@@ -1,0 +1,20 @@
+<div class="wrapper">
+  <div class="header">SNS Account Confirm</div>
+  <div class="content">
+    <div>Dear <%= email.data.username %>,</div>
+
+    <div>Thank you for signing up for <a href="http://<%= email.data.host %>">SNS social</a>!</div>
+
+    <div>Your account informations</div>
+    <div><strong>Username</strong>: <%= email.data.username %></div>
+    <div><strong>Email</strong>: <%= email.data.email %></div>
+    <div><strong>Active Code</strong>: <%= email.data.activeCode %></div>
+
+    <div>Please verify your Email address by clicking the button below.</div></br>
+
+    <div><a class="btn-active" href="http://<%= email.data.host %>/active/<%= email.data.username %>">Confirm your account</a></div></br>
+
+    <div>Thank you!</div>
+  </div>
+  <div class="footer">SNS Team</div>
+</div>

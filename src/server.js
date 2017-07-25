@@ -22,6 +22,7 @@ import { generateToken, EXPIRES_IN } from './utils/token';
 import config from './config';
 import Mongoose from './data/mongoose';
 import UsersService from './data/apis/UsersService';
+import Mailer from './core/mailer';
 
 const { port, auth, databaseUrl } = config;
 
@@ -105,6 +106,37 @@ app.post('/auth/register', async (req, res) => {
     res.status(200).json(user);
   } catch (error) {
     res.status(500).send({ error: error.message });
+  }
+});
+
+app.post('/auth/active', async (req, res) => {
+  try {
+    const user = await UsersService.activeUser(req.body);
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+app.get('/send', async (req, res) => {
+  const mailObject = {
+    to: 'linh.le@mttjsc.com',
+    subject: 'Hello ✔',
+    template: 'registration',
+    lang: 'vi-vn',
+    data: {
+      username: 'ninjavungve',
+      email: 'ninjavungve@gmail.com',
+      password: 'abc12345',
+    },
+  };
+
+  const result = await Mailer.sendMail(mailObject);
+
+  if (JSON.parse(result)) {
+    res.status(200).send(result);
+  } else {
+    res.status(500).send('Send mail error');
   }
 });
 

@@ -1,0 +1,46 @@
+.wrapper {
+  margin: 15px auto;
+  width: 80%;
+  background-color: #f8fafd;
+  border: 1px solid #e4e4e4;
+  font-size: 18px;
+}
+
+.header {
+  padding: 15px;
+  background-color: #1b3949;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  font-size: 25px;
+}
+
+.content {
+  padding: 15px;
+}
+
+.content > div {
+  margin-bottom: 10px;
+}
+
+.content a, .content a:hover {
+  text-decoration: none;
+  color: dodgerblue;
+}
+
+.btn-active {
+  color: white !important;
+  background-color: #32c700;
+  padding: 10px 20px;
+  margin: 20px 0;
+  letter-spacing: 1px;
+  border-radius: 5px;
+}
+
+.footer {
+  padding: 15px;
+  background-color: #f4f4f5;
+  color: grey;
+  text-align: right;
+  font-weight: bold;
+}
