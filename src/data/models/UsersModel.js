@@ -61,6 +61,12 @@ const UserSchema = new Schema({
     type: String,
   },
   search: String,
+  activeCode: String,
+  isActive: {
+    type: Number, // 0 - not active, 1 - activated, 2 - deactive, 3 - lock
+    default: 0,
+    required: true,
+  },
 });
 
 UserSchema.index({

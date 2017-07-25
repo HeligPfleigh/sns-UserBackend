@@ -2,6 +2,8 @@ import isUndefined from 'lodash/isUndefined';
 import isEmpty from 'lodash/isEmpty';
 import bcrypt from 'bcrypt';
 import { ObjectId } from 'mongodb';
+import { generate as idRandom } from 'shortid';
+import moment from 'moment';
 import {
   UsersModel,
   FriendsRelationModel,
@@ -13,6 +15,7 @@ import {
 } from '../../utils/notifications';
 import { generateSearchField } from '../../utils/removeToneVN';
 import Mailer from '../../core/mailer';
+import config from '../../config';
 
 function getUser(userId) {
   return UsersModel.findOne({ _id: userId });
@@ -183,9 +186,11 @@ async function createUser(params) {
 
   // Connect user with account firebase
   const chatToken = await getChatToken({ email: emailAddress, password });
+  const activeCode = idRandom();
   const user = {
     ...params,
     chatId: chatToken && chatToken.chatId,
+    activeCode,
   };
   user.search = generateSearchField(user);
 
@@ -202,6 +207,65 @@ async function createUser(params) {
       data: {
         username,
         email: emailAddress,
+        activeCode,
+        host: config.client,
+      },
+    };
+
+    await Mailer.sendMail(mailObject);
+  }
+
+  return result;
+}
+
+async function activeUser(params) {
+  const {
+    username,
+    activeCode,
+  } = params;
+
+  if (isUndefined(username)) {
+    throw new Error('username is undefined');
+  }
+
+  if (isUndefined(activeCode)) {
+    throw new Error('code active is undefined');
+  }
+
+  if (!await UsersModel.findOne({ username })) {
+    throw new Error('Account is not exist');
+  }
+
+  const user = await UsersModel.findOne({ username, activeCode });
+  if (!user || isEmpty(user)) {
+    throw new Error('Code active incorrect');
+  }
+
+  const updatedAt = moment(user.updatedAt);
+  const duration = moment.duration(moment().diff(updatedAt));
+  const hours = duration.asHours();
+
+  if (hours > 24) {
+    throw new Error('Code active expired');
+  }
+
+
+  const result = await UsersModel.findOneAndUpdate({ _id: user._id }, {
+    $set: {
+      isActive: 1,
+      activeCode: '',
+      'emails.verified': true,
+    },
+  });
+  if (result) {
+    const mailObject = {
+      to: result.emails.address,
+      subject: 'SNS-SERVICE: Kích hoạt tài khoản thành công',
+      template: 'activated',
+      lang: 'vi-vn',
+      data: {
+        username,
+        host: config.client,
       },
     };
 
@@ -214,6 +278,7 @@ async function createUser(params) {
 export default {
   checkExistUser,
   createUser,
+  activeUser,
   getUser,
   acceptFriend,
   rejectFriend,
