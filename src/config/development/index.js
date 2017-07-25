@@ -1,5 +1,6 @@
 export const port = 3005;
 export const host = `localhost:${port}`;
+export const client = 'localhost:3003';
 
 export const databaseUrl = process.env.DATABASE_URL || 'mongodb://localhost:27017/sns_test';
 
