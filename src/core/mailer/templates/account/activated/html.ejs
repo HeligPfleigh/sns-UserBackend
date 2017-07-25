@@ -3,11 +3,11 @@
   <div class="content">
     <div>Dear <%= email.data.username %>,</div>
 
-    <div>Thank you for signing up for <a href="http://sns.mttjsc.com">SNS social</a>!</div>
+    <div>Thank you for signing up for <a href="http://<%= email.data.host %>">SNS social</a>!</div>
 
     <div>Your account active successfully.</div></br>
 
-    <div><a class="btn-redirect" href="http://sns.mttjsc.com/login">Visit SNS Website</a></div></br>
+    <div><a class="btn-redirect" href="http://<%= email.data.host %>/login">Visit SNS Website</a></div></br>
 
     <div>Thank you!</div>
   </div>

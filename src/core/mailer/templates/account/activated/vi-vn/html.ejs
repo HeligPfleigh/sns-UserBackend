@@ -3,7 +3,7 @@
   <div class="content">
     <div><%= email.data.username %> thân mến!</div>
 
-    <div>Cảm ơn bạn đã đăng kí và sử dụng <a href="http://sns.mttjsc.com">
+    <div>Cảm ơn bạn đã đăng kí và sử dụng <a href="http://<%= email.data.host %>">
       <strong>Mạng xã hội chung cư - SNS</strong></a>!
     </div>
 
@@ -11,7 +11,7 @@
 
     <div>Vui lòng click chọn "Đăng nhập" để tiếp tục sử dụng dịch vụ.</div></br>
 
-    <div><a class="btn-redirect" href="http://sns.mttjsc.com/login">Đăng nhập</a></div></br>
+    <div><a class="btn-redirect" href="http://<%= email.data.host %>/login">Đăng nhập</a></div></br>
 
     <div>Trân trọng!</div>
   </div>
