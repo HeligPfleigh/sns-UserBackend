@@ -109,6 +109,15 @@ app.post('/auth/register', async (req, res) => {
   }
 });
 
+app.post('/auth/active', async (req, res) => {
+  try {
+    const user = await UsersService.activeUser(req.body);
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
 app.get('/send', async (req, res) => {
   const mailObject = {
     to: 'linh.le@mttjsc.com',
