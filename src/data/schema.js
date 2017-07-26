@@ -112,7 +112,7 @@ type Mutation {
     userId: String!
   ): Friend
   sharingPost(
-    _id: String!
+    _id: String!,
   ): Post
 }
 
@@ -406,24 +406,37 @@ const rootResolvers = {
     },
     async sharingPost({ request }, { _id }) {
       const author = request.user.id;
-      if (!await PostsModel.findOne({ _id })) {
-        throw new Error('Not found the post');
-      }
+      const p = await PostsModel.findOne({ _id });
       if (isUndefined(author)) {
         throw new Error('author is undefined');
       }
       if (!await UsersModel.findOne({ _id: author })) {
         throw new Error('author does not exist');
       }
+      if (!p) {
+        throw new Error('Not found the post');
+      } else {
+        const sharingId = p.sharing;
+        if (!sharingId) {
+          const r = await PostsModel.create({
+            author,
+            user: author,
+            privacy: PUBLIC,
+            sharing: _id,
+          });
+          r.isLiked = false;
+          return r;
+        }
+        const r = await PostsModel.create({
+          author,
+          user: author,
+          privacy: PUBLIC,
+          sharing: sharingId,
+        });
+        r.isLiked = false;
+        return r;
+      }
       // JSON.parse(message);
-      const r = await PostsModel.create({
-        author,
-        user: author,
-        privacy: PUBLIC,
-        sharing: _id,
-      });
-      r.isLiked = false;
-      return r;
     },
   },
 };
