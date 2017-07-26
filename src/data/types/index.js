@@ -13,6 +13,7 @@ import {
   NotificationsModel,
 } from '../models';
 import { ADMIN, ACCEPTED, MEMBER, PENDING, PUBLIC, FRIEND } from '../../constants';
+import Service from '../mongo/service';
 
 export const schema = [`
 # scalar types
@@ -128,7 +129,7 @@ type Profile {
   gender: String
 }
 
-interface User {
+interface Resident {
   _id: ID!
   username: String
   profile: Profile
@@ -136,10 +137,9 @@ interface User {
   posts: [Post]
   building: [Building]
   apartments: [Apartment]
-  friends: [User]
 }
 
-type Me implements Node, User {
+type Me implements Node, Resident {
   _id: ID!
   username: String
   profile: Profile
@@ -157,7 +157,7 @@ type Me implements Node, User {
   updatedAt: Date
 }
 
-type Friend implements Node, User {
+type Friend implements Node, Resident {
   _id: ID!
   username: String
   profile: Profile
@@ -172,7 +172,7 @@ type Friend implements Node, User {
   updatedAt: Date
 }
 
-type Author implements Node, User {
+type Author implements Node, Resident {
   _id: ID!
   username: String
   profile: Profile
@@ -180,7 +180,7 @@ type Author implements Node, User {
   posts: [Post]
   building: [Building]
   apartments: [Apartment]
-  friends: [User]
+  friends: [Resident]
 
   createdAt: Date
   updatedAt: Date
@@ -203,7 +203,46 @@ type NotificationsResult {
   pageInfo: PageInfo
   edges: [Notification]
 }
+
+### User Type
+# Represents a user in system.
+type User implements Node {
+  _id: ID!
+  username: String
+  profile: Profile
+  chatId: String
+  posts( cursor: String, limit: Int): PostConnection!
+  friends( cursor: String, limit: Int): UserConnection!
+  friendRequests( cursor: String, limit: Int): UserConnection!
+  friendSuggestions( cursor: String, limit: Int): UserConnection!
+
+  
+  building: [Building]
+  apartments: [Apartment]
+  totalFriends: Int
+  totalNotification: Int
+
+  createdAt: Date
+  updatedAt: Date
+}
+type PostConnection {
+  pageInfo: PageInfo
+  edges: [Post]
+}
+type UserConnection {
+  pageInfo: PageInfo
+  edges: [User]
+}
 `];
+
+const PostsService = Service({
+  Model: PostsModel,
+  paginate: {
+    default: 5,
+    max: 10,
+  },
+  cursor: true,
+});
 
 export const resolvers = {
   Date: DateScalarType,
@@ -515,6 +554,29 @@ export const resolvers = {
     },
     parent(comment) {
       return comment.reply;
+    },
+  },
+  User: {
+    async posts(data, { cursor = null, limit = 5 }, { user }) {
+      const r = await PostsService.find({
+        $cursor: cursor,
+        query: {
+          author: data._id, // post from me
+          user: data._id,
+          isDeleted: { $exists: false },
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      });
+      return {
+        pageInfo: r.paging,
+        edges: r.data.map((res) => {
+          res.likes.indexOf(user.id) !== -1 ? res.isLiked = true : res.isLiked = false;
+          return res;
+        }),
+      };
     },
   },
 };

@@ -61,13 +61,25 @@ type Query {
   search(keyword: String!, numberOfFriends: Int): [Friend]
   # users,
   test: Test
+  userTest(_id: String): User
 }
+
 input ProfileInput {
   picture: String
   firstName: String
   lastName: String
   gender: String
 }
+
+input UpdateUserProfileInput {
+  userId: String!
+  profile: ProfileInput
+}
+
+type UpdateUserProfilePayload {
+  user: User
+}
+
 type Mutation {
   acceptFriend (
     _id: String!
@@ -127,6 +139,10 @@ type Mutation {
   sharingPost(
     _id: String!
   ): Post
+
+  updateUserProfile(
+    input: UpdateUserProfileInput!
+  ): UpdateUserProfilePayload
 }
 
 schema {
@@ -262,6 +278,9 @@ const rootResolvers = {
       return {
         hello: 'world',
       };
+    },
+    userTest(root, { _id }) {
+      return UsersService.getUser(_id);
     },
   },
   Mutation: {
@@ -446,6 +465,35 @@ const rootResolvers = {
       });
       r.isLiked = false;
       return r;
+    },
+    async updateUserProfile({ request }, { input }) {
+      const {
+        userId,
+        profile,
+      } = input;
+      if (request.user.id !== userId) {
+        throw new Error('not author');
+      }
+      const update = {
+        $set: {},
+      };
+      if (profile.firstName) {
+        update.$set['profile.firstName'] = profile.firstName;
+      }
+      if (profile.gender) {
+        update.$set['profile.gender'] = profile.gender;
+      }
+      if (profile.lastName) {
+        update.$set['profile.lastName'] = profile.lastName;
+      }
+      await UsersModel.update({
+        _id: userId,
+      }, update);
+      return {
+        user: await UsersModel.findOne({
+          _id: userId,
+        }),
+      };
     },
   },
 };

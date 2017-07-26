@@ -2,6 +2,10 @@
 
 export const SET_RUNTIME_VARIABLE = 'SET_RUNTIME_VARIABLE';
 
+export const MALE = 'MALE';
+export const FEMALE = 'FEMALE';
+export const GENDER = [MALE, FEMALE];
+
 export const STATUS = 'STATUS';
 export const EVENT = 'EVENT';
 export const POST_TYPES = [STATUS, EVENT];
