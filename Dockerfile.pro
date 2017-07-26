@@ -22,4 +22,11 @@ COPY build/ /usr/src/app/
 RUN cp -a /tmp/node_modules /usr/src/app/
 
 EXPOSE 3005
-CMD [ "npm", "start" ]
+
+#CMD [ "npm", "start" ]
+
+# Install PM2 process manager
+RUN npm install pm2 -g
+# RUN pm2 link rztnpamlzn97yi3 5qoosqw7ur9szsy
+
+CMD ["pm2-docker", "--public", "5qoosqw7ur9szsy", "--secret", "rztnpamlzn97yi3", "process.yml"]

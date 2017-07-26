@@ -16,6 +16,7 @@ const userIdB = '58f9c1bf2d4581000484b188';
 const userIdC = '58f7c1bf2d5581111484b188';
 const postId = '58f9d6b62d4581000484b1a3';
 const postIdB = '58f9d6b62d4581111484b1a3';
+const postIdC = '58f9d6b62d4583333484b1a3';
 const buildingId = '58da279f0ff5af8c8be59c36';
 const userDataA = {
   _id: userIdA,
@@ -82,6 +83,18 @@ const postData = {
   __v: 0,
 };
 
+const postDataB = {
+  _id: postIdB,
+  message: '{\'entityMap\':{},\'blocks\':[{\'key\':\'4gvpl\',\'text\':\'ReactJs Viet Nam\',\'type\':\'unstyled\',\'depth\':0,\'inlineStyleRanges\':[],\'entityRanges\':[],\'data\':{}}]}',
+  user: userIdB,
+  author: userIdB,
+  sharing: postId,
+  likes: [userIdB],
+  photos: [],
+  type: 'STATUS',
+  __v: 0,
+};
+
 console.log('start');
 
 describe('RootSharingPostMutation', () => {
@@ -93,6 +106,8 @@ describe('RootSharingPostMutation', () => {
     await userB.save();
     const post = new PostsModel(postData);
     await post.save();
+    const postB = new PostsModel(postDataB);
+    await postB.save();
   });
 
   test('should share other people\'s post', async () => {
@@ -132,7 +147,7 @@ describe('RootSharingPostMutation', () => {
     }));
   });
 
-  test('should share my post', async () => {
+  test('should share post', async () => {
     const query = `
       mutation M2 { 
         sharingPost(_id:"${postId}") {
@@ -169,10 +184,52 @@ describe('RootSharingPostMutation', () => {
     }));
   });
 
+  test('should share my and my friend\'s shared post', async () => {
+    const query = `
+      mutation M2 { 
+        sharingPost(_id:"${postIdB}") {
+          user {
+            _id
+          }
+          sharing {
+            _id
+            author {
+              _id
+            }
+          }
+          
+        }
+      }
+    `;
+    const rootValue = {
+      request: {
+        user: { id: userIdB },
+      },
+    };
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.sharingPost).toEqual(Object.assign({}, {
+      user: {
+        _id: userIdB,
+      },
+      sharing: {
+        _id: postId,
+        author: {
+          _id: userIdB,
+        },
+      },
+    }));
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, 5000);
+    });
+  });
+
   test('should throw error if not found the post', async () => {
     const query = `
       mutation M3 { 
-        sharingPost(_id:"${postIdB}") {
+        sharingPost(_id:"${postIdC}") {
           user {
             _id
           }
