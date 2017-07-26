@@ -30,6 +30,7 @@ async function copy() {
     }, null, 2)),
 
     copyDir('src/core/mailer/templates', 'build/mailer/templates'),
+    copyFile('process.yml', 'build/process.yml'),
   ]);
 
   if (process.argv.includes('--watch')) {
