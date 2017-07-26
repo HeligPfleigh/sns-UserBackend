@@ -184,9 +184,7 @@ describe('RootUserQuery', () => {
       },
     });
     let result = await graphql(schema, query, rootValue, context);
-    const unLikedPost = result.data.user.posts.filter((p) => {
-      return !p.isLiked;
-    });
+    const unLikedPost = result.data.user.posts.filter(p => !p.isLiked);
     expect(unLikedPost.length).toEqual(0);
     let messages = result.data.user.posts.map(m => m.message);
     expect(messages).toEqual([

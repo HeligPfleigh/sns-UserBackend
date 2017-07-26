@@ -67,7 +67,7 @@ const userDataB = {
 };
 
 const userDataC = {
-  _id : userIdC,
+  _id: userIdC,
   emails: {
     address: 'thanhtt@gmail.com',
     verified: true,

@@ -9,7 +9,7 @@
 
 import path from 'path';
 import chokidar from 'chokidar';
-import { writeFile, copyFile, makeDir, cleanDir } from './lib/fs';
+import { writeFile, copyFile, makeDir, cleanDir, copyDir } from './lib/fs';
 import pkg from '../package.json';
 import { format } from './run';
 
@@ -28,6 +28,8 @@ async function copy() {
         start: 'node server.js',
       },
     }, null, 2)),
+
+    copyDir('src/core/mailer/templates', 'build/mailer/templates'),
   ]);
 
   if (process.argv.includes('--watch')) {

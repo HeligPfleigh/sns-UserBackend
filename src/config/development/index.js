@@ -1,7 +1,19 @@
 export const port = 3005;
 export const host = `localhost:${port}`;
+export const client = 'localhost:3003';
 
 export const databaseUrl = process.env.DATABASE_URL || 'mongodb://localhost:27017/sns_test';
+
+export const mailer = {
+  smtp: {
+    service: 'Gmail',
+    auth: {
+      user: 'sns.mail.center@gmail.com',
+      pass: 'Mtt2016a@',
+    },
+  },
+  from: '"SNS SERVICE" <sns.mail.center@gmail.com>',
+};
 
 export const auth = {
   facebook: {

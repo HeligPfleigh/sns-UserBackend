@@ -22,6 +22,14 @@ import PostsService from './apis/PostsService';
 import CommentService from './apis/CommentService';
 import { schema as schemaType, resolvers as resolversType } from './types';
 import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND } from '../constants';
+import {
+  everyone,
+  authenticated,
+  isRole,
+  relation,
+  can,
+  onlyMe,
+} from '../utils/authorization';
 
 const { Types: { ObjectId } } = mongoose;
 
@@ -36,6 +44,10 @@ const toObjectId = (idStr) => {
 };
 
 const rootSchema = [`
+type Test {
+  hello: String
+}
+
 type Query {
   feeds(limit: Int, cursor: String): Feeds
   post(_id: String!): Post
@@ -48,6 +60,7 @@ type Query {
   notifications(limit: Int, cursor: String): NotificationsResult
   search(keyword: String!, numberOfFriends: Int): [Friend]
   # users,
+  test: Test
 }
 input ProfileInput {
   picture: String
@@ -130,6 +143,7 @@ const FeedsService = Service({
   },
   cursor: true,
 });
+
 const NotificationsPagingService = Service({
   Model: NotificationsModel,
   paginate: {
@@ -138,6 +152,7 @@ const NotificationsPagingService = Service({
   },
   cursor: true,
 });
+
 const rootResolvers = {
   Query: {
     async feeds({ request }, { cursor = null, limit = 5 }) {
@@ -237,9 +252,16 @@ const rootResolvers = {
       }, {
         score: { $meta: 'textScore' },
       })
-      .sort({ score: { $meta: 'textScore' } })
-      .limit(numberOfFriends);
+        .sort({ score: { $meta: 'textScore' } })
+        .limit(numberOfFriends);
       return r;
+    },
+    @authenticated
+    @can('create', 'post')
+    test() {
+      return {
+        hello: 'world',
+      };
     },
   },
   Mutation: {

@@ -1,0 +1,6 @@
+apps:
+  - script   : 'npm'
+    args     : 'start'
+    name     : 'SNS-SERVER'
+    exec_mode: 'cluster'
+    instances: 2

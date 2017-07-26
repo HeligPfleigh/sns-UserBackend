@@ -6,7 +6,7 @@ services:
     ports:
       - 28018:27017
     volumes:
-      - ./mongo:/data/db
+      - /var/mongodb/data:/data/db
 
   server:
     build:

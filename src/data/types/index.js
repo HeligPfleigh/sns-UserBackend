@@ -18,6 +18,16 @@ export const schema = [`
 # scalar types
 scalar Date
 
+# An object with an ID.
+interface Node {
+  _id: ID!
+}
+
+
+
+
+
+
 type Address {
   country: String
   city: String
@@ -25,7 +35,7 @@ type Address {
   street: String
 }
 
-type Building {
+type Building implements Node {
   _id: ID!
   name: String
   address: Address
@@ -37,7 +47,7 @@ type Building {
   updatedAt: Date
 }
 
-type Apartment {
+type Apartment implements Node {
   _id: ID!
   number: Int
   building: Building
@@ -67,7 +77,7 @@ enum PostType {
   EVENT
 }
 
-type Notification {
+type Notification implements Node {
   _id: ID!
   user: Author!
   type: NotificationType!
@@ -80,7 +90,7 @@ type Notification {
   updatedAt: Date
 }
 
-type Comment {
+type Comment implements Node {
   _id: ID!
   message: String
   post: Post
@@ -93,7 +103,7 @@ type Comment {
   updatedAt: Date
 }
 
-type Post {
+type Post implements Node {
   _id: ID!
   message: String
   author: Author
@@ -129,7 +139,7 @@ interface User {
   friends: [User]
 }
 
-type Me implements User {
+type Me implements Node, User {
   _id: ID!
   username: String
   profile: Profile
@@ -147,7 +157,7 @@ type Me implements User {
   updatedAt: Date
 }
 
-type Friend implements User {
+type Friend implements Node, User {
   _id: ID!
   username: String
   profile: Profile
@@ -162,7 +172,7 @@ type Friend implements User {
   updatedAt: Date
 }
 
-type Author implements User {
+type Author implements Node, User {
   _id: ID!
   username: String
   profile: Profile
@@ -333,16 +343,16 @@ export const resolvers = {
     },
     async friendSuggestions(user) {
       const currentFriends = await FriendsRelationModel
-      .find({
-        $or: [
-          { user: user._id },
-          { friend: user._id },
-        ],
-        status: {
-          $in: ['PENDING', 'ACCEPTED', 'BLOCKED'],
-        },
-      })
-      .select('user friend _id');
+        .find({
+          $or: [
+            { user: user._id },
+            { friend: user._id },
+          ],
+          status: {
+            $in: ['PENDING', 'ACCEPTED', 'BLOCKED'],
+          },
+        })
+        .select('user friend _id');
       const ninIds = reduce(currentFriends, (result, item) => {
         result.push(item.user);
         result.push(item.friend);
