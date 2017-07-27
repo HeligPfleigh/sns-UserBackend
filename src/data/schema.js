@@ -22,14 +22,14 @@ import PostsService from './apis/PostsService';
 import CommentService from './apis/CommentService';
 import { schema as schemaType, resolvers as resolversType } from './types';
 import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND } from '../constants';
-import {
-  everyone,
-  authenticated,
-  isRole,
-  relation,
-  can,
-  onlyMe,
-} from '../utils/authorization';
+// import {
+//   everyone,
+//   authenticated,
+//   isRole,
+//   relation,
+//   can,
+//   onlyMe,
+// } from '../utils/authorization';
 
 const { Types: { ObjectId } } = mongoose;
 
@@ -61,7 +61,7 @@ type Query {
   search(keyword: String!, numberOfFriends: Int): [Friend]
   # users,
   test: Test
-  userTest(_id: String): User
+  resident(_id: String): User
 }
 
 input ProfileInput {
@@ -272,14 +272,14 @@ const rootResolvers = {
         .limit(numberOfFriends);
       return r;
     },
-    @authenticated
-    @can('create', 'post')
-    test() {
-      return {
-        hello: 'world',
-      };
-    },
-    userTest(root, { _id }) {
+    // @authenticated
+    // @can('create', 'post')
+    // test() {
+    //   return {
+    //     hello: 'world',
+    //   };
+    // },
+    resident(root, { _id }) {
       return UsersService.getUser(_id);
     },
   },
