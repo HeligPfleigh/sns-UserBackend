@@ -24,6 +24,8 @@ import Mongoose from './data/mongoose';
 import UsersService from './data/apis/UsersService';
 import Mailer from './core/mailer';
 
+import UploadRouter from './core/uploads';
+
 const { port, auth, databaseUrl } = config;
 
 // Create connect database
@@ -170,6 +172,10 @@ app.get('/auth/logout', (req, res) => {
   res.clearCookie('id_token');
   res.redirect('/');
 });
+
+app.use('/upload', UploadRouter);
+
+app.use('/images', express.static(`${__dirname}/public/uploads`));
 
 //
 // Register API middleware
