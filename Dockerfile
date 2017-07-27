@@ -27,6 +27,6 @@ EXPOSE 3005
 
 # Install PM2 process manager
 RUN npm install pm2 -g
-RUN pm2 link rztnpamlzn97yi3 5qoosqw7ur9szsy
+# RUN pm2 link rztnpamlzn97yi3 5qoosqw7ur9szsy
 
 CMD ["pm2-docker", "--public", "5qoosqw7ur9szsy", "--secret", "rztnpamlzn97yi3", "process.yml"]
