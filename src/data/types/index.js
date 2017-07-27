@@ -244,6 +244,24 @@ const PostsService = Service({
   cursor: true,
 });
 
+// const UsersService = Service({
+//   Model: UsersModel,
+//   paginate: {
+//     default: 5,
+//     max: 10,
+//   },
+//   cursor: true,
+// });
+
+const ApartmentsService = Service({
+  Model: ApartmentsModel,
+  paginate: {
+    default: 5,
+    max: 10,
+  },
+  cursor: true,
+});
+
 export const resolvers = {
   Date: DateScalarType,
   Building: {
@@ -576,6 +594,53 @@ export const resolvers = {
           res.likes.indexOf(user.id) !== -1 ? res.isLiked = true : res.isLiked = false;
           return res;
         }),
+      };
+    },
+    async friendSuggestions(data, { cursor = null, limit = 5 }) {
+      // get current friends
+      const currentFriends = await FriendsRelationModel
+        .find({
+          $or: [
+            { user: data._id },
+            { friend: data._id },
+          ],
+          status: {
+            $in: ['PENDING', 'ACCEPTED', 'BLOCKED'],
+          },
+        })
+        .select('user friend _id');
+
+      const ninIds = reduce(currentFriends, (result, item) => {
+        const userID = item.user.toString();
+        const friendID = item.friend.toString();
+        if (result.indexOf(userID) === -1) {
+          result.push(userID);
+        }
+        if (result.indexOf(friendID) === -1) {
+          result.push(friendID);
+        }
+        return result;
+      }, []);
+
+      const r = await ApartmentsService.find({
+        $cursor: cursor,
+        field: 'user',
+        query: {
+          user: { $nin: ninIds },
+          building: data.building,
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      });
+      const usersId = r.data.map(v => v.user);
+      const u = await UsersModel.find({
+        _id: { $in: usersId },
+      });
+      return {
+        pageInfo: r.paging,
+        edges: u,
       };
     },
   },
