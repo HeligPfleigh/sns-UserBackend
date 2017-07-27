@@ -22,14 +22,14 @@ import PostsService from './apis/PostsService';
 import CommentService from './apis/CommentService';
 import { schema as schemaType, resolvers as resolversType } from './types';
 import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND } from '../constants';
-import {
-  everyone,
-  authenticated,
-  isRole,
-  relation,
-  can,
-  onlyMe,
-} from '../utils/authorization';
+// import {
+//   everyone,
+//   authenticated,
+//   isRole,
+//   relation,
+//   can,
+//   onlyMe,
+// } from '../utils/authorization';
 
 const { Types: { ObjectId } } = mongoose;
 
@@ -61,13 +61,25 @@ type Query {
   search(keyword: String!, numberOfFriends: Int): [Friend]
   # users,
   test: Test
+  resident(_id: String): User
 }
+
 input ProfileInput {
   picture: String
   firstName: String
   lastName: String
   gender: String
 }
+
+input UpdateUserProfileInput {
+  userId: String!
+  profile: ProfileInput
+}
+
+type UpdateUserProfilePayload {
+  user: User
+}
+
 type Mutation {
   acceptFriend (
     _id: String!
@@ -127,6 +139,10 @@ type Mutation {
   sharingPost(
     _id: String!,
   ): Post
+
+  updateUserProfile(
+    input: UpdateUserProfileInput!
+  ): UpdateUserProfilePayload
 }
 
 schema {
@@ -256,12 +272,15 @@ const rootResolvers = {
         .limit(numberOfFriends);
       return r;
     },
-    @authenticated
-    @can('create', 'post')
-    test() {
-      return {
-        hello: 'world',
-      };
+    // @authenticated
+    // @can('create', 'post')
+    // test() {
+    //   return {
+    //     hello: 'world',
+    //   };
+    // },
+    resident(root, { _id }) {
+      return UsersService.getUser(_id);
     },
   },
   Mutation: {
@@ -459,6 +478,35 @@ const rootResolvers = {
         return r;
       }
       // JSON.parse(message);
+    },
+    async updateUserProfile({ request }, { input }) {
+      const {
+        userId,
+        profile,
+      } = input;
+      if (request.user.id !== userId) {
+        throw new Error('not author');
+      }
+      const update = {
+        $set: {},
+      };
+      if (profile.firstName) {
+        update.$set['profile.firstName'] = profile.firstName;
+      }
+      if (profile.gender) {
+        update.$set['profile.gender'] = profile.gender;
+      }
+      if (profile.lastName) {
+        update.$set['profile.lastName'] = profile.lastName;
+      }
+      await UsersModel.update({
+        _id: userId,
+      }, update);
+      return {
+        user: await UsersModel.findOne({
+          _id: userId,
+        }),
+      };
     },
   },
 };
