@@ -36,6 +36,22 @@ type Address {
   street: String
 }
 
+enum BuildingNotificationType {
+  TYPE1
+  TYPE2
+}
+
+type BuildingNofitication {
+  type: BuildingNotificationType
+  date: Date
+  title: String
+}
+
+type BuildingNofiticationConnection {
+  pageInfo: PageInfo
+  edges: [BuildingNofitication]
+}
+
 type Building implements Node {
   _id: ID!
   name: String
@@ -43,6 +59,7 @@ type Building implements Node {
   posts: [Post]
   isAdmin: Boolean
   requests( _id: String, limit: Int): [Friend]
+  notifications(cursor: String, limit: Int): BuildingNofiticationConnection!
 
   createdAt: Date
   updatedAt: Date
@@ -215,9 +232,8 @@ type User implements Node {
   friends( cursor: String, limit: Int): UserConnection!
   friendRequests( cursor: String, limit: Int): UserConnection!
   friendSuggestions( cursor: String, limit: Int): UserConnection!
+  building: Building
 
-  
-  building: [Building]
   apartments: [Apartment]
   totalFriends: Int
   totalNotification: Int
