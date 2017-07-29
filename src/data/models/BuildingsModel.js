@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import timestamp from 'mongoose-timestamp';
+import { TYPE1, ANNOUNCEMENT_TYPE } from '../../constants';
 
 const { Schema } = mongoose;
 // const { Types: { ObjectId } } = Schema;
@@ -38,6 +39,21 @@ const LocationSchema = new Schema({
   _id: false,
 });
 
+const AnnouncementSchema = new Schema({
+  date: Date,
+  message: String,
+  type: {
+    type: String,
+    required: true,
+    trim: true,
+    enum: ANNOUNCEMENT_TYPE,
+    default: TYPE1,
+  },
+}, {
+  _id: false,
+});
+
+
 const BuildingSchema = new Schema({
   name: {
     type: String,
@@ -53,6 +69,7 @@ const BuildingSchema = new Schema({
     required: true,
   },
   description: String,
+  announcements: [AnnouncementSchema],
 });
 
 // https://github.com/drudge/mongoose-timestamp

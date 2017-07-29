@@ -12,6 +12,7 @@ import {
   FriendsRelationModel,
   NotificationsModel,
 } from '../models';
+import AddressServices from '../apis/AddressServices';
 import { ADMIN, ACCEPTED, MEMBER, PENDING, PUBLIC, FRIEND } from '../../constants';
 import Service from '../mongo/service';
 
@@ -19,50 +20,10 @@ export const schema = [`
 # scalar types
 scalar Date
 
+# Interface
 # An object with an ID.
 interface Node {
   _id: ID!
-}
-
-
-
-
-
-
-type Address {
-  country: String
-  city: String
-  state: String
-  street: String
-}
-
-enum BuildingNotificationType {
-  TYPE1
-  TYPE2
-}
-
-type BuildingNofitication {
-  type: BuildingNotificationType
-  date: Date
-  title: String
-}
-
-type BuildingNofiticationConnection {
-  pageInfo: PageInfo
-  edges: [BuildingNofitication]
-}
-
-type Building implements Node {
-  _id: ID!
-  name: String
-  address: Address
-  posts: [Post]
-  isAdmin: Boolean
-  requests( _id: String, limit: Int): [Friend]
-  notifications(cursor: String, limit: Int): BuildingNofiticationConnection!
-
-  createdAt: Date
-  updatedAt: Date
 }
 
 type Apartment implements Node {
@@ -249,6 +210,53 @@ type UserConnection {
   pageInfo: PageInfo
   edges: [User]
 }
+
+### Building Type
+# Represents a building in system.
+type Address {
+  country: String
+  city: String
+  state: String
+  street: String
+}
+
+enum BuildingAnnouncementType {
+  TYPE1
+  TYPE2
+}
+
+type BuildingAnnouncement {
+  type: BuildingAnnouncementType
+  date: Date
+  message: String
+}
+
+type PageSkipInfo {
+  skip: Int
+  hasNextPage: Boolean
+  total: Int
+  limit: Int
+}
+
+type BuildingAnnouncementConnection {
+  pageInfo: PageSkipInfo
+  edges: [BuildingAnnouncement]
+}
+
+type Building implements Node {
+  _id: ID!
+  name: String
+  address: Address
+  isAdmin: Boolean
+  announcements(skip: Int, limit: Int): BuildingAnnouncementConnection!
+
+  requests( _id: String, limit: Int): [Friend]
+  posts: [Post]
+
+  createdAt: Date
+  updatedAt: Date
+}
+
 `];
 
 const PostsService = Service({
@@ -334,6 +342,58 @@ export const resolvers = {
       bm = bm.map(v => v.user);
       return UsersModel.find({ _id: { $in: bm } });
     },
+    async announcements(data, { skip = 0, limit = 5 }) {
+      const t = await BuildingsModel.aggregate([
+        {
+          $match: {
+            _id: data._id,
+          },
+        },
+        {
+          $project: {
+            total: {
+              $size: '$announcements',
+            },
+          },
+        },
+      ]);
+      const r = await BuildingsModel.aggregate([
+        {
+          $match: {
+            _id: data._id,
+          },
+        },
+        {
+          $project: {
+            announcements: 1,
+          },
+        },
+        {
+          $unwind: '$announcements',
+        },
+        {
+          $sort: {
+            'announcements.date': -1,
+          },
+        },
+        {
+          $skip: skip,
+        },
+        {
+          $limit: limit,
+        },
+      ]);
+      const edges = r.map(i => i.announcements);
+      return {
+        pageInfo: {
+          skip,
+          hasNextPage: t.total > skip,
+          total: t.total,
+          limit,
+        },
+        edges,
+      };
+    },
     createdAt(data) {
       return new Date(data.createdAt);
     },
@@ -343,7 +403,7 @@ export const resolvers = {
   },
   Apartment: {
     building(data) {
-      return BuildingsModel.findOne({ _id: data.building });
+      return AddressServices.getBuilding(data.building);
     },
     user(data) {
       return UsersModel.findOne({ _id: data.author });
@@ -463,7 +523,7 @@ export const resolvers = {
       return UsersModel.findOne({ _id: data.author });
     },
     building(data) {
-      return BuildingsModel.findOne({ _id: data.building });
+      return AddressServices.getBuilding(data.building);
     },
     sharing(data) {
       return PostsModel.findOne({ _id: data.sharing });
@@ -658,6 +718,9 @@ export const resolvers = {
         pageInfo: r.paging,
         edges: u,
       };
+    },
+    building(data) {
+      return AddressServices.getBuilding(data.building);
     },
   },
 };
