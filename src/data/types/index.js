@@ -388,8 +388,8 @@ export const resolvers = {
       return {
         pageInfo: {
           skip,
-          hasNextPage: t.total > skip,
-          total: t.total,
+          hasNextPage: t[0].total > skip,
+          total: t[0].total,
           limit,
         },
         edges,
