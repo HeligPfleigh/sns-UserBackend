@@ -3,7 +3,7 @@ import timestamp from 'mongoose-timestamp';
 import { TYPE1, ANNOUNCEMENT_TYPE } from '../../constants';
 
 const { Schema } = mongoose;
-// const { Types: { ObjectId } } = Schema;
+const { Types: { ObjectId } } = Schema;
 
 const AddressSchema = new Schema({
   country: {
@@ -40,6 +40,9 @@ const LocationSchema = new Schema({
 });
 
 const AnnouncementSchema = new Schema({
+  _id: {
+    type: ObjectId,
+  },
   date: Date,
   message: String,
   type: {
@@ -49,8 +52,6 @@ const AnnouncementSchema = new Schema({
     enum: ANNOUNCEMENT_TYPE,
     default: TYPE1,
   },
-}, {
-  _id: false,
 });
 
 

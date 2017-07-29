@@ -80,6 +80,41 @@ type UpdateUserProfilePayload {
   user: User
 }
 
+input AnnouncementInput {
+  _id: ID
+  type: BuildingAnnouncementType
+  date: Date
+  message: String
+}
+
+input CreateNewBuildingAnnouncementInput {
+  buildingId: String!
+  announcementInput: AnnouncementInput
+}
+
+type CreateNewBuildingAnnouncementPayload {
+  announcement: BuildingAnnouncement
+}
+
+input UpdateBuildingAnnouncementInput {
+  buildingId: String!
+  announcementId: String!
+  announcementInput: AnnouncementInput
+}
+
+type UpdateBuildingAnnouncementPayload {
+  announcement: BuildingAnnouncement
+}
+
+input DeleteBuildingAnnouncementInput {
+  buildingId: String!
+  announcementId: String!
+}
+
+type DeleteBuildingAnnouncementPayload {
+  announcement: BuildingAnnouncement
+}
+
 type Mutation {
   acceptFriend (
     _id: String!
@@ -143,6 +178,15 @@ type Mutation {
   updateUserProfile(
     input: UpdateUserProfileInput!
   ): UpdateUserProfilePayload
+  createNewBuildingAnnouncement(
+    input: CreateNewBuildingAnnouncementInput!
+  ): CreateNewBuildingAnnouncementPayload
+  updateBuildingAnnouncement(
+    input: UpdateBuildingAnnouncementInput!
+  ): UpdateBuildingAnnouncementPayload
+  deleteBuildingAnnouncement(
+    input: DeleteBuildingAnnouncementInput!
+  ): DeleteBuildingAnnouncementPayload
 }
 
 schema {
@@ -507,6 +551,15 @@ const rootResolvers = {
           _id: userId,
         }),
       };
+    },
+    createNewBuildingAnnouncement({ request }, { input }) {
+      console.log('createNewBuildingAnnouncement');
+    },
+    updateBuildingAnnouncement({ request }, { input }) {
+      console.log('updateBuildingAnnouncement');
+    },
+    deleteBuildingAnnouncement({ request }, { input }) {
+      console.log('deleteBuildingAnnouncement');
     },
   },
 };

@@ -226,6 +226,7 @@ enum BuildingAnnouncementType {
 }
 
 type BuildingAnnouncement {
+  _id: ID!
   type: BuildingAnnouncementType
   date: Date
   message: String
