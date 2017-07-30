@@ -40,9 +40,7 @@ const LocationSchema = new Schema({
 });
 
 const AnnouncementSchema = new Schema({
-  _id: {
-    type: ObjectId,
-  },
+  _id: ObjectId,
   date: Date,
   message: String,
   type: {
@@ -53,7 +51,6 @@ const AnnouncementSchema = new Schema({
     default: TYPE1,
   },
 });
-
 
 const BuildingSchema = new Schema({
   name: {
@@ -70,7 +67,10 @@ const BuildingSchema = new Schema({
     required: true,
   },
   description: String,
-  announcements: [AnnouncementSchema],
+  announcements: {
+    type: [AnnouncementSchema],
+    default: [],
+  },
 });
 
 // https://github.com/drudge/mongoose-timestamp

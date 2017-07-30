@@ -618,7 +618,7 @@ const rootResolvers = {
       const a = await BuildingsModel.findOne(
         {
           _id: buildingId,
-          'announcements._id': announcementId,
+          'announcements._id': toObjectId(announcementId),
         },
       );
       if (!a) {
