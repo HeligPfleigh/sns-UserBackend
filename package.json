@@ -1,6 +1,6 @@
 {
   "name": "sns-project",
-  "version": "0.2.0",
+  "version": "0.15.0",
   "private": true,
   "engines": {
     "node": ">=6.5",
@@ -206,7 +206,7 @@
     "lint:staged": "lint-staged",
     "lint": "yarn run lint:js && yarn run lint:css",
     "test": "cross-env NODE_ENV=test jest --coverage --forceExit --runInBand",
-    "testC": "cross-env NODE_ENV=test jest ./src/data/tests/RootSharingPostMutation.test.js --forceExit --runInBand",
+    "testC": "cross-env NODE_ENV=test jest ./src/data/tests/RootUpdateSeenMutation.test.js --forceExit --runInBand",
     "test:watch": "cross-env NODE_ENV=test jest --watchAll",
     "clean": "babel-node tools/run clean",
     "copy": "babel-node tools/run copy",
