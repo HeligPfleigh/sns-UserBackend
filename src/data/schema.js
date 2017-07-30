@@ -45,8 +45,14 @@ const toObjectId = (idStr) => {
 };
 
 const rootSchema = [`
+
 type Test {
   hello: String
+}
+
+enum ResponseType {
+  RESOURCE_UPDATED_SUCCESSFULLY
+  RESOURCE_UPDATED_FAILURE
 }
 
 type Query {
@@ -79,6 +85,10 @@ input UpdateUserProfileInput {
 
 type UpdateUserProfilePayload {
   user: User
+}
+
+type responsePayload {
+  response: ResponseType
 }
 
 input AnnouncementInput {
@@ -156,7 +166,7 @@ type Mutation {
   updateProfile(
     profile: ProfileInput!
   ): Author
-  updateSeen: Notification
+  updateSeen: responsePayload
   updateRead(
     _id: String!
   ): Notification
@@ -400,8 +410,8 @@ const rootResolvers = {
     updateProfile({ request }, { profile }) {
       return UsersService.updateProfile(request.user.id, profile);
     },
-    updateSeen({ request }, { _id }) {
-      return NotificationsService.updateSeen(request.user.id, _id);
+    updateSeen({ request }) {
+      return NotificationsService.updateSeen(request.user.id);
     },
     updateRead({ request }, { _id }) {
       return NotificationsService.updateRead(request.user.id, _id);
@@ -554,6 +564,7 @@ const rootResolvers = {
       };
     },
     async createNewBuildingAnnouncement({ request }, { input }) {
+      const userId = request.user.id;
       const {
         buildingId,
         announcementInput: {
@@ -561,9 +572,15 @@ const rootResolvers = {
           message,
         },
       } = input;
-      // check if building exist
-      // check if user is admin of building
-
+      const role = await BuildingMembersModel.findOne({
+        building: buildingId,
+        user: userId,
+        type: ADMIN,
+        status: ACCEPTED,
+      });
+      if (!role) {
+        throw new Error('you dont have permission to create new announcement');
+      }
       const announcement = {
         _id: new ObjectId(),
         type,
@@ -579,6 +596,7 @@ const rootResolvers = {
       };
     },
     async updateBuildingAnnouncement({ request }, { input }) {
+      const userId = request.user.id;
       const {
         buildingId,
         announcementId,
@@ -587,7 +605,15 @@ const rootResolvers = {
           message,
         },
       } = input;
-
+      const role = await BuildingMembersModel.findOne({
+        building: buildingId,
+        user: userId,
+        type: ADMIN,
+        status: ACCEPTED,
+      });
+      if (!role) {
+        throw new Error('you dont have permission to create new announcement');
+      }
       // check if announcement and building exist
       const a = await BuildingsModel.findOne(
         {
@@ -598,8 +624,6 @@ const rootResolvers = {
       if (!a) {
         throw Error('not found building or announcement');
       }
-      // check if building exist
-      // check if user is admin of building
       const update = {
         $set: {},
       };
@@ -630,12 +654,20 @@ const rootResolvers = {
       };
     },
     async deleteBuildingAnnouncement({ request }, { input }) {
+      const userId = request.user.id;
       const {
         buildingId,
         announcementId,
       } = input;
-
-      // check if announcement and building exist
+      const role = await BuildingMembersModel.findOne({
+        building: buildingId,
+        user: userId,
+        type: ADMIN,
+        status: ACCEPTED,
+      });
+      if (!role) {
+        throw new Error('you dont have permission to create new announcement');
+      }
       const a = await BuildingsModel.findOne(
         {
           _id: buildingId,
@@ -645,8 +677,6 @@ const rootResolvers = {
       if (!a) {
         throw Error('not found building or announcement');
       }
-      // check if building exist
-      // check if user is admin of building
       const update = {
         $pull: {
           announcements: {
