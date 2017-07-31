@@ -155,7 +155,7 @@ type Mutation {
   editPost (
     _id: String!
     message: String!
-    isDelPostSharing: Boolean!
+    isDelPostSharing: Boolean
   ): Post
   deletePost (
     _id:String!
@@ -185,7 +185,7 @@ type Mutation {
   ): Friend
   sharingPost(
     _id: String!,
-    privacy: String!,
+    privacy: String,
   ): Post
 
   updateUserProfile(
@@ -484,7 +484,7 @@ const rootResolvers = {
       });
       return UsersModel.findOne({ _id: userId });
     },
-    async editPost({ request }, { _id, message, isDelPostSharing }) {
+    async editPost(_, { _id, message, isDelPostSharing = true }) {
       const p = await PostsModel.findOne({ _id });
       if (!p) {
         throw new Error('not found the post');
