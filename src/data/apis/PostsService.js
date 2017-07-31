@@ -69,7 +69,7 @@ async function unlikePost(userId, postId) {
   }
   return PostsModel.findOne({ _id: postId });
 }
-async function createNewPost(author, message, userId, privacy) {
+async function createNewPost(author, message, userId, privacy, photos) {
   try {
     if (isUndefined(author)) {
       throw new Error('author is undefined');
@@ -79,6 +79,9 @@ async function createNewPost(author, message, userId, privacy) {
     }
     if (!await UsersModel.findOne({ _id: new ObjectId(author) })) {
       throw new Error('author does not exist');
+    }
+    if (!photos) {
+      photos = [];
     }
     if (userId && !await FriendsRelationModel.findOne({
       friend: author,
@@ -93,6 +96,7 @@ async function createNewPost(author, message, userId, privacy) {
       author,
       user: userId || author,
       privacy,
+      photos,
     });
 
     if (userId && !isEqual(userId, author)) {
@@ -105,7 +109,7 @@ async function createNewPost(author, message, userId, privacy) {
   }
 }
 
-async function createNewPostOnBuilding(author, message, buildingId) {
+async function createNewPostOnBuilding(author, message, photos, buildingId) {
   try {
     if (isUndefined(author)) {
       throw new Error('author is undefined');
@@ -121,6 +125,7 @@ async function createNewPostOnBuilding(author, message, buildingId) {
       message,
       author,
       building: buildingId,
+      photos,
     });
 
     await BuildingFeedModel.create({ building: buildingId, post: r._id });
