@@ -109,6 +109,7 @@ type Mutation {
   editPost (
     _id: String!
     message: String!
+    isDelPostSharing: Boolean!
   ): Post
   deletePost (
     _id:String!
@@ -428,10 +429,8 @@ const rootResolvers = {
       });
       return UsersModel.findOne({ _id: userId });
     },
-    async editPost({ request }, { _id, message }) {
-      const p = await PostsModel.findOne({
-        _id,
-      });
+    async editPost({ request }, { _id, message, isDelPostSharing }) {
+      const p = await PostsModel.findOne({ _id });
       if (!p) {
         throw new Error('not found the post');
       }
@@ -440,6 +439,7 @@ const rootResolvers = {
       }, {
         $set: {
           message,
+          sharing: isDelPostSharing ? p.sharing : null,
         },
       });
       return PostsModel.findOne({
