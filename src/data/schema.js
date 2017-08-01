@@ -111,6 +111,7 @@ type Mutation {
     _id: String!
     message: String!
     photos: [String]
+    isDelPostSharing: Boolean!
   ): Post
   deletePost (
     _id:String!
@@ -141,6 +142,7 @@ type Mutation {
   ): Friend
   sharingPost(
     _id: String!,
+    privacy: String!,
   ): Post
 
   updateUserProfile(
@@ -430,11 +432,8 @@ const rootResolvers = {
       });
       return UsersModel.findOne({ _id: userId });
     },
-    async editPost({ request }, { _id, message, photos }) {
-      console.log(photos);
-      const p = await PostsModel.findOne({
-        _id,
-      });
+    async editPost({ request }, { _id, message, photos, isDelPostSharing }) {
+      const p = await PostsModel.findOne({ _id });
       if (!p) {
         throw new Error('not found the post');
       }
@@ -444,13 +443,14 @@ const rootResolvers = {
         $set: {
           message,
           photos,
+          sharing: isDelPostSharing ? p.sharing : null,
         },
       });
       return PostsModel.findOne({
         _id,
       });
     },
-    async sharingPost({ request }, { _id }) {
+    async sharingPost({ request }, { _id, privacy = PUBLIC }) {
       const author = request.user.id;
       const p = await PostsModel.findOne({ _id });
       if (isUndefined(author)) {
@@ -467,7 +467,7 @@ const rootResolvers = {
           const r = await PostsModel.create({
             author,
             user: author,
-            privacy: PUBLIC,
+            privacy,
             sharing: _id,
           });
           r.isLiked = false;
@@ -476,7 +476,7 @@ const rootResolvers = {
         const r = await PostsModel.create({
           author,
           user: author,
-          privacy: PUBLIC,
+          privacy,
           sharing: sharingId,
         });
         r.isLiked = false;
