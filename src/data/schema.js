@@ -487,11 +487,7 @@ const rootResolvers = {
       });
       return UsersModel.findOne({ _id: userId });
     },
-<<<<<<< HEAD
-    async editPost(_, { _id, message, isDelPostSharing = true }) {
-=======
-    async editPost({ request }, { _id, message, photos, isDelPostSharing }) {
->>>>>>> 0cc1fc9d6be8edb6596f598ff03daaea5d546e86
+    async editPost(_, { _id, message, photos, isDelPostSharing = true }) {
       const p = await PostsModel.findOne({ _id });
       if (!p) {
         throw new Error('not found the post');
