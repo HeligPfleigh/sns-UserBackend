@@ -44,3 +44,10 @@ export const PUBLIC = 'PUBLIC';
 export const FRIEND = 'FRIEND';
 export const ONLY_ME = 'ONLY_ME';
 export const POST_PRIVACY = [PUBLIC, FRIEND, ONLY_ME];
+
+export const TYPE1 = 'TYPE1';
+export const TYPE2 = 'TYPE2';
+export const ANNOUNCEMENT_TYPE = [TYPE1, TYPE2];
+
+export const RESOURCE_UPDATED_SUCCESSFULLY = 'RESOURCE_UPDATED_SUCCESSFULLY';
+export const RESOURCE_UPDATED_FAILURE = 'RESOURCE_UPDATED_FAILURE';

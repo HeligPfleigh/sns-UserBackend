@@ -4,7 +4,9 @@ import {
 } from '../models';
 
 function getBuilding(buildingId) {
-  return BuildingsModel.findOne({ _id: buildingId });
+  return BuildingsModel.findOne(
+    { _id: buildingId },
+  ).select('-announcements');
 }
 
 function getApartment(apartmentId) {

@@ -278,18 +278,15 @@ describe('RootSharingPostMutation', () => {
     `;
     const rootValue = {
       request: {
-        user: { },
+        user: {},
       },
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
+    console.log(JSON.stringify(result));
+    await new Promise((resolve) => { setTimeout(resolve, 5000); });
     expect(result.data.sharingPost).toEqual(null);
     expect(result.errors[0].message).toEqual('author is undefined');
-    // await new Promise((resolve) => {
-    //   setTimeout(() => {
-    //     resolve();
-    //   }, 5000);
-    // });
   });
 
   test('should throw error if author does not exist', async () => {
