@@ -139,6 +139,7 @@ type Mutation {
   sharingPost(
     _id: String!,
     privacy: String!,
+    message: String!
   ): Post
 
   updateUserProfile(
@@ -446,7 +447,7 @@ const rootResolvers = {
         _id,
       });
     },
-    async sharingPost({ request }, { _id, privacy = PUBLIC }) {
+    async sharingPost({ request }, { _id, privacy = PUBLIC, message }) {
       const author = request.user.id;
       const p = await PostsModel.findOne({ _id });
       if (isUndefined(author)) {
@@ -465,6 +466,7 @@ const rootResolvers = {
             user: author,
             privacy,
             sharing: _id,
+            message,
           });
           r.isLiked = false;
           return r;
@@ -474,6 +476,7 @@ const rootResolvers = {
           user: author,
           privacy,
           sharing: sharingId,
+          message,
         });
         r.isLiked = false;
         return r;
