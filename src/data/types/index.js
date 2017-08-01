@@ -118,6 +118,7 @@ type Post implements Node {
   type: PostType!
   isLiked: Boolean
   sharing: Post
+  photos: [String]
   createdAt: Date
   updatedAt: Date
 }

@@ -105,10 +105,12 @@ type Mutation {
     message: String!
     userId: String
     privacy: PrivacyType
+    photos: [String]
   ): Post
   editPost (
     _id: String!
     message: String!
+    photos: [String]
     isDelPostSharing: Boolean!
   ): Post
   deletePost (
@@ -128,6 +130,7 @@ type Mutation {
   createNewPostOnBuilding (
     message: String!
     buildingId: String!
+    photos: [String]
   ): Post
   acceptRequestForJoiningBuilding(
     buildingId: String!
@@ -304,13 +307,13 @@ const rootResolvers = {
     createNewComment({ request }, { _id, message, commentId }) {
       return CommentService.createNewComment(request.user.id, _id, message, commentId);
     },
-    createNewPost({ request }, { message, userId, privacy = PUBLIC }) {
+    createNewPost({ request }, { message, userId, privacy = PUBLIC, photos }) {
       // NOTE:
       // userId: post on friend wall
       if (!message.trim()) {
         throw new Error('you can not create a new post with empty message');
       }
-      return PostsService.createNewPost(request.user.id, message, userId, privacy);
+      return PostsService.createNewPost(request.user.id, message, userId, privacy, photos);
     },
     async deletePost({ request }, { _id }) {
       const p = await PostsModel.findOne({
@@ -363,10 +366,10 @@ const rootResolvers = {
     updateRead({ request }, { _id }) {
       return NotificationsService.updateRead(request.user.id, _id);
     },
-    createNewPostOnBuilding({ request }, { message, buildingId }) {
+    createNewPostOnBuilding({ request }, { message, photos, buildingId }) {
       // NOTE:
       // buildingId: post on building
-      return PostsService.createNewPostOnBuilding(request.user.id, message, buildingId);
+      return PostsService.createNewPostOnBuilding(request.user.id, message, photos, buildingId);
     },
     async acceptRequestForJoiningBuilding({ request }, { buildingId, userId }) {
       const isAdmin = await BuildingMembersModel.findOne({
@@ -429,7 +432,7 @@ const rootResolvers = {
       });
       return UsersModel.findOne({ _id: userId });
     },
-    async editPost({ request }, { _id, message, isDelPostSharing }) {
+    async editPost({ request }, { _id, message, photos, isDelPostSharing }) {
       const p = await PostsModel.findOne({ _id });
       if (!p) {
         throw new Error('not found the post');
@@ -439,6 +442,7 @@ const rootResolvers = {
       }, {
         $set: {
           message,
+          photos,
           sharing: isDelPostSharing ? p.sharing : null,
         },
       });
