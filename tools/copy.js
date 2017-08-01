@@ -30,6 +30,7 @@ async function copy() {
     }, null, 2)),
 
     copyDir('src/core/mailer/templates', 'build/mailer/templates'),
+    copyDir('public', 'build/public'),
     copyFile('process.yml', 'build/process.yml'),
   ]);
 

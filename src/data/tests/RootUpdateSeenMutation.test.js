@@ -5,6 +5,9 @@ import {
 } from '../../../test/helper';
 import schema from '../schema';
 import { UsersModel, NotificationsModel } from '../models';
+import {
+  RESOURCE_UPDATED_SUCCESSFULLY,
+} from '../../constants';
 
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
@@ -63,11 +66,8 @@ describe('RootUpdateSeenMutation', () => {
   test('should update Seen request', async () => {
     const query = `
       mutation M { 
-        updateSeen(_id:"${notificationId}") {
-         user {
-          _id
-         }
-          seen
+        updateSeen {
+          response
         }
       }
     `;
@@ -81,18 +81,15 @@ describe('RootUpdateSeenMutation', () => {
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
     expect(result.data.updateSeen).toEqual(Object.assign({}, {
-      user: {
-        _id: userIdA,
-      },
-      seen: true,
+      response: RESOURCE_UPDATED_SUCCESSFULLY,
     }));
   });
 
   test('should check userId undefined', async () => {
     const query = `
       mutation M {
-        updateSeen(_id:"${notificationId}") {
-          _id
+        updateSeen {
+          response
         }
       }
     `;
@@ -106,29 +103,12 @@ describe('RootUpdateSeenMutation', () => {
     expect(result.data.updateSeen).toEqual(null);
     expect(result.errors[0].message).toEqual('userId is undefined');
   });
-  test('should check notificationId undefind', async () => {
-    const query = `
-      mutation M {
-        updateSeen {
-          _id
-        }
-      }
-    `;
-    const rootValue = {
-      request: {
-        user: { userIdA },
-      },
-    };
-    const context = getContext({});
-    const result = await graphql(schema, query, rootValue, context);
-    expect(result.data).toEqual(undefined);
-    expect(result.errors[0].message).toEqual('Field "updateSeen" argument "_id" of type "String!" is required but not provided.');
-  });
+
   test('should check userId not exist', async () => {
     const query = `
       mutation M {
-        updateSeen(_id:"${notificationId}") {
-          _id
+        updateSeen {
+          response
         }
       }
     `;
@@ -141,25 +121,6 @@ describe('RootUpdateSeenMutation', () => {
     const result = await graphql(schema, query, rootValue, context);
     expect(result.data.updateSeen).toEqual(null);
     expect(result.errors[0].message).toEqual('userId does not exist');
-  });
-  test('should check notificationId not exist', async () => {
-    const fakeId = '58f9ca042d4581000474b109';
-    const query = `
-      mutation M {
-        updateSeen(_id:"${fakeId}") {
-          _id
-        }
-      }
-    `;
-    const rootValue = {
-      request: {
-        user: { id: userIdA },
-      },
-    };
-    const context = getContext({});
-    const result = await graphql(schema, query, rootValue, context);
-    expect(result.data.updateSeen).toEqual(null);
-    expect(result.errors[0].message).toEqual('notificationId does not exist');
   });
 
   afterEach(async () => {

@@ -13,6 +13,7 @@ import {
   BuildingMembersModel,
   UsersModel,
   BuildingFeedModel,
+  BuildingsModel,
 } from './models';
 import Service from './mongo/service';
 import AddressServices from './apis/AddressServices';
@@ -44,8 +45,14 @@ const toObjectId = (idStr) => {
 };
 
 const rootSchema = [`
+
 type Test {
   hello: String
+}
+
+enum ResponseType {
+  RESOURCE_UPDATED_SUCCESSFULLY
+  RESOURCE_UPDATED_FAILURE
 }
 
 type Query {
@@ -80,6 +87,45 @@ type UpdateUserProfilePayload {
   user: User
 }
 
+type responsePayload {
+  response: ResponseType
+}
+
+input AnnouncementInput {
+  _id: ID
+  type: BuildingAnnouncementType
+  date: Date
+  message: String
+}
+
+input CreateNewBuildingAnnouncementInput {
+  buildingId: String!
+  announcementInput: AnnouncementInput
+}
+
+type CreateNewBuildingAnnouncementPayload {
+  announcement: BuildingAnnouncement
+}
+
+input UpdateBuildingAnnouncementInput {
+  buildingId: String!
+  announcementId: String!
+  announcementInput: AnnouncementInput
+}
+
+type UpdateBuildingAnnouncementPayload {
+  announcement: BuildingAnnouncement
+}
+
+input DeleteBuildingAnnouncementInput {
+  buildingId: String!
+  announcementId: String!
+}
+
+type DeleteBuildingAnnouncementPayload {
+  announcement: BuildingAnnouncement
+}
+
 type Mutation {
   acceptFriend (
     _id: String!
@@ -105,10 +151,13 @@ type Mutation {
     message: String!
     userId: String
     privacy: PrivacyType
+    photos: [String]
   ): Post
   editPost (
     _id: String!
     message: String!
+    photos: [String]
+    isDelPostSharing: Boolean
   ): Post
   deletePost (
     _id:String!
@@ -120,13 +169,14 @@ type Mutation {
   updateProfile(
     profile: ProfileInput!
   ): Author
-  updateSeen: Notification
+  updateSeen: responsePayload
   updateRead(
     _id: String!
   ): Notification
   createNewPostOnBuilding (
     message: String!
     buildingId: String!
+    photos: [String]
   ): Post
   acceptRequestForJoiningBuilding(
     buildingId: String!
@@ -138,13 +188,22 @@ type Mutation {
   ): Friend
   sharingPost(
     _id: String!,
-    privacy: String!,
+    privacy: String,
     message: String!
   ): Post
 
   updateUserProfile(
     input: UpdateUserProfileInput!
   ): UpdateUserProfilePayload
+  createNewBuildingAnnouncement(
+    input: CreateNewBuildingAnnouncementInput!
+  ): CreateNewBuildingAnnouncementPayload
+  updateBuildingAnnouncement(
+    input: UpdateBuildingAnnouncementInput!
+  ): UpdateBuildingAnnouncementPayload
+  deleteBuildingAnnouncement(
+    input: DeleteBuildingAnnouncementInput!
+  ): DeleteBuildingAnnouncementPayload
 }
 
 schema {
@@ -304,13 +363,13 @@ const rootResolvers = {
     createNewComment({ request }, { _id, message, commentId }) {
       return CommentService.createNewComment(request.user.id, _id, message, commentId);
     },
-    createNewPost({ request }, { message, userId, privacy = PUBLIC }) {
+    createNewPost({ request }, { message, userId, privacy = PUBLIC, photos }) {
       // NOTE:
       // userId: post on friend wall
       if (!message.trim()) {
         throw new Error('you can not create a new post with empty message');
       }
-      return PostsService.createNewPost(request.user.id, message, userId, privacy);
+      return PostsService.createNewPost(request.user.id, message, userId, privacy, photos);
     },
     async deletePost({ request }, { _id }) {
       const p = await PostsModel.findOne({
@@ -357,16 +416,16 @@ const rootResolvers = {
     updateProfile({ request }, { profile }) {
       return UsersService.updateProfile(request.user.id, profile);
     },
-    updateSeen({ request }, { _id }) {
-      return NotificationsService.updateSeen(request.user.id, _id);
+    updateSeen({ request }) {
+      return NotificationsService.updateSeen(request.user.id);
     },
     updateRead({ request }, { _id }) {
       return NotificationsService.updateRead(request.user.id, _id);
     },
-    createNewPostOnBuilding({ request }, { message, buildingId }) {
+    createNewPostOnBuilding({ request }, { message, photos, buildingId }) {
       // NOTE:
       // buildingId: post on building
-      return PostsService.createNewPostOnBuilding(request.user.id, message, buildingId);
+      return PostsService.createNewPostOnBuilding(request.user.id, message, photos, buildingId);
     },
     async acceptRequestForJoiningBuilding({ request }, { buildingId, userId }) {
       const isAdmin = await BuildingMembersModel.findOne({
@@ -429,10 +488,8 @@ const rootResolvers = {
       });
       return UsersModel.findOne({ _id: userId });
     },
-    async editPost({ request }, { _id, message }) {
-      const p = await PostsModel.findOne({
-        _id,
-      });
+    async editPost(_, { _id, message, photos, isDelPostSharing = true }) {
+      const p = await PostsModel.findOne({ _id });
       if (!p) {
         throw new Error('not found the post');
       }
@@ -441,6 +498,8 @@ const rootResolvers = {
       }, {
         $set: {
           message,
+          photos,
+          sharing: isDelPostSharing ? p.sharing : null,
         },
       });
       return PostsModel.findOne({
@@ -510,6 +569,141 @@ const rootResolvers = {
         user: await UsersModel.findOne({
           _id: userId,
         }),
+      };
+    },
+    async createNewBuildingAnnouncement({ request }, { input }) {
+      const userId = request.user.id;
+      const {
+        buildingId,
+        announcementInput: {
+          type,
+          message,
+        },
+      } = input;
+      const role = await BuildingMembersModel.findOne({
+        building: buildingId,
+        user: userId,
+        type: ADMIN,
+        status: ACCEPTED,
+      });
+      if (!role) {
+        throw new Error('you dont have permission to create new announcement');
+      }
+      const announcement = {
+        _id: new ObjectId(),
+        type,
+        message,
+        date: new Date(),
+      };
+      await BuildingsModel.update(
+        { _id: buildingId },
+        { $push: { announcements: announcement } },
+      );
+      return {
+        announcement,
+      };
+    },
+    async updateBuildingAnnouncement({ request }, { input }) {
+      const userId = request.user.id;
+      const {
+        buildingId,
+        announcementId,
+        announcementInput: {
+          type,
+          message,
+        },
+      } = input;
+      const role = await BuildingMembersModel.findOne({
+        building: buildingId,
+        user: userId,
+        type: ADMIN,
+        status: ACCEPTED,
+      });
+      if (!role) {
+        throw new Error('you dont have permission to create new announcement');
+      }
+      // check if announcement and building exist
+      const a = await BuildingsModel.findOne(
+        {
+          _id: buildingId,
+          'announcements._id': toObjectId(announcementId),
+        },
+      );
+      if (!a) {
+        throw Error('not found building or announcement');
+      }
+      const update = {
+        $set: {},
+      };
+      if (message) {
+        update.$set['announcements.$.message'] = message;
+      }
+      if (type) {
+        update.$set['announcements.$.type'] = type;
+      }
+      await BuildingsModel.update(
+        {
+          _id: buildingId,
+          'announcements._id': announcementId,
+        },
+        update,
+      );
+      // ??? performance
+      let announcement = a.announcements.filter(t => t._id.toString() === announcementId);
+      announcement = announcement[0];
+      if (message) {
+        announcement.message = message;
+      }
+      if (type) {
+        announcement.type = type;
+      }
+      return {
+        announcement,
+      };
+    },
+    async deleteBuildingAnnouncement({ request }, { input }) {
+      const userId = request.user.id;
+      const {
+        buildingId,
+        announcementId,
+      } = input;
+      const role = await BuildingMembersModel.findOne({
+        building: buildingId,
+        user: userId,
+        type: ADMIN,
+        status: ACCEPTED,
+      });
+      if (!role) {
+        throw new Error('you dont have permission to create new announcement');
+      }
+      const a = await BuildingsModel.findOne(
+        {
+          _id: buildingId,
+          'announcements._id': announcementId,
+        },
+      );
+      if (!a) {
+        throw Error('not found building or announcement');
+      }
+      const update = {
+        $pull: {
+          announcements: {
+            _id: announcementId,
+          },
+        },
+      };
+      await BuildingsModel.update(
+        {
+          _id: buildingId,
+          'announcements._id': announcementId,
+        },
+        update,
+      );
+      // ??? performance
+      let announcement = a.announcements.filter(t => t._id.toString() === announcementId);
+      announcement = announcement[0];
+      return {
+        announcement,
       };
     },
   },

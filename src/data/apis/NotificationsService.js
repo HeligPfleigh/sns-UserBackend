@@ -4,6 +4,9 @@ import {
   NotificationsModel,
   UsersModel,
 } from '../models';
+import {
+  RESOURCE_UPDATED_SUCCESSFULLY,
+} from '../../constants';
 
 function getNotification(notificationId) {
   return NotificationsModel.findOne({ _id: notificationId });
@@ -15,26 +18,14 @@ async function updateSeen(userId) {
   if (!await UsersModel.findOne({ _id: new ObjectId(userId) })) {
     throw new Error('userId does not exist');
   }
-  // if (isUndefined(notificationId)) {
-  //   throw new Error('notificationId is undefined');
-  // }
-  // if (!await NotificationsModel.findOne({ _id: notificationId })) {
-  //   throw new Error('notificationId does not exist');
-  // }
-
-  // if (!await NotificationsModel.update(
-  //   { _id: notificationId },
-  //   { $set: { seen: true, user: userId } },
-  //   { multi: true },
-  // )) {
-  //   throw new Error('Update faild...');
-  // }
   await NotificationsModel.update(
     { user: userId },
     { $set: { seen: true } },
     { multi: true },
   );
-  return NotificationsModel.findOne({ user: userId });
+  return {
+    response: RESOURCE_UPDATED_SUCCESSFULLY,
+  };
 }
 async function updateRead(userId, notificationId) {
   if (isUndefined(userId)) {

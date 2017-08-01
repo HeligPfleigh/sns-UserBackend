@@ -3,4 +3,4 @@ apps:
     args     : 'start'
     name     : 'SNS-SERVER'
     exec_mode: 'cluster'
-    instances: 2
+    instances: 1
