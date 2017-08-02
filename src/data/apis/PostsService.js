@@ -4,7 +4,6 @@ import { ObjectId } from 'mongodb';
 import {
   UsersModel,
   PostsModel,
-  BuildingFeedModel,
   FriendsRelationModel,
 } from '../models';
 import {
@@ -127,8 +126,6 @@ async function createNewPostOnBuilding(author, message, photos, buildingId) {
       building: buildingId,
       photos,
     });
-
-    await BuildingFeedModel.create({ building: buildingId, post: r._id });
 
     r.isLiked = false;
     return r;

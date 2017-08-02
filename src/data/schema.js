@@ -12,7 +12,6 @@ import {
   NotificationsModel,
   BuildingMembersModel,
   UsersModel,
-  BuildingFeedModel,
   BuildingsModel,
 } from './models';
 import Service from './mongo/service';
@@ -406,10 +405,6 @@ const rootResolvers = {
         $set: {
           isDeleted: true,
         },
-      });
-      await BuildingFeedModel.remove({
-        building: buildingId,
-        post: postId,
       });
       return p;
     },
