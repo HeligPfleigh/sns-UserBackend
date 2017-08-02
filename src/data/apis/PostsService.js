@@ -108,7 +108,7 @@ async function createNewPost(author, message, userId, privacy, photos) {
   }
 }
 
-async function createNewPostOnBuilding(author, message, photos, buildingId) {
+async function createNewPostOnBuilding(author, message, photos, buildingId, privacy) {
   try {
     if (isUndefined(author)) {
       throw new Error('author is undefined');
@@ -124,6 +124,7 @@ async function createNewPostOnBuilding(author, message, photos, buildingId) {
       message,
       author,
       building: buildingId,
+      privacy,
       photos,
     });
 
