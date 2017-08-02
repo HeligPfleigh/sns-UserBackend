@@ -244,6 +244,11 @@ type BuildingAnnouncementConnection {
   edges: [BuildingAnnouncement]
 }
 
+type BuildingPostsConnection {
+  pageInfo: PageInfo
+  edges: [Post]
+}
+
 type Building implements Node {
   _id: ID!
   name: String
@@ -252,7 +257,7 @@ type Building implements Node {
   announcements(skip: Int, limit: Int): BuildingAnnouncementConnection!
 
   requests( _id: String, limit: Int): [Friend]
-  posts: [Post]
+  posts( cursor: String, limit: Int): BuildingPostsConnection
 
   createdAt: Date
   updatedAt: Date
@@ -290,33 +295,33 @@ const ApartmentsService = Service({
 export const resolvers = {
   Date: DateScalarType,
   Building: {
-    posts(building, _, { user }) {
+    async posts(building, { cursor = null, limit = 5 }, { user }) {
       if (!user) return [];
-      return new Promise(async (resolve, reject) => {
-        const edgesArray = [];
-        const r = await BuildingMembersModel.findOne({
-          user: user.id,
-          building: building._id,
-          status: ACCEPTED,
-        });
-        if (!r) {
-          return resolve([]);
-        }
-        const edges = PostsModel.find({
-          building: building._id,
-        }).sort({ createdAt: -1 }).cursor();
-
-        edges.on('data', (res) => {
-          res.likes.indexOf(user.id) !== -1 ? res.isLiked = true : res.isLiked = false;
-          edgesArray.push(res);
-        });
-        edges.on('error', (err) => {
-          reject(err);
-        });
-        edges.on('end', () => {
-          resolve(edgesArray);
-        });
+      const r = await BuildingMembersModel.findOne({
+        user: user.id,
+        building: building._id,
+        status: ACCEPTED,
       });
+      if (!r) {
+        return [];
+      }
+      const ps = await PostsService.find({
+        $cursor: cursor,
+        query: {
+          building: building._id,
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      });
+      return {
+        pageInfo: ps.paging,
+        edges: ps.data.map((res) => {
+          res.likes.indexOf(user.id) !== -1 ? res.isLiked = true : res.isLiked = false;
+          return res;
+        }),
+      };
     },
     isAdmin(building, _, { user }) {
       if (!user) return false;
