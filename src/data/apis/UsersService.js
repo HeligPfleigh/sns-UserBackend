@@ -187,6 +187,8 @@ async function createUser(params) {
   // Connect user with account firebase
   const chatToken = await getChatToken({ email: emailAddress, password });
   const activeCode = idRandom();
+
+  params.profile.picture = '/avarta-default.jpg';
   const user = {
     ...params,
     chatId: chatToken && chatToken.chatId,
