@@ -21,8 +21,10 @@ import NotificationsService from './apis/NotificationsService';
 import UsersService from './apis/UsersService';
 import PostsService from './apis/PostsService';
 import CommentService from './apis/CommentService';
+import EventService from './apis/EventServices';
 import { schema as schemaType, resolvers as resolversType } from './types';
 import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND } from '../constants';
+import {}
 // import {
 //   everyone,
 //   authenticated,
@@ -192,6 +194,20 @@ type Mutation {
     message: String!
   ): Post
 
+  createNewEvent(
+    privacy: PrivacyEvent!
+    isDeleted: Boolean
+    author: Author!
+    building: Building!
+    banner: String!
+    name: String!
+    location: String!
+    start: Date!
+    end: Date!
+    description: String!
+    invites: [User]
+  ): Event
+
   updateUserProfile(
     input: UpdateUserProfileInput!
   ): UpdateUserProfilePayload
@@ -354,6 +370,11 @@ const rootResolvers = {
     sendFriendRequest({ request }, { _id }) {
       return UsersService.sendFriendRequest(request.user.id, _id);
     },
+
+    createNewEvent({ request }, {privacy, building, banner, name, location, start, end, description, invites}){
+      return EventService.createEvent(privacy, request.user._id, building, banner, name, location, start, end, description, invites);
+    },
+
     likePost({ request }, { _id }) {
       return PostsService.likePost(request.user.id, _id);
     },
