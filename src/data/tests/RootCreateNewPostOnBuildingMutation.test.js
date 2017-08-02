@@ -4,7 +4,7 @@ import {
   getContext,
 } from '../../../test/helper';
 import schema from '../schema';
-import { UsersModel, BuildingsModel, BuildingFeedModel, PostsModel } from '../models';
+import { UsersModel, BuildingsModel, PostsModel } from '../models';
 
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
@@ -100,7 +100,6 @@ describe('CreateNewPostOnBuildingMutation', () => {
       _id: buildingData._id,
     });
     await UsersModel.remove({});
-    await BuildingFeedModel.remove({});
     await PostsModel.remove({});
   });
 });

@@ -4,7 +4,7 @@ import {
   getContext,
 } from '../../../test/helper';
 import schema from '../schema';
-import { BuildingsModel, BuildingFeedModel, BuildingMembersModel, PostsModel } from '../models';
+import { BuildingsModel, BuildingMembersModel, PostsModel } from '../models';
 import { ADMIN, ACCEPTED, MEMBER } from '../../constants';
 
 // beforeEach(async () => await setupTest());
@@ -37,14 +37,11 @@ const postData = {
   message: '{"entityMap":{},"blocks":[{"key":"ckaun","text":"dsadsadsa","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}}]}',
   user: '58f9c3d52d4581000484b194',
   author: '58f9c3d52d4581000484b194',
+  building: buildingId,
   likes: [],
   photos: [],
   type: 'STATUS',
   __v: 0,
-};
-const buildingFeed = {
-  post: postId,
-  building: buildingId,
 };
 
 describe('RootBuildingQuery', () => {
@@ -52,8 +49,6 @@ describe('RootBuildingQuery', () => {
     // setup db
     const building = new BuildingsModel(buildingData);
     await building.save();
-    const postModel = new PostsModel(postData);
-    await postModel.save();
   });
 
   test('should get building by id', async () => {
@@ -128,8 +123,8 @@ describe('RootBuildingQuery', () => {
   });
 
   test('should get posts on building by id', async () => {
-    const b = new BuildingFeedModel(buildingFeed);
-    await b.save();
+    const postModel = new PostsModel(postData);
+    await postModel.save();
     await BuildingMembersModel.create({
       building: buildingId,
       user: userId,
@@ -160,7 +155,7 @@ describe('RootBuildingQuery', () => {
       }],
     }));
 
-    await b.remove();
+    await postModel.remove();
     await BuildingMembersModel.remove({
       building: buildingId,
       user: userId,

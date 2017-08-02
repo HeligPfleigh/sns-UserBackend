@@ -3,7 +3,7 @@ import {
   setupTest,
   getContext,
 } from '../../../test/helper';
-import { PostsModel, UsersModel, BuildingsModel, BuildingFeedModel } from '../models';
+import { PostsModel, UsersModel, BuildingsModel } from '../models';
 import schema from '../schema';
 
 // beforeEach(async () => await setupTest());
@@ -61,11 +61,6 @@ const buildingData = {
   __v: 0,
 };
 
-const buildingFeed = {
-  building: buildingIdA,
-  post: postId,
-};
-
 const postData = {
   _id: postId,
   message: '{\'entityMap\':{},\'blocks\':[{\'key\':\'4gvpl\',\'text\':\'Viet nam tuoi dep\',\'type\':\'unstyled\',\'depth\':0,\'inlineStyleRanges\':[],\'entityRanges\':[],\'data\':{}}]}',
@@ -87,12 +82,6 @@ describe('RootDeletePostOnBuildingMutation', () => {
     await building.save();
     const post = new PostsModel(postData);
     await post.save();
-    const feedBuilding = new BuildingFeedModel(buildingFeed);
-    await feedBuilding.save();
-
-    buildingFeed.building = buildingIdB;
-    const feedBuilding2 = new BuildingFeedModel(buildingFeed);
-    await feedBuilding2.save();
   });
 
   test('should get post', async () => {
@@ -115,7 +104,6 @@ describe('RootDeletePostOnBuildingMutation', () => {
     expect(result.data.deletePostOnBuilding).toEqual(Object.assign({}, {
       _id: postId,
     }));
-    expect(await BuildingFeedModel.count()).toEqual(1);
   });
 
   test('should throw error if user is not author', async () => {
