@@ -12,7 +12,7 @@ import {
   NotificationsModel,
 } from '../models';
 import AddressServices from '../apis/AddressServices';
-import { ADMIN, ACCEPTED, MEMBER, PENDING, PUBLIC, FRIEND } from '../../constants';
+import { ADMIN, ACCEPTED, MEMBER, PENDING, PUBLIC, FRIEND, ONLY_ADMIN_BUILDING, } from '../../constants';
 import Service from '../mongo/service';
 
 export const schema = [`
@@ -297,24 +297,49 @@ export const resolvers = {
   Date: DateScalarType,
   Building: {
     async posts(building, { cursor = null, limit = 5 }, { user }) {
-      if (!user) return [];
+      if (!user) {
+        return {
+          edges: [],
+          pageInfo: {
+            endCursor: null,
+            hasNextPage: false,
+          },
+        };
+      }
       const r = await BuildingMembersModel.findOne({
         user: user.id,
         building: building._id,
         status: ACCEPTED,
       });
       if (!r) {
-        return [];
+        return {
+          edges: [],
+          pageInfo: {
+            endCursor: null,
+            hasNextPage: false,
+          },
+        };
+      }
+      const query = {
+        building: building._id,
+        $sort: {
+          createdAt: -1,
+        },
+        $limit: limit,
+      };
+      if (r.type === ADMIN) {
+        query.privacy = {
+          $in: [PUBLIC, ONLY_ADMIN_BUILDING],
+        };
+      }
+      if (r.type === MEMBER) {
+        query.privacy = {
+          $in: [PUBLIC],
+        };
       }
       const ps = await PostsService.find({
         $cursor: cursor,
-        query: {
-          building: building._id,
-          $sort: {
-            createdAt: -1,
-          },
-          $limit: limit,
-        },
+        query,
       });
       return {
         pageInfo: ps.paging,
