@@ -322,6 +322,7 @@ export const resolvers = {
       }
       const query = {
         building: building._id,
+        isDeleted: { $exists: false },
         $sort: {
           createdAt: -1,
         },
