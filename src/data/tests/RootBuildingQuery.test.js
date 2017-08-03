@@ -226,6 +226,69 @@ describe('RootBuildingQuery', () => {
     });
   });
 
+  test('should get 2 posts on building if user is author', async () => {
+    const uid = '58f9c3d52d4581000484b194';
+    const postModel = new PostsModel(postData);
+    await postModel.save();
+    const postModel2 = new PostsModel(postDataB);
+    await postModel2.save();
+    await BuildingMembersModel.create({
+      building: buildingId,
+      user: uid,
+      type: MEMBER,
+      status: ACCEPTED,
+    });
+    // language=GraphQL
+    const query = `
+      {
+        building (_id:"${buildingId}") {
+          _id
+          posts {
+            edges {
+              _id
+            }
+            pageInfo {
+              endCursor
+              hasNextPage
+            }
+          }
+        }
+      }
+    `;
+
+    const rootValue = {};
+    const context = getContext({
+      user: { id: uid },
+    });
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.building).toEqual(Object.assign({}, {
+      _id: buildingData._id,
+      posts: {
+        edges: [
+          {
+            _id: '590310aec900da00047629a9',
+          },
+          {
+            _id: '590310aec900da00047629a8',
+          },
+        ],
+        pageInfo: {
+          endCursor: '590310aec900da00047629a8',
+          hasNextPage: false,
+        },
+      },
+    }));
+
+    await postModel.remove();
+    await postModel2.remove();
+    await BuildingMembersModel.remove({
+      building: buildingId,
+      user: uid,
+      type: MEMBER,
+      status: ACCEPTED,
+    });
+  });
+
   test('should get posts on building by id (ADMIN)', async () => {
     const postModel = new PostsModel(postData);
     await postModel.save();
@@ -249,6 +312,7 @@ describe('RootBuildingQuery', () => {
             pageInfo {
               endCursor
               hasNextPage
+              total
             }
           }
         }
@@ -265,15 +329,16 @@ describe('RootBuildingQuery', () => {
       posts: {
         edges: [
           {
-            _id: '590310aec900da00047629a9',
+            _id: '590310aec900da00047629a8',
           },
           {
-            _id: '590310aec900da00047629a8',
+            _id: '590310aec900da00047629a9',
           },
         ],
         pageInfo: {
-          endCursor: '590310aec900da00047629a8',
-          hasNextPage: false,
+          endCursor: '590310aec900da00047629a9',
+          hasNextPage: true,
+          total: 2,
         },
       },
     }));

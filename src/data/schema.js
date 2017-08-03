@@ -424,7 +424,6 @@ const rootResolvers = {
       if (!message.trim()) {
         throw new Error('you can not create a new post with empty message');
       }
-      console.log(privacy);
       return PostsService.createNewPostOnBuilding(request.user.id, message, photos, buildingId, privacy);
     },
     async acceptRequestForJoiningBuilding({ request }, { buildingId, userId }) {
