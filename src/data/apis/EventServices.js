@@ -12,6 +12,7 @@ async function createEvent(privacy, author, building, banner, name, location, st
     location,
     start,
     end,
+    description,
     invites,
   });
   return event;

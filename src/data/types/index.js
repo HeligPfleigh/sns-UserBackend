@@ -66,7 +66,7 @@ type Event implements Node {
   _id: ID!
   privacy: PrivacyEvent!
   isDeleted: Boolean
-  author: Author!
+  author: Author
   building: Building!
   banner: String!
   name: String!
@@ -77,6 +77,8 @@ type Event implements Node {
   invites: UserConnection
   interests: UserConnection
   joins: UserConnection
+  createdAt: Date
+  updatedAt: Date
 }
 
 type Notification implements Node {
