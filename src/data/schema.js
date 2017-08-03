@@ -12,7 +12,6 @@ import {
   NotificationsModel,
   BuildingMembersModel,
   UsersModel,
-  BuildingFeedModel,
   BuildingsModel,
 } from './models';
 import Service from './mongo/service';
@@ -177,6 +176,7 @@ type Mutation {
     message: String!
     buildingId: String!
     photos: [String]
+    privacy: PrivacyType
   ): Post
   acceptRequestForJoiningBuilding(
     buildingId: String!
@@ -407,10 +407,6 @@ const rootResolvers = {
           isDeleted: true,
         },
       });
-      await BuildingFeedModel.remove({
-        building: buildingId,
-        post: postId,
-      });
       return p;
     },
     updateProfile({ request }, { profile }) {
@@ -422,10 +418,13 @@ const rootResolvers = {
     updateRead({ request }, { _id }) {
       return NotificationsService.updateRead(request.user.id, _id);
     },
-    createNewPostOnBuilding({ request }, { message, photos, buildingId }) {
+    createNewPostOnBuilding({ request }, { message, photos, buildingId, privacy = PUBLIC }) {
       // NOTE:
       // buildingId: post on building
-      return PostsService.createNewPostOnBuilding(request.user.id, message, photos, buildingId);
+      if (!message.trim()) {
+        throw new Error('you can not create a new post with empty message');
+      }
+      return PostsService.createNewPostOnBuilding(request.user.id, message, photos, buildingId, privacy);
     },
     async acceptRequestForJoiningBuilding({ request }, { buildingId, userId }) {
       const isAdmin = await BuildingMembersModel.findOne({

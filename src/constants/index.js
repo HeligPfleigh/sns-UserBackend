@@ -43,7 +43,8 @@ export const CHAT_ON_FAIL = 'CHAT_ON_FAIL';
 export const PUBLIC = 'PUBLIC';
 export const FRIEND = 'FRIEND';
 export const ONLY_ME = 'ONLY_ME';
-export const POST_PRIVACY = [PUBLIC, FRIEND, ONLY_ME];
+export const ONLY_ADMIN_BUILDING = 'ONLY_ADMIN_BUILDING';
+export const POST_PRIVACY = [PUBLIC, FRIEND, ONLY_ME, ONLY_ADMIN_BUILDING];
 
 export const TYPE1 = 'TYPE1';
 export const TYPE2 = 'TYPE2';

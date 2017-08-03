@@ -95,8 +95,6 @@ const postDataB = {
   __v: 0,
 };
 
-console.log('start');
-
 describe('RootSharingPostMutation', () => {
   beforeEach(async () => {
     // setup db
@@ -113,7 +111,7 @@ describe('RootSharingPostMutation', () => {
   test('should share other people\'s post', async () => {
     const query = `
       mutation M1 { 
-        sharingPost(_id:"${postId}") {
+        sharingPost(_id:"${postId}", message:"") {
           user {
             _id
           }
@@ -150,7 +148,7 @@ describe('RootSharingPostMutation', () => {
   test('should share post', async () => {
     const query = `
       mutation M2 { 
-        sharingPost(_id:"${postId}") {
+        sharingPost(_id:"${postId}", message:"") {
           user {
             _id
           }
@@ -187,7 +185,7 @@ describe('RootSharingPostMutation', () => {
   test('should share my and my friend\'s shared post', async () => {
     const query = `
       mutation M2 { 
-        sharingPost(_id:"${postIdB}") {
+        sharingPost(_id:"${postIdB}", message:"") {
           user {
             _id
           }
@@ -229,7 +227,7 @@ describe('RootSharingPostMutation', () => {
   test('should throw error if not found the post', async () => {
     const query = `
       mutation M3 { 
-        sharingPost(_id:"${postIdC}") {
+        sharingPost(_id:"${postIdC}", message:"") {
           user {
             _id
           }
@@ -262,7 +260,7 @@ describe('RootSharingPostMutation', () => {
   test('should throw error if author is undefined', async () => {
     const query = `
       mutation M3 { 
-        sharingPost(_id:"${postId}") {
+        sharingPost(_id:"${postId}", message:"") {
           user {
             _id
           }
@@ -283,8 +281,8 @@ describe('RootSharingPostMutation', () => {
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    console.log(JSON.stringify(result));
-    await new Promise((resolve) => { setTimeout(resolve, 5000); });
+    // console.log(JSON.stringify(result));
+    // await new Promise((resolve) => { setTimeout(resolve, 5000); });
     expect(result.data.sharingPost).toEqual(null);
     expect(result.errors[0].message).toEqual('author is undefined');
   });
@@ -292,7 +290,7 @@ describe('RootSharingPostMutation', () => {
   test('should throw error if author does not exist', async () => {
     const query = `
       mutation M3 { 
-        sharingPost(_id:"${postId}") {
+        sharingPost(_id:"${postId}", message:"") {
           user {
             _id
           }
@@ -315,11 +313,6 @@ describe('RootSharingPostMutation', () => {
     const result = await graphql(schema, query, rootValue, context);
     expect(result.data.sharingPost).toEqual(null);
     expect(result.errors[0].message).toEqual('author does not exist');
-    // await new Promise((resolve) => {
-    //   setTimeout(() => {
-    //     resolve();
-    //   }, 5000);
-    // });
   });
 
   afterEach(async () => {

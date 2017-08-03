@@ -6,14 +6,13 @@ import {
   UsersModel,
   BuildingsModel,
   BuildingMembersModel,
-  BuildingFeedModel,
   CommentsModel,
   ApartmentsModel,
   FriendsRelationModel,
   NotificationsModel,
 } from '../models';
 import AddressServices from '../apis/AddressServices';
-import { ADMIN, ACCEPTED, MEMBER, PENDING, PUBLIC, FRIEND } from '../../constants';
+import { ADMIN, ACCEPTED, MEMBER, PENDING, PUBLIC, FRIEND, ONLY_ADMIN_BUILDING, } from '../../constants';
 import Service from '../mongo/service';
 
 export const schema = [`
@@ -49,6 +48,7 @@ enum PrivacyType {
   PUBLIC
   FRIEND
   ONLY_ME
+  ONLY_ADMIN_BUILDING
 }
 
 enum PostType {
@@ -245,6 +245,11 @@ type BuildingAnnouncementConnection {
   edges: [BuildingAnnouncement]
 }
 
+type BuildingPostsConnection {
+  pageInfo: PageInfo
+  edges: [Post]
+}
+
 type Building implements Node {
   _id: ID!
   name: String
@@ -253,7 +258,7 @@ type Building implements Node {
   announcements(skip: Int, limit: Int): BuildingAnnouncementConnection!
 
   requests( _id: String, limit: Int): [Friend]
-  posts: [Post]
+  posts( cursor: String, limit: Int): BuildingPostsConnection
 
   createdAt: Date
   updatedAt: Date
@@ -291,33 +296,71 @@ const ApartmentsService = Service({
 export const resolvers = {
   Date: DateScalarType,
   Building: {
-    posts(building, _, { user }) {
-      if (!user) return [];
-      return new Promise(async (resolve, reject) => {
-        const edgesArray = [];
-        const r = await BuildingMembersModel.findOne({
-          user: user.id,
-          building: building._id,
-          status: ACCEPTED,
-        });
-        if (!r) {
-          return resolve([]);
-        }
-        let ids = await BuildingFeedModel.find({ building: building._id }).sort({ createdAt: -1 });
-        ids = ids.map(v => v.post);
-        const edges = PostsModel.find({ _id: { $in: ids } }).sort({ createdAt: -1 }).cursor();
-
-        edges.on('data', (res) => {
-          res.likes.indexOf(user.id) !== -1 ? res.isLiked = true : res.isLiked = false;
-          edgesArray.push(res);
-        });
-        edges.on('error', (err) => {
-          reject(err);
-        });
-        edges.on('end', () => {
-          resolve(edgesArray);
-        });
+    async posts(building, { cursor = null, limit = 5 }, { user }) {
+      if (!user) {
+        return {
+          edges: [],
+          pageInfo: {
+            endCursor: null,
+            hasNextPage: false,
+          },
+        };
+      }
+      const r = await BuildingMembersModel.findOne({
+        user: user.id,
+        building: building._id,
+        status: ACCEPTED,
       });
+      if (!r) {
+        return {
+          edges: [],
+          pageInfo: {
+            endCursor: null,
+            hasNextPage: false,
+          },
+        };
+      }
+      const query = {
+        building: building._id,
+        isDeleted: { $exists: false },
+        $sort: {
+          createdAt: -1,
+        },
+        $limit: limit,
+      };
+      if (r.type === ADMIN) {
+        query.$or = [
+          {
+            privacy: {
+              $in: [PUBLIC, ONLY_ADMIN_BUILDING],
+            },
+          }, {
+            author: user.id,
+          },
+        ];
+      }
+      if (r.type === MEMBER) {
+        query.$or = [
+          {
+            privacy: {
+              $in: [PUBLIC],
+            },
+          }, {
+            author: user.id,
+          },
+        ];
+      }
+      const ps = await PostsService.find({
+        $cursor: cursor,
+        query,
+      });
+      return {
+        pageInfo: ps.paging,
+        edges: ps.data.map((res) => {
+          res.likes.indexOf(user.id) !== -1 ? res.isLiked = true : res.isLiked = false;
+          return res;
+        }),
+      };
     },
     isAdmin(building, _, { user }) {
       if (!user) return false;
