@@ -328,14 +328,26 @@ export const resolvers = {
         $limit: limit,
       };
       if (r.type === ADMIN) {
-        query.privacy = {
-          $in: [PUBLIC, ONLY_ADMIN_BUILDING],
-        };
+        query.$or = [
+          {
+            privacy: {
+              $in: [PUBLIC, ONLY_ADMIN_BUILDING],
+            },
+          }, {
+            author: user.id,
+          },
+        ];
       }
       if (r.type === MEMBER) {
-        query.privacy = {
-          $in: [PUBLIC],
-        };
+        query.$or = [
+          {
+            privacy: {
+              $in: [PUBLIC],
+            },
+          }, {
+            author: user.id,
+          },
+        ];
       }
       const ps = await PostsService.find({
         $cursor: cursor,
