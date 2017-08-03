@@ -250,16 +250,19 @@ type BuildingPostsConnection {
   edges: [Post]
 }
 
+type UsersAwaitingApprovalConnection {
+  pageInfo: PageInfo
+  edges: [Friend]
+}
+
 type Building implements Node {
   _id: ID!
   name: String
   address: Address
   isAdmin: Boolean
   announcements(skip: Int, limit: Int): BuildingAnnouncementConnection!
-
-  requests( _id: String, limit: Int): [Friend]
-  posts( cursor: String, limit: Int): BuildingPostsConnection
-
+  requests(cursor: String, limit: Int): UsersAwaitingApprovalConnection
+  posts(cursor: String, limit: Int): BuildingPostsConnection
   createdAt: Date
   updatedAt: Date
 }
@@ -271,6 +274,15 @@ const PostsService = Service({
   paginate: {
     default: 5,
     max: 10,
+  },
+  cursor: true,
+});
+
+const BuildingMembersService = Service({
+  Model: BuildingMembersModel,
+  paginate: {
+    default: 20,
+    max: 20,
   },
   cursor: true,
 });
@@ -374,18 +386,23 @@ export const resolvers = {
         return resolve(false);
       });
     },
-    async requests(building, { _id, limit = 2 }) {
-      const q = {
-        building: building._id,
-        type: MEMBER,
-        status: PENDING,
+    async requests(data, { cursor = null, limit = 20 }) {
+      let r = await BuildingMembersService.find({
+        $cursor: cursor,
+        query: {
+          building: data._id,
+          type: MEMBER,
+          status: PENDING,
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      });
+      return {
+        pageInfo: r.paging,
+        edges: UsersModel.find({ _id: { $in: r.data.map(v => v.user) } }),
       };
-      if (_id) {
-        q._id = { $lt: _id };
-      }
-      let bm = await BuildingMembersModel.find(q).sort({ createdAt: -1 }).limit(limit);
-      bm = bm.map(v => v.user);
-      return UsersModel.find({ _id: { $in: bm } });
     },
     async announcements(data, { skip = 0, limit = 5 }) {
       const t = await BuildingsModel.aggregate([
