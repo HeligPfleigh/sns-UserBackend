@@ -5,7 +5,12 @@ const router = express.Router();
 
 router.get('/buildingwithapartment', async (req, res) => {
   const page = req.query.page || 1;
-  const buildings = await BuildingServices.getBuildingWithApartments(page);
+  const q = req.query.q;
+  if (!q) {
+    res.status(403).send('No search text');
+    return;
+  }
+  const buildings = await BuildingServices.getBuildingWithApartments(page, q);
   res.json(buildings);
 });
 
