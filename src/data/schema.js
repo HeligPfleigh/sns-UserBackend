@@ -783,7 +783,7 @@ const rootResolvers = {
         user: request.user.id,
       });
       if (!isAdmin || isAdmin.type !== ADMIN) {
-        throw new Error('you don\'t have permission to reject request');
+        throw new Error('you don\'t have permission to approve request');
       }
       if (record.status !== PENDING) {
         return {
