@@ -69,6 +69,7 @@ type Query {
   # users,
   test: Test
   resident(_id: String): User
+  requestsToJoinBuilding(_id: String): RequestsToJoinBuilding
 }
 
 input ProfileInput {
@@ -357,6 +358,9 @@ const rootResolvers = {
     // },
     resident(root, { _id }) {
       return UsersService.getUser(_id);
+    },
+    requestsToJoinBuilding(root, { _id }) {
+      return BuildingMembersModel.findOne({ _id });
     },
   },
   Mutation: {

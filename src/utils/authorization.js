@@ -94,9 +94,22 @@ export const onlyMe = (field = '_id') => ((target, key, descriptor) => ({
   },
 }));
 
-export const friend = () => {
-  throw new Error('not implement yet');
-};
+// NOTE: not working on root query
+export const friend = (target, key, descriptor) => ({
+  ...descriptor,
+  value: function process(obj, args, context, info) {
+    throw new Error('not implement yet');
+    // return descriptor.value.apply(this, [obj, args, context, info]);
+  },
+});
+
+export const building = (target, key, descriptor) => ({
+  ...descriptor,
+  value: function process(obj, args, context, info) {
+    console.log(obj, context, 'building');
+    return descriptor.value.apply(this, [obj, args, context, info]);
+  },
+});
 
 export default {
   everyone,
@@ -106,4 +119,5 @@ export default {
   can,
   onlyMe,
   friend, // not
+  building,
 };
