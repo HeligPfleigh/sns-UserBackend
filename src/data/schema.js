@@ -66,6 +66,7 @@ type Query {
   comment(_id: String): Comment
   notifications(limit: Int, cursor: String): NotificationsResult
   search(keyword: String!, numberOfFriends: Int): [Friend]
+  listEvent(limit: Int, cursor: String): Events
   # users,
   test: Test
   resident(_id: String): User
@@ -363,6 +364,46 @@ const rootResolvers = {
         .sort({ score: { $meta: 'textScore' } })
         .limit(numberOfFriends);
       return r;
+    },
+    async listEvent({ request }, { limit, cursor }) {
+      const userId = request.user.id;
+      const me = await UsersModel.findOne({ _id: userId });
+      let friendListByIds = await FriendsModel.find({
+        user: userId,
+        isSubscribe: true,
+      }).select('friend _id');
+      friendListByIds = friendListByIds.map(v => v.friend);
+      friendListByIds.push(userId);
+      friendListByIds = friendListByIds.map(toObjectId);
+      const r = await FeedsService.find({
+        $cursor: cursor,
+        $field: 'author',
+        query: {
+          $or: [
+            { author: userId }, // post from me
+            {
+              user: { $in: friendListByIds },
+              privacy: { $in: [PUBLIC, FRIEND] },
+            },
+            {
+              building: me.building,
+              privacy: { $in: [PUBLIC] },
+            },
+          ],
+          isDeleted: { $exists: false },
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      });
+      return {
+        pageInfo: r.paging,
+        edges: r.data.map((res) => {
+          res.likes.indexOf(userId) !== -1 ? res.isLiked = true : res.isLiked = false;
+          return res;
+        }),
+      };
     },
     // @authenticated
     // @can('create', 'post')
