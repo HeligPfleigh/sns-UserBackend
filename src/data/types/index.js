@@ -328,10 +328,23 @@ type RequestInformation {
   apartment: RequestApartmentInformation
 }
 
+enum RequestsToJoinBuildingType {
+  ADMIN
+  MEMBER
+}
+
+enum RequestsToJoinBuildingStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 type RequestsToJoinBuilding implements Node {
   _id: ID!
   building: Building
   user: User
+  type: RequestsToJoinBuildingType
+  status: RequestsToJoinBuildingStatus
   requestInformation: RequestInformation
 }
 `];
