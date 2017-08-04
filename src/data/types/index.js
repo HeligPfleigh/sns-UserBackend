@@ -31,7 +31,6 @@ type Apartment implements Node {
   building: Building
   user: Author
   isOwner: Boolean
-
   createdAt: Date
   updatedAt: Date
 }
@@ -113,6 +112,9 @@ interface Resident {
   username: String
   profile: Profile
   chatId: String
+  phone: Phone
+  emails: Email
+  chatId: String
   posts: [Post]
   building: [Building]
   apartments: [Apartment]
@@ -121,6 +123,8 @@ interface Resident {
 type Me implements Node, Resident {
   _id: ID!
   username: String
+  phone: Phone
+  emails: Email
   profile: Profile
   chatId: String
   posts: [Post]
@@ -131,7 +135,6 @@ type Me implements Node, Resident {
   friendSuggestions: [Friend]
   totalFriends: Int
   totalNotification: Int
-
   createdAt: Date
   updatedAt: Date
 }
@@ -139,6 +142,8 @@ type Me implements Node, Resident {
 type Friend implements Node, Resident {
   _id: ID!
   username: String
+  phone: Phone
+  emails: Email
   profile: Profile
   chatId: String
   posts: [Post]
@@ -146,7 +151,6 @@ type Friend implements Node, Resident {
   apartments: [Apartment]
   friends: [Friend]
   isFriend: Boolean
-
   createdAt: Date
   updatedAt: Date
 }
@@ -154,13 +158,14 @@ type Friend implements Node, Resident {
 type Author implements Node, Resident {
   _id: ID!
   username: String
+  phone: Phone
+  emails: Email
   profile: Profile
   chatId: String
   posts: [Post]
   building: [Building]
   apartments: [Apartment]
   friends: [Resident]
-
   createdAt: Date
   updatedAt: Date
 }
@@ -195,7 +200,8 @@ type User implements Node {
   friendRequests( cursor: String, limit: Int): UserConnection!
   friendSuggestions( cursor: String, limit: Int): UserConnection!
   building: Building
-
+  emails: Email
+  phone: Phone
   apartments: [Apartment]
   totalFriends: Int
   totalNotification: Int
@@ -219,6 +225,16 @@ type Address {
   city: String
   state: String
   street: String
+}
+
+type Email {
+  address: String
+  verified: Boolean
+}
+
+type Phone {
+  number: String
+  verified: Boolean
 }
 
 enum BuildingAnnouncementType {
@@ -281,7 +297,7 @@ const PostsService = Service({
 const BuildingMembersService = Service({
   Model: BuildingMembersModel,
   paginate: {
-    default: 20,
+    default: 10,
     max: 20,
   },
   cursor: true,
@@ -386,7 +402,7 @@ export const resolvers = {
         return resolve(false);
       });
     },
-    async requests(data, { cursor = null, limit = 20 }) {
+    async requests(data, { cursor = null, limit = 10 }) {
       let r = await BuildingMembersService.find({
         $cursor: cursor,
         query: {
