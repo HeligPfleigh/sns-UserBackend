@@ -1,18 +1,36 @@
 import {
-  EventModel,
+  PostsModel,
 } from '../models';
+import { EVENT } from '../../constants';
 
-async function createEvent(privacy, author, building, banner, name, location, start, end, description, invites) {
-  const event = await EventModel.create({
+async function createEvent(privacy, author, photos, name, location, start, end, message, invites) {
+  const event = await PostsModel.create({
+    type: EVENT,
     privacy,
     author,
-    building,
-    banner,
+    photos,
     name,
     location,
     start,
     end,
-    description,
+    message,
+    invites,
+  });
+  return event;
+}
+
+async function createEventOnBuilding(privacy, author, photos, building, name, location, start, end, message, invites) {
+  const event = await PostsModel.create({
+    type: EVENT,
+    privacy,
+    author,
+    photos,
+    building,
+    name,
+    location,
+    start,
+    end,
+    message,
     invites,
   });
   return event;
@@ -20,4 +38,5 @@ async function createEvent(privacy, author, building, banner, name, location, st
 
 export default {
   createEvent,
+  createEventOnBuilding,
 };

@@ -64,16 +64,16 @@ enum PrivacyEvent {
 
 type Event implements Node {
   _id: ID!
-  privacy: PrivacyEvent!
+  privacy: PrivacyType!
   isDeleted: Boolean
   author: Author
-  building: Building!
-  banner: String!
+  building: Building
+  photos: [String]
   name: String!
   location: String!
   start: Date!
   end: Date!
-  description: String!
+  message: String!
   invites: UserConnection
   interests: UserConnection
   joins: UserConnection
@@ -304,15 +304,6 @@ const PostsService = Service({
 //   },
 //   cursor: true,
 // });
-
-const EventService = Service({
-  Model: EventModel,
-  paginate: {
-    default: 5,
-    max: 10,
-  },
-  cursor: true,
-});
 
 const ApartmentsService = Service({
   Model: ApartmentsModel,
