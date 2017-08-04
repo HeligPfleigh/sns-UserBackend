@@ -1,11 +1,16 @@
-import _ from 'lodash';
+import reject from 'lodash/reject';
+import uniq from 'lodash/uniq';
+import map from 'lodash/map';
+import uniqWith from 'lodash/uniqWith';
+import union from 'lodash/union';
+import isEqual from 'lodash/isEqual';
+import some from 'lodash/some';
 import {
   NotificationsModel,
   CommentsModel,
   PostsModel,
 } from '../data/models';
 import {
-  NOTIFY_TYPES,
   LIKES,
   COMMENTS,
   NEW_POST,
@@ -18,9 +23,9 @@ const getUserFollow = async (postId, userId, status) => {
   const comments = await CommentsModel.find({ post: postId }).select('user');
 
   const userLikes = post.likes;
-  const userComment = _.uniq(_.map(comments, 'user'));
-  let list = _.uniqWith(_.union([post.user], [post.author], userLikes, userComment), _.isEqual);
-  list = _.reject(list, item => item.equals(userId));
+  const userComment = uniq(map(comments, 'user'));
+  let list = uniqWith(union([post.user], [post.author], userLikes, userComment), isEqual);
+  list = reject(list, item => item.equals(userId));
 
   list.forEach(async (userFollow) => {
     const options = {
@@ -37,7 +42,7 @@ const getUserFollow = async (postId, userId, status) => {
         ...options,
         actors: [userId],
       });
-    } else if (!_.some(notify.actors, item => item.equals(userId))) {
+    } else if (!some(notify.actors, item => item.equals(userId))) {
       notify.actors.unshift(userId);
       await notify.save();
     }
