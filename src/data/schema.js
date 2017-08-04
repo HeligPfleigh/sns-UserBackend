@@ -99,6 +99,31 @@ input AnnouncementInput {
   message: String
 }
 
+input CreateNewEventAnnouncementInput {
+  privacy: PrivacyType
+  building: String
+  photos: [String]!
+  name: String
+  location: String!
+  start: Date!
+  end: Date!
+  message: String!
+  invites: [String]
+}
+
+input CreateNewEventOnBuildingAnnouncementInput {
+  privacy: PrivacyType
+  building: String
+  photos: [String]!
+  building: String!
+  name: String
+  location: String!
+  start: Date!
+  end: Date!
+  message: String!
+  invites: [String]
+}
+
 input CreateNewBuildingAnnouncementInput {
   buildingId: String!
   announcementInput: AnnouncementInput
@@ -209,21 +234,12 @@ type Mutation {
     privacy: String,
     message: String!
   ): Post
-
   createNewEvent(
-    privacy: PrivacyEvent!
-    isDeleted: Boolean
-    author: String
-    building: String
-    banner: String!
-    name: String!
-    location: String!
-    start: Date!
-    end: Date!
-    description: String!
-    invites: [String]
+    input: CreateNewEventAnnouncementInput!
   ): Event
-
+  createNewEventOnBuilding(
+    input: CreateNewEventOnBuildingAnnouncementInput!
+  ): Event
   updateUserProfile(
     input: UpdateUserProfileInput!
   ): UpdateUserProfilePayload
@@ -397,9 +413,15 @@ const rootResolvers = {
       return UsersService.sendFriendRequest(request.user.id, _id);
     },
 
-    createNewEvent({ request }, { privacy, banner, name, location, start, end, description, invites }) {
-      console.log(request.user);
-      return EventService.createEvent(privacy, request.user.id, request.user.buildingId, banner, name, location, start, end, description, invites);
+    createNewEvent({ request }, { input }) {
+      const { privacy, photos, name, location, start, end, message, invites } = input;
+      console.log(input);
+      return EventService.createEvent(privacy, request.user.id, photos, name, location, start, end, message, invites);
+    },
+
+    createNewEventOnBuilding({ request }, { input }) {
+      const { privacy, photos, name, building, location, start, end, message, invites } = input;
+      return EventService.createEventOnBuilding(privacy, request.user.id, photos, building, name, location, start, end, message, invites);
     },
 
     likePost({ request }, { _id }) {

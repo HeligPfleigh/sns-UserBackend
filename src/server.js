@@ -25,6 +25,7 @@ import UsersService from './data/apis/UsersService';
 import Mailer from './core/mailer';
 
 import UploadRouter from './core/uploads';
+import BuildingRouter from './routes/BuildingRoutes';
 
 const { port, auth, databaseUrl } = config;
 
@@ -176,6 +177,8 @@ app.get('/auth/logout', (req, res) => {
 app.use('/upload', UploadRouter);
 
 app.use('/images', express.static(`${__dirname}/public/uploads`));
+
+app.use('/buildings', BuildingRouter);
 
 //
 // Register API middleware

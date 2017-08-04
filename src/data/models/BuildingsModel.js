@@ -86,7 +86,9 @@ const BuildingSchema = new Schema({
     type: [AnnouncementSchema],
     default: [],
   },
+  search: String,
 });
+
 
 // https://github.com/drudge/mongoose-timestamp
 BuildingSchema.plugin(timestamp);

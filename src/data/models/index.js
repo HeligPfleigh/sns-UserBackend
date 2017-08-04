@@ -16,7 +16,6 @@ import NotificationsModel from './NotificationsModel';
 import BuildingMembersModel from './BuildingMembersModel';
 import BuildingsModel from './BuildingsModel';
 import ApartmentsModel from './ApartmentsModel';
-import EventModel from './EventModel';
 
 export {
   UsersModel,
@@ -27,5 +26,4 @@ export {
   BuildingMembersModel,
   BuildingsModel,
   ApartmentsModel,
-  EventModel,
 };
