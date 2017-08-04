@@ -10,6 +10,7 @@ import {
   ApartmentsModel,
   FriendsRelationModel,
   NotificationsModel,
+  EventModel,
 } from '../models';
 import AddressServices from '../apis/AddressServices';
 import { ADMIN, ACCEPTED, MEMBER, PENDING, PUBLIC, FRIEND, ONLY_ADMIN_BUILDING, } from '../../constants';
@@ -56,6 +57,30 @@ enum PostType {
   EVENT
 }
 
+enum PrivacyEvent {
+  PUBLIC_EVENT
+  PRIVATE_EVENT
+}
+
+type Event implements Node {
+  _id: ID!
+  privacy: PrivacyEvent!
+  isDeleted: Boolean
+  author: Author
+  building: Building!
+  banner: String!
+  name: String!
+  location: String!
+  start: Date!
+  end: Date!
+  description: String!
+  invites: UserConnection
+  interests: UserConnection
+  joins: UserConnection
+  createdAt: Date
+  updatedAt: Date
+}
+
 type Notification implements Node {
   _id: ID!
   user: Author!
@@ -100,6 +125,7 @@ type Post implements Node {
   createdAt: Date
   updatedAt: Date
 }
+
 
 type Profile {
   picture: String
@@ -284,6 +310,15 @@ const PostsService = Service({
 //   cursor: true,
 // });
 
+const EventService = Service({
+  Model: EventModel,
+  paginate: {
+    default: 5,
+    max: 10,
+  },
+  cursor: true,
+});
+
 const ApartmentsService = Service({
   Model: ApartmentsModel,
   paginate: {
@@ -452,6 +487,35 @@ export const resolvers = {
     },
     user(data) {
       return UsersModel.findOne({ _id: data.author });
+    },
+    createdAt(data) {
+      return new Date(data.createdAt);
+    },
+    updatedAt(data) {
+      return new Date(data.updatedAt);
+    },
+  },
+  Event: {
+    author(data) {
+      return UsersModel.findOne({ _id: data.author });
+    },
+    building(data) {
+      return BuildingsModel.findOne({ _id: data.building });
+    },
+    start(data) {
+      return new Date(data.start);
+    },
+    end(data) {
+      return new Date(data.end);
+    },
+    invites(data) {
+      return UsersModel.find({ _id: { $in: data.invites } });
+    },
+    interests(data) {
+      return UsersModel.find({ _id: { $in: data.interests } });
+    },
+    joins(data) {
+      return UsersModel.find({ _id: { $in: data.joins } });
     },
     createdAt(data) {
       return new Date(data.createdAt);

@@ -10,6 +10,10 @@ export const STATUS = 'STATUS';
 export const EVENT = 'EVENT';
 export const POST_TYPES = [STATUS, EVENT];
 
+export const PRIVATE_EVENT = 'PRIVATE_EVENT';
+export const PUBLIC_EVENT = 'PUBLIC_EVENT';
+export const EVENT_PRIVACY = [PRIVATE_EVENT, PUBLIC_EVENT];
+
 export const PENDING = 'PENDING';
 export const ACCEPTED = 'ACCEPTED';
 export const REJECTED = 'REJECTED';
