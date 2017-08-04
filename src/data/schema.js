@@ -22,7 +22,7 @@ import PostsService from './apis/PostsService';
 import CommentService from './apis/CommentService';
 import EventService from './apis/EventServices';
 import { schema as schemaType, resolvers as resolversType } from './types';
-import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND } from '../constants';
+import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT, STATUS } from '../constants';
 // import {
 //   everyone,
 //   authenticated,
@@ -253,6 +253,15 @@ const FeedsService = Service({
   cursor: true,
 });
 
+const EventsListService = Service({
+  Model: PostsModel,
+  paginate: {
+    default: 5,
+    max: 10,
+  },
+  cursor: true,
+});
+
 const NotificationsPagingService = Service({
   Model: NotificationsModel,
   paginate: {
@@ -365,7 +374,7 @@ const rootResolvers = {
         .limit(numberOfFriends);
       return r;
     },
-    async listEvent({ request }, { limit, cursor }) {
+    async listEvent({ request }, { cursor = null, limit = 5 }) {
       const userId = request.user.id;
       const me = await UsersModel.findOne({ _id: userId });
       let friendListByIds = await FriendsModel.find({
@@ -375,19 +384,24 @@ const rootResolvers = {
       friendListByIds = friendListByIds.map(v => v.friend);
       friendListByIds.push(userId);
       friendListByIds = friendListByIds.map(toObjectId);
-      const r = await FeedsService.find({
+      const r = await EventsListService.find({
         $cursor: cursor,
         $field: 'author',
         query: {
           $or: [
-            { author: userId }, // post from me
+            {
+              author: userId,
+              type: EVENT,
+            }, // post from me
             {
               user: { $in: friendListByIds },
               privacy: { $in: [PUBLIC, FRIEND] },
+              type: EVENT,
             },
             {
               building: me.building,
               privacy: { $in: [PUBLIC] },
+              type: EVENT,
             },
           ],
           isDeleted: { $exists: false },
@@ -399,10 +413,7 @@ const rootResolvers = {
       });
       return {
         pageInfo: r.paging,
-        edges: r.data.map((res) => {
-          res.likes.indexOf(userId) !== -1 ? res.isLiked = true : res.isLiked = false;
-          return res;
-        }),
+        edges: r.data,
       };
     },
     // @authenticated
@@ -429,7 +440,6 @@ const rootResolvers = {
 
     createNewEvent({ request }, { input }) {
       const { privacy, photos, name, location, start, end, message, invites } = input;
-      console.log(input);
       return EventService.createEvent(privacy, request.user.id, photos, name, location, start, end, message, invites);
     },
 
