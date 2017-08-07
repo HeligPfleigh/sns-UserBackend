@@ -14,9 +14,7 @@ import {
   // EventModel,
 } from '../models';
 import AddressServices from '../apis/AddressServices';
-<<<<<<< HEAD
-import { ADMIN, ACCEPTED, MEMBER, PENDING, PUBLIC, FRIEND } from '../../constants';
-=======
+
 import {
   ADMIN,
   ACCEPTED,
@@ -26,10 +24,6 @@ import {
   FRIEND,
   ONLY_ADMIN_BUILDING,
 } from '../../constants';
-// import {
-//   building,
-// } from '../../utils/authorization';
->>>>>>> 26039f21f5fce7ed8a00e29277098a3d7d28a7fe
 import Service from '../mongo/service';
 
 export const schema = [`
@@ -313,13 +307,9 @@ type Building implements Node {
   address: Address
   isAdmin: Boolean
   announcements(skip: Int, limit: Int): BuildingAnnouncementConnection!
-<<<<<<< HEAD
 
   requests( _id: String, limit: Int): [Friend]
-  posts: [Post]
-=======
   posts( cursor: String, limit: Int): BuildingPostsConnection
->>>>>>> 26039f21f5fce7ed8a00e29277098a3d7d28a7fe
 
   # members : [Users]
   requests(_id: String, limit: Int): [Friend]
@@ -390,25 +380,6 @@ const ApartmentsService = Service({
 export const resolvers = {
   Date: DateScalarType,
   Building: {
-<<<<<<< HEAD
-    posts(building, _, { user }) {
-      if (!user) return [];
-      return new Promise(async (resolve, reject) => {
-        const edgesArray = [];
-        const r = await BuildingMembersModel.findOne({
-          user: user.id,
-          building: building._id,
-          status: ACCEPTED,
-        });
-        if (!r) {
-          return resolve([]);
-        }
-        let ids = await BuildingFeedModel.find({ building: building._id }).sort({ createdAt: -1 });
-        ids = ids.map(v => v.post);
-        const edges = PostsModel.find({ _id: { $in: ids } }).sort({ createdAt: -1 }).cursor();
-
-        edges.on('data', (res) => {
-=======
     // @building
     async posts(building, { cursor = null, limit = 5 }, { user }) {
       if (!user) {
@@ -471,17 +442,10 @@ export const resolvers = {
       return {
         pageInfo: ps.paging,
         edges: ps.data.map((res) => {
->>>>>>> 26039f21f5fce7ed8a00e29277098a3d7d28a7fe
           res.likes.indexOf(user.id) !== -1 ? res.isLiked = true : res.isLiked = false;
-          edgesArray.push(res);
-        });
-        edges.on('error', (err) => {
-          reject(err);
-        });
-        edges.on('end', () => {
-          resolve(edgesArray);
-        });
-      });
+          return res;
+        }),
+      };
     },
     isAdmin(building, _, { user }) {
       if (!user) return false;
