@@ -88,6 +88,7 @@ type Event implements Node {
   joins: UserConnection
   createdAt: Date
   updatedAt: Date
+  isAuthor: Boolean
 }
 
 type Notification implements Node {

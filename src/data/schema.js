@@ -67,6 +67,7 @@ type Query {
   notifications(limit: Int, cursor: String): NotificationsResult
   search(keyword: String!, numberOfFriends: Int): [Friend]
   listEvent(limit: Int, cursor: String): Events
+  event(_id: String!): Event
   # users,
   test: Test
   resident(_id: String): User
@@ -440,13 +441,13 @@ const rootResolvers = {
         edges: r.data,
       };
     },
-    // @authenticated
-    // @can('create', 'post')
-    // test() {
-    //   return {
-    //     hello: 'world',
-    //   };
-    // },
+    async event({ request }, { _id }) {
+      // TODO
+      const userId = request.user.id;
+      const res = await EventService.getEvent(_id);
+      res.author === userId ? res.isAuthor = true : res.isAuthor = false;
+      return res;
+    },
     resident(root, { _id }) {
       return UsersService.getUser(_id);
     },
