@@ -296,6 +296,11 @@ type PageSkipInfo {
   limit: Int
 }
 
+type BuildingPostsConnection {
+  pageInfo: PageInfo
+  edges: [Post]
+}
+
 type BuildingAnnouncementConnection {
   pageInfo: PageSkipInfo
   edges: [BuildingAnnouncement]
