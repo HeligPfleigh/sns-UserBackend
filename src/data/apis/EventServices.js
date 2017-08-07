@@ -36,7 +36,12 @@ async function createEventOnBuilding(privacy, author, photos, building, name, lo
   return event;
 }
 
+function getEvent(postId) {
+  return PostsModel.findOne({ _id: postId });
+}
+
 export default {
   createEvent,
   createEventOnBuilding,
+  getEvent,
 };
