@@ -22,7 +22,7 @@ import PostsService from './apis/PostsService';
 import CommentService from './apis/CommentService';
 import EventService from './apis/EventServices';
 import { schema as schemaType, resolvers as resolversType } from './types';
-import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND } from '../constants';
+import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT, STATUS } from '../constants';
 // import {
 //   everyone,
 //   authenticated,
@@ -66,6 +66,7 @@ type Query {
   comment(_id: String): Comment
   notifications(limit: Int, cursor: String): NotificationsResult
   search(keyword: String!, numberOfFriends: Int): [Friend]
+  listEvent(limit: Int, cursor: String): Events
   # users,
   test: Test
   resident(_id: String): User
@@ -252,6 +253,15 @@ const FeedsService = Service({
   cursor: true,
 });
 
+const EventsListService = Service({
+  Model: PostsModel,
+  paginate: {
+    default: 5,
+    max: 10,
+  },
+  cursor: true,
+});
+
 const NotificationsPagingService = Service({
   Model: NotificationsModel,
   paginate: {
@@ -364,6 +374,48 @@ const rootResolvers = {
         .limit(numberOfFriends);
       return r;
     },
+    async listEvent({ request }, { cursor = null, limit = 5 }) {
+      const userId = request.user.id;
+      const me = await UsersModel.findOne({ _id: userId });
+      let friendListByIds = await FriendsModel.find({
+        user: userId,
+        isSubscribe: true,
+      }).select('friend _id');
+      friendListByIds = friendListByIds.map(v => v.friend);
+      friendListByIds.push(userId);
+      friendListByIds = friendListByIds.map(toObjectId);
+      const r = await EventsListService.find({
+        $cursor: cursor,
+        $field: 'author',
+        query: {
+          $or: [
+            {
+              author: userId,
+              type: EVENT,
+            }, // post from me
+            {
+              user: { $in: friendListByIds },
+              privacy: { $in: [PUBLIC, FRIEND] },
+              type: EVENT,
+            },
+            {
+              building: me.building,
+              privacy: { $in: [PUBLIC] },
+              type: EVENT,
+            },
+          ],
+          isDeleted: { $exists: false },
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      });
+      return {
+        pageInfo: r.paging,
+        edges: r.data,
+      };
+    },
     // @authenticated
     // @can('create', 'post')
     // test() {
@@ -388,7 +440,6 @@ const rootResolvers = {
 
     createNewEvent({ request }, { input }) {
       const { privacy, photos, name, location, start, end, message, invites } = input;
-      console.log(input);
       return EventService.createEvent(privacy, request.user.id, photos, name, location, start, end, message, invites);
     },
 
