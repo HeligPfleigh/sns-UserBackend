@@ -11,10 +11,25 @@ import {
   ApartmentsModel,
   FriendsRelationModel,
   NotificationsModel,
-  EventModel,
+  // EventModel,
 } from '../models';
 import AddressServices from '../apis/AddressServices';
+<<<<<<< HEAD
 import { ADMIN, ACCEPTED, MEMBER, PENDING, PUBLIC, FRIEND } from '../../constants';
+=======
+import {
+  ADMIN,
+  ACCEPTED,
+  MEMBER,
+  PENDING,
+  PUBLIC,
+  FRIEND,
+  ONLY_ADMIN_BUILDING,
+} from '../../constants';
+// import {
+//   building,
+// } from '../../utils/authorization';
+>>>>>>> 26039f21f5fce7ed8a00e29277098a3d7d28a7fe
 import Service from '../mongo/service';
 
 export const schema = [`
@@ -217,6 +232,16 @@ type NotificationsResult {
 
 ### User Type
 # Represents a user in system.
+type Email {
+  address: String
+  verified: Boolean
+}
+
+type Phone {
+  number: String
+  verified: Boolean
+}
+
 type User implements Node {
   _id: ID!
   username: String
@@ -227,6 +252,8 @@ type User implements Node {
   friendRequests( cursor: String, limit: Int): UserConnection!
   friendSuggestions( cursor: String, limit: Int): UserConnection!
   building: Building
+  emails: Email
+  phone: Phone
 
   apartments: [Apartment]
   totalFriends: Int
@@ -247,10 +274,13 @@ type UserConnection {
 ### Building Type
 # Represents a building in system.
 type Address {
+  basisPoint: String
   country: String
-  city: String
-  state: String
+  province: String
+  district: String
+  ward: String
   street: String
+  countryCode: String
 }
 
 enum BuildingAnnouncementType {
@@ -283,14 +313,51 @@ type Building implements Node {
   address: Address
   isAdmin: Boolean
   announcements(skip: Int, limit: Int): BuildingAnnouncementConnection!
+<<<<<<< HEAD
 
   requests( _id: String, limit: Int): [Friend]
   posts: [Post]
+=======
+  posts( cursor: String, limit: Int): BuildingPostsConnection
+>>>>>>> 26039f21f5fce7ed8a00e29277098a3d7d28a7fe
+
+  # members : [Users]
+  requests(_id: String, limit: Int): [Friend]
 
   createdAt: Date
   updatedAt: Date
 }
 
+### RequestsToJoinBuilding Type
+# Represents a request to join building in system.
+
+type RequestApartmentInformation {
+  number: String
+}
+
+type RequestInformation {
+  apartment: RequestApartmentInformation
+}
+
+enum RequestsToJoinBuildingType {
+  ADMIN
+  MEMBER
+}
+
+enum RequestsToJoinBuildingStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+type RequestsToJoinBuilding implements Node {
+  _id: ID!
+  building: Building
+  user: User
+  type: RequestsToJoinBuildingType
+  status: RequestsToJoinBuildingStatus
+  requestInformation: RequestInformation
+}
 `];
 
 const PostsService = Service({
@@ -323,6 +390,7 @@ const ApartmentsService = Service({
 export const resolvers = {
   Date: DateScalarType,
   Building: {
+<<<<<<< HEAD
     posts(building, _, { user }) {
       if (!user) return [];
       return new Promise(async (resolve, reject) => {
@@ -340,6 +408,70 @@ export const resolvers = {
         const edges = PostsModel.find({ _id: { $in: ids } }).sort({ createdAt: -1 }).cursor();
 
         edges.on('data', (res) => {
+=======
+    // @building
+    async posts(building, { cursor = null, limit = 5 }, { user }) {
+      if (!user) {
+        return {
+          edges: [],
+          pageInfo: {
+            endCursor: null,
+            hasNextPage: false,
+          },
+        };
+      }
+      const r = await BuildingMembersModel.findOne({
+        user: user.id,
+        building: building._id,
+        status: ACCEPTED,
+      });
+      if (!r) {
+        return {
+          edges: [],
+          pageInfo: {
+            endCursor: null,
+            hasNextPage: false,
+          },
+        };
+      }
+      const query = {
+        building: building._id,
+        isDeleted: { $exists: false },
+        $sort: {
+          createdAt: -1,
+        },
+        $limit: limit,
+      };
+      if (r.type === ADMIN) {
+        query.$or = [
+          {
+            privacy: {
+              $in: [PUBLIC, ONLY_ADMIN_BUILDING],
+            },
+          }, {
+            author: user.id,
+          },
+        ];
+      }
+      if (r.type === MEMBER) {
+        query.$or = [
+          {
+            privacy: {
+              $in: [PUBLIC],
+            },
+          }, {
+            author: user.id,
+          },
+        ];
+      }
+      const ps = await PostsService.find({
+        $cursor: cursor,
+        query,
+      });
+      return {
+        pageInfo: ps.paging,
+        edges: ps.data.map((res) => {
+>>>>>>> 26039f21f5fce7ed8a00e29277098a3d7d28a7fe
           res.likes.indexOf(user.id) !== -1 ? res.isLiked = true : res.isLiked = false;
           edgesArray.push(res);
         });
@@ -784,6 +916,14 @@ export const resolvers = {
     },
     building(data) {
       return AddressServices.getBuilding(data.building);
+    },
+  },
+  RequestsToJoinBuilding: {
+    building(data) {
+      return AddressServices.getBuilding(data.building);
+    },
+    user(data) {
+      return UsersModel.findOne({ _id: data.user });
     },
   },
 };

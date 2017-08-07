@@ -22,7 +22,7 @@ const ApartmentSchema = new Schema({
   },
   isOwner: {
     type: Boolean,
-    default: true,
+    default: false,
     required: true,
     index: true,
   },
