@@ -265,11 +265,6 @@ describe('RootRejectingUserToBuildingMutation', () => {
         status: 'REJECTED',
       },
     }));
-    // await new Promise((resolve) => {
-    //   setTimeout(() => {
-    //     resolve();
-    //   }, 5000);
-    // });
   });
 
   afterEach(async () => {

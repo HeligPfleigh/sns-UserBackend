@@ -5,6 +5,7 @@ import {
 } from '../../../test/helper';
 import { PostsModel, UsersModel, BuildingsModel } from '../models';
 import schema from '../schema';
+import { buildingData as bd } from './data';
 
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
@@ -44,22 +45,9 @@ const userData = {
   __v: 0,
 };
 
-const buildingData = {
+const buildingData = Object.assign({}, bd, {
   _id: buildingIdA,
-  name: 'Vinhomes Riverside',
-  address: {
-    country: 'vn',
-    city: 'Ha Noi',
-    state: 'Long Bien',
-    street: 'No.7, Bang Lang 1 Street',
-  },
-  location: {
-    coordinates: [105.7976544, 21.0714764],
-    type: 'Point',
-  },
-  description: 'Vingroup Joint Stock Company',
-  __v: 0,
-};
+});
 
 const postData = {
   _id: postId,

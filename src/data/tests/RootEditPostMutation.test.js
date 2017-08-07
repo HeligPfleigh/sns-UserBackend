@@ -51,7 +51,6 @@ describe('RootEditPostMutation', () => {
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    console.log(JSON.stringify(result));
     expect(result.data.editPost).toEqual(Object.assign({}, {
       _id: postId,
       message: newMessage,
