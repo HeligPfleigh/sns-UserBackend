@@ -282,16 +282,6 @@ type Address {
   countryCode: String
 }
 
-type Email {
-  address: String
-  verified: Boolean
-}
-
-type Phone {
-  number: String
-  verified: Boolean
-}
-
 enum BuildingAnnouncementType {
   TYPE1
   TYPE2
@@ -519,7 +509,9 @@ export const resolvers = {
         {
           $project: {
             total: {
-              $size: '$announcements',
+              $size: { 
+                $ifNull: [ '$announcements', [] ],
+              },
             },
           },
         },
