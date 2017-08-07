@@ -59,6 +59,7 @@ enum PrivacyType {
   PUBLIC
   FRIEND
   ONLY_ME
+  ONLY_ADMIN_BUILDING
 }
 
 enum PostType {
