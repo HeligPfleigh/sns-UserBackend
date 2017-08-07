@@ -6,28 +6,15 @@ import {
 import schema from '../schema';
 import { BuildingsModel, BuildingMembersModel, UsersModel } from '../models';
 import { ADMIN, REJECTED, ACCEPTED, MEMBER, PENDING } from '../../constants';
-
+import { buildingData as bd } from './data';
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
 const buildingId = '58da279f0ff5af8c8be59c37';
-const buildingData = {
+const buildingData = Object.assign({
   _id: buildingId,
-  name: 'Vinhomes Riverside',
-  address: {
-    country: 'vn',
-    city: 'Ha Noi',
-    state: 'Long Bien',
-    street: 'No.7, Bang Lang 1 Street',
-  },
-  location: {
-    coordinates: [105.7976544, 21.0714764],
-    type: 'Point',
-  },
-  description: 'Vingroup Joint Stock Company',
-  __v: 0,
-};
+}, bd);
 const userIdA = '58f9c2502d4581000474b19a';
 const userIdB = '58f9c1bf2d4581000474b198';
 const userDataA = {
@@ -85,24 +72,29 @@ const userDataB = {
 describe('RootRejectRequestForJoiningBuildingMutation', () => {
   beforeEach(async () => {
     // setup db
-    const building = new BuildingsModel(buildingData);
-    await building.save();
-    const userA = new UsersModel(userDataA);
-    await userA.save();
-    const userB = new UsersModel(userDataB);
-    await userB.save();
-    await BuildingMembersModel.create({
-      building: buildingId,
-      user: userIdA,
-      type: ADMIN,
-      status: ACCEPTED,
-    });
-    await BuildingMembersModel.create({
-      building: buildingId,
-      user: userIdB,
-      type: MEMBER,
-      status: PENDING,
-    });
+    try {
+      const building = new BuildingsModel(buildingData);
+      await building.save();
+      const userA = new UsersModel(userDataA);
+      await userA.save();
+      const userB = new UsersModel(userDataB);
+      await userB.save();
+      await BuildingMembersModel.create({
+        building: buildingId,
+        user: userIdA,
+        type: ADMIN,
+        status: ACCEPTED,
+      });
+      await BuildingMembersModel.create({
+        building: buildingId,
+        user: userIdB,
+        type: MEMBER,
+        status: PENDING,
+      });
+      // await new Promise(resolve => setTimeout(resolve, 5000));
+    } catch (e) {
+      console.log(e);
+    }
   });
 
   test('should get error if user is not admin', async () => {

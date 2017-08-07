@@ -6,28 +6,16 @@ import {
 import schema from '../schema';
 import { BuildingsModel, BuildingMembersModel, UsersModel } from '../models';
 import { ADMIN, ACCEPTED, MEMBER, PENDING } from '../../constants';
+import { buildingData as bd } from './data';
 
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
 const buildingId = '58da279f0ff5af8c8be59c37';
-const buildingData = {
+const buildingData = Object.assign({}, bd, {
   _id: buildingId,
-  name: 'Vinhomes Riverside',
-  address: {
-    country: 'vn',
-    city: 'Ha Noi',
-    state: 'Long Bien',
-    street: 'No.7, Bang Lang 1 Street',
-  },
-  location: {
-    coordinates: [105.7976544, 21.0714764],
-    type: 'Point',
-  },
-  description: 'Vingroup Joint Stock Company',
-  __v: 0,
-};
+});
 const userIdA = '58f9c2502d4581000474b19a';
 const userIdB = '58f9c1bf2d4581000474b198';
 const userDataA = {

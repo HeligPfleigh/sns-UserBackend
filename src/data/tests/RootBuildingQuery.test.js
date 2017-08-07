@@ -6,7 +6,7 @@ import {
 import schema from '../schema';
 import { BuildingsModel, BuildingMembersModel, PostsModel } from '../models';
 import { ADMIN, ACCEPTED, MEMBER, PUBLIC, ONLY_ADMIN_BUILDING, } from '../../constants';
-
+import { buildingData as bd } from './data';
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
@@ -14,22 +14,9 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 const buildingId = '58da279f0ff5af8c8be59c37';
 const postId = '590310aec900da00047629a8';
 const userId = '58f9c2502d4581000484b18a';
-const buildingData = {
+const buildingData = Object.assign({}, bd, {
   _id: buildingId,
-  name: 'Vinhomes Riverside',
-  address: {
-    country: 'vn',
-    city: 'Ha Noi',
-    state: 'Long Bien',
-    street: 'No.7, Bang Lang 1 Street',
-  },
-  location: {
-    coordinates: [105.7976544, 21.0714764],
-    type: 'Point',
-  },
-  description: 'Vingroup Joint Stock Company',
-  __v: 0,
-};
+});
 const postData = {
   _id: postId,
   createdAt: '2017-04-28T09:51:42.263Z',

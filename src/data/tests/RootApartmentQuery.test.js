@@ -5,7 +5,7 @@ import {
 } from '../../../test/helper';
 import schema from '../schema';
 import { UsersModel, BuildingsModel, ApartmentsModel } from '../models';
-
+import { buildingData as bd } from './data';
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
@@ -13,23 +13,10 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 const buildingId = '58da279f0ff5af8c8be59c23';
 const userId = '58f9c2502d4581000484b19a';
 const apartmentId = '58f9c1bf2d4581000484b189';
-
-const buildingData = {
+const buildingData = Object.assign({}, bd, {
   _id: buildingId,
-  name: 'Vinhomes Riverside',
-  address: {
-    country: 'vn',
-    city: 'Ha Noi',
-    state: 'Long Bien',
-    street: 'No.7, Bang Lang 1 Street',
-  },
-  location: {
-    coordinates: [105.7976544, 21.0714764],
-    type: 'Point',
-  },
-  description: 'Vingroup Joint Stock Company',
-  __v: 0,
-};
+});
+
 const userData = {
   _id: userId,
   emails: {
@@ -93,6 +80,7 @@ describe('RootApartmentQuery', () => {
     const rootValue = {};
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
+    console.log(JSON.stringify(result));
     expect(result.data.apartment).toEqual(Object.assign({}, {
       _id: apartmentData._id,
       building: {

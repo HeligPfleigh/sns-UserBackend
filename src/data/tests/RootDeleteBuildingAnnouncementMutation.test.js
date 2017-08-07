@@ -7,39 +7,24 @@ import {
 import schema from '../schema';
 import { BuildingsModel, BuildingMembersModel } from '../models';
 import { ADMIN, ACCEPTED } from '../../constants';
+import { buildingData as bd } from './data';
 
 const { Types: { ObjectId } } = mongoose;
-
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
 const buildingId = ObjectId('58da279f0ff5af8c8be59c37');
 const userId = ObjectId('58f9c2502d4581000484b18a');
-const buildingData = {
+const buildingData = Object.assign({}, bd, {
   _id: buildingId,
-  name: 'Vinhomes Riverside',
-  address: {
-    country: 'vn',
-    city: 'Ha Noi',
-    state: 'Long Bien',
-    street: 'No.7, Bang Lang 1 Street',
-  },
-  location: {
-    coordinates: [105.7976544, 21.0714764],
-    type: 'Point',
-  },
   announcements: [{
     _id: ObjectId('23da279f0ff5af8c8be59c46'),
     date: new Date('2017-06-01T11:02:26.266Z'),
     message: 'Thông báo 1',
     type: 'TYPE1',
   }],
-  description: 'Vingroup Joint Stock Company',
-  __v: 0,
-  createdAt: new Date('2017-06-10T11:02:26.266Z'),
-  updatedAt: new Date('2017-07-30T02:26:04.257Z'),
-};
+});
 
 describe('RootDeleteBuildingAnnouncementMutation', () => {
   beforeEach(async () => {
