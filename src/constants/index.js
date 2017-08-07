@@ -10,10 +10,6 @@ export const STATUS = 'STATUS';
 export const EVENT = 'EVENT';
 export const POST_TYPES = [STATUS, EVENT];
 
-export const PRIVATE_EVENT = 'PRIVATE_EVENT';
-export const PUBLIC_EVENT = 'PUBLIC_EVENT';
-export const EVENT_PRIVACY = [PRIVATE_EVENT, PUBLIC_EVENT];
-
 export const PENDING = 'PENDING';
 export const ACCEPTED = 'ACCEPTED';
 export const REJECTED = 'REJECTED';
@@ -47,8 +43,7 @@ export const CHAT_ON_FAIL = 'CHAT_ON_FAIL';
 export const PUBLIC = 'PUBLIC';
 export const FRIEND = 'FRIEND';
 export const ONLY_ME = 'ONLY_ME';
-export const ONLY_ADMIN_BUILDING = 'ONLY_ADMIN_BUILDING';
-export const POST_PRIVACY = [PUBLIC, FRIEND, ONLY_ME, ONLY_ADMIN_BUILDING];
+export const POST_PRIVACY = [PUBLIC, FRIEND, ONLY_ME];
 
 export const TYPE1 = 'TYPE1';
 export const TYPE2 = 'TYPE2';
