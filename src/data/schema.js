@@ -20,8 +20,9 @@ import NotificationsService from './apis/NotificationsService';
 import UsersService from './apis/UsersService';
 import PostsService from './apis/PostsService';
 import CommentService from './apis/CommentService';
+import EventService from './apis/EventServices';
 import { schema as schemaType, resolvers as resolversType } from './types';
-import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND } from '../constants';
+import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT, STATUS } from '../constants';
 // import {
 //   everyone,
 //   authenticated,
@@ -65,9 +66,11 @@ type Query {
   comment(_id: String): Comment
   notifications(limit: Int, cursor: String): NotificationsResult
   search(keyword: String!, numberOfFriends: Int): [Friend]
+  listEvent(limit: Int, cursor: String): Events
   # users,
   test: Test
   resident(_id: String): User
+  requestsToJoinBuilding(_id: String): RequestsToJoinBuilding
 }
 
 input ProfileInput {
@@ -97,6 +100,31 @@ input AnnouncementInput {
   message: String
 }
 
+input CreateNewEventAnnouncementInput {
+  privacy: PrivacyType
+  building: String
+  photos: [String]!
+  name: String
+  location: String!
+  start: Date!
+  end: Date!
+  message: String!
+  invites: [String]
+}
+
+input CreateNewEventOnBuildingAnnouncementInput {
+  privacy: PrivacyType
+  building: String
+  photos: [String]!
+  building: String!
+  name: String
+  location: String!
+  start: Date!
+  end: Date!
+  message: String!
+  invites: [String]
+}
+
 input CreateNewBuildingAnnouncementInput {
   buildingId: String!
   announcementInput: AnnouncementInput
@@ -123,6 +151,22 @@ input DeleteBuildingAnnouncementInput {
 
 type DeleteBuildingAnnouncementPayload {
   announcement: BuildingAnnouncement
+}
+
+input ApprovingUserToBuildingInput {
+  requestsToJoinBuildingId: String!
+}
+
+type ApprovingUserToBuildingPayload {
+  request: RequestsToJoinBuilding
+}
+
+input RejectingUserToBuildingInput {
+  requestsToJoinBuildingId: String!
+}
+
+type RejectingUserToBuildingPayload {
+  request: RequestsToJoinBuilding
 }
 
 type Mutation {
@@ -191,7 +235,12 @@ type Mutation {
     privacy: String,
     message: String!
   ): Post
-
+  createNewEvent(
+    input: CreateNewEventAnnouncementInput!
+  ): Event
+  createNewEventOnBuilding(
+    input: CreateNewEventOnBuildingAnnouncementInput!
+  ): Event
   updateUserProfile(
     input: UpdateUserProfileInput!
   ): UpdateUserProfilePayload
@@ -204,6 +253,13 @@ type Mutation {
   deleteBuildingAnnouncement(
     input: DeleteBuildingAnnouncementInput!
   ): DeleteBuildingAnnouncementPayload
+
+  approvingUserToBuilding(
+    input: ApprovingUserToBuildingInput!
+  ): ApprovingUserToBuildingPayload
+  rejectingUserToBuilding(
+    input: RejectingUserToBuildingInput!
+  ): RejectingUserToBuildingPayload
 }
 
 schema {
@@ -213,6 +269,15 @@ schema {
 `];
 
 const FeedsService = Service({
+  Model: PostsModel,
+  paginate: {
+    default: 5,
+    max: 10,
+  },
+  cursor: true,
+});
+
+const EventsListService = Service({
   Model: PostsModel,
   paginate: {
     default: 5,
@@ -333,6 +398,48 @@ const rootResolvers = {
         .limit(numberOfFriends);
       return r;
     },
+    async listEvent({ request }, { cursor = null, limit = 5 }) {
+      const userId = request.user.id;
+      const me = await UsersModel.findOne({ _id: userId });
+      let friendListByIds = await FriendsModel.find({
+        user: userId,
+        isSubscribe: true,
+      }).select('friend _id');
+      friendListByIds = friendListByIds.map(v => v.friend);
+      friendListByIds.push(userId);
+      friendListByIds = friendListByIds.map(toObjectId);
+      const r = await EventsListService.find({
+        $cursor: cursor,
+        $field: 'author',
+        query: {
+          $or: [
+            {
+              author: userId,
+              type: EVENT,
+            }, // post from me
+            {
+              user: { $in: friendListByIds },
+              privacy: { $in: [PUBLIC, FRIEND] },
+              type: EVENT,
+            },
+            {
+              building: me.building,
+              privacy: { $in: [PUBLIC] },
+              type: EVENT,
+            },
+          ],
+          isDeleted: { $exists: false },
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      });
+      return {
+        pageInfo: r.paging,
+        edges: r.data,
+      };
+    },
     // @authenticated
     // @can('create', 'post')
     // test() {
@@ -342,6 +449,9 @@ const rootResolvers = {
     // },
     resident(root, { _id }) {
       return UsersService.getUser(_id);
+    },
+    requestsToJoinBuilding(root, { _id }) {
+      return BuildingMembersModel.findOne({ _id });
     },
   },
   Mutation: {
@@ -354,6 +464,17 @@ const rootResolvers = {
     sendFriendRequest({ request }, { _id }) {
       return UsersService.sendFriendRequest(request.user.id, _id);
     },
+
+    createNewEvent({ request }, { input }) {
+      const { privacy, photos, name, location, start, end, message, invites } = input;
+      return EventService.createEvent(privacy, request.user.id, photos, name, location, start, end, message, invites);
+    },
+
+    createNewEventOnBuilding({ request }, { input }) {
+      const { privacy, photos, name, building, location, start, end, message, invites } = input;
+      return EventService.createEventOnBuilding(privacy, request.user.id, photos, building, name, location, start, end, message, invites);
+    },
+
     likePost({ request }, { _id }) {
       return PostsService.likePost(request.user.id, _id);
     },
@@ -454,9 +575,6 @@ const rootResolvers = {
         },
       });
       return UsersModel.findOne({ _id: userId });
-      // return new Promise(async (resolve, reject) => {
-      //   setTimeout(reject, 5000);
-      // });
     },
     async rejectRequestForJoiningBuilding({ request }, { buildingId, userId }) {
       const isAdmin = await BuildingMembersModel.findOne({
@@ -703,6 +821,66 @@ const rootResolvers = {
       announcement = announcement[0];
       return {
         announcement,
+      };
+    },
+    async approvingUserToBuilding({ request }, { input }) {
+      const { requestsToJoinBuildingId } = input;
+      const record = await BuildingMembersModel.findOne({ _id: requestsToJoinBuildingId });
+      if (!record) {
+        throw new Error('not found the request');
+      }
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: record.building,
+        user: request.user.id,
+      });
+      if (!isAdmin || isAdmin.type !== ADMIN) {
+        throw new Error('you don\'t have permission to approve request');
+      }
+      if (record.status !== PENDING) {
+        return {
+          request: record,
+        };
+      }
+      // NOTE: what happens if we lost connection to db
+      await BuildingMembersModel.update({
+        _id: requestsToJoinBuildingId,
+      }, {
+        $set: {
+          status: ACCEPTED,
+        },
+      });
+      return {
+        request: BuildingMembersModel.findOne({ _id: requestsToJoinBuildingId }),
+      };
+    },
+    async rejectingUserToBuilding({ request }, { input }) {
+      const { requestsToJoinBuildingId } = input;
+      const record = await BuildingMembersModel.findOne({ _id: requestsToJoinBuildingId });
+      if (!record) {
+        throw new Error('not found the request');
+      }
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: record.building,
+        user: request.user.id,
+      });
+      if (!isAdmin || isAdmin.type !== ADMIN) {
+        throw new Error('you don\'t have permission to reject request');
+      }
+      if (record.status !== PENDING) {
+        return {
+          request: record,
+        };
+      }
+      // NOTE: what happens if we lost connection to db
+      await BuildingMembersModel.update({
+        _id: requestsToJoinBuildingId,
+      }, {
+        $set: {
+          status: REJECTED,
+        },
+      });
+      return {
+        request: BuildingMembersModel.findOne({ _id: requestsToJoinBuildingId }),
       };
     },
   },

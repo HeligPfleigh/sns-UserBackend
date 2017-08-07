@@ -30,6 +30,12 @@ const BuildingMembersSchema = new Schema({
     enum: BUILDING_MEMBER_STATUS,
     default: PENDING,
   },
+  requestInformation: {
+    apartment: {
+      number: String,
+    },
+    detail: Schema.Types.Mixed,
+  },
 });
 
 // https://github.com/drudge/mongoose-timestamp

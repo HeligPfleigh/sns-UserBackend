@@ -6,13 +6,24 @@ import {
   UsersModel,
   BuildingsModel,
   BuildingMembersModel,
+  BuildingFeedModel,
   CommentsModel,
   ApartmentsModel,
   FriendsRelationModel,
   NotificationsModel,
+  // EventModel,
 } from '../models';
 import AddressServices from '../apis/AddressServices';
-import { ADMIN, ACCEPTED, MEMBER, PENDING, PUBLIC, FRIEND, ONLY_ADMIN_BUILDING, } from '../../constants';
+
+import {
+  ADMIN,
+  ACCEPTED,
+  MEMBER,
+  PENDING,
+  PUBLIC,
+  FRIEND,
+  ONLY_ADMIN_BUILDING,
+} from '../../constants';
 import Service from '../mongo/service';
 
 export const schema = [`
@@ -31,6 +42,7 @@ type Apartment implements Node {
   building: Building
   user: Author
   isOwner: Boolean
+
   createdAt: Date
   updatedAt: Date
 }
@@ -47,12 +59,35 @@ enum PrivacyType {
   PUBLIC
   FRIEND
   ONLY_ME
-  ONLY_ADMIN_BUILDING
 }
 
 enum PostType {
   STATUS
   EVENT
+}
+
+enum PrivacyEvent {
+  PUBLIC_EVENT
+  PRIVATE_EVENT
+}
+
+type Event implements Node {
+  _id: ID!
+  privacy: PrivacyType!
+  isDeleted: Boolean
+  author: Author
+  building: Building
+  photos: [String]
+  name: String!
+  location: String!
+  start: Date!
+  end: Date!
+  message: String!
+  invites: UserConnection
+  interests: UserConnection
+  joins: UserConnection
+  createdAt: Date
+  updatedAt: Date
 }
 
 type Notification implements Node {
@@ -99,6 +134,7 @@ type Post implements Node {
   createdAt: Date
   updatedAt: Date
 }
+
 
 type Profile {
   picture: String
@@ -170,6 +206,7 @@ type Author implements Node, Resident {
   updatedAt: Date
 }
 
+
 # Feeds
 type PageInfo {
   endCursor: String
@@ -183,6 +220,11 @@ type Feeds {
   edges: [Post]
 }
 
+type Events {
+  pageInfo: PageInfo
+  edges: [Event]
+}
+
 type NotificationsResult {
   pageInfo: PageInfo
   edges: [Notification]
@@ -190,6 +232,16 @@ type NotificationsResult {
 
 ### User Type
 # Represents a user in system.
+type Email {
+  address: String
+  verified: Boolean
+}
+
+type Phone {
+  number: String
+  verified: Boolean
+}
+
 type User implements Node {
   _id: ID!
   username: String
@@ -221,10 +273,13 @@ type UserConnection {
 ### Building Type
 # Represents a building in system.
 type Address {
+  basisPoint: String
   country: String
-  city: String
-  state: String
+  province: String
+  district: String
+  ward: String
   street: String
+  countryCode: String
 }
 
 type Email {
@@ -256,14 +311,14 @@ type PageSkipInfo {
   limit: Int
 }
 
-type BuildingAnnouncementConnection {
-  pageInfo: PageSkipInfo
-  edges: [BuildingAnnouncement]
-}
-
 type BuildingPostsConnection {
   pageInfo: PageInfo
   edges: [Post]
+}
+
+type BuildingAnnouncementConnection {
+  pageInfo: PageSkipInfo
+  edges: [BuildingAnnouncement]
 }
 
 type UsersAwaitingApprovalConnection {
@@ -279,10 +334,43 @@ type Building implements Node {
   announcements(skip: Int, limit: Int): BuildingAnnouncementConnection!
   requests(cursor: String, limit: Int): UsersAwaitingApprovalConnection
   posts(cursor: String, limit: Int): BuildingPostsConnection
+  # members : [Users]
+  requests(_id: String, limit: Int): [Friend]
+
   createdAt: Date
   updatedAt: Date
 }
 
+### RequestsToJoinBuilding Type
+# Represents a request to join building in system.
+
+type RequestApartmentInformation {
+  number: String
+}
+
+type RequestInformation {
+  apartment: RequestApartmentInformation
+}
+
+enum RequestsToJoinBuildingType {
+  ADMIN
+  MEMBER
+}
+
+enum RequestsToJoinBuildingStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+type RequestsToJoinBuilding implements Node {
+  _id: ID!
+  building: Building
+  user: User
+  type: RequestsToJoinBuildingType
+  status: RequestsToJoinBuildingStatus
+  requestInformation: RequestInformation
+}
 `];
 
 const PostsService = Service({
@@ -324,6 +412,7 @@ const ApartmentsService = Service({
 export const resolvers = {
   Date: DateScalarType,
   Building: {
+    // @building
     async posts(building, { cursor = null, limit = 5 }, { user }) {
       if (!user) {
         return {
@@ -485,6 +574,35 @@ export const resolvers = {
     },
     user(data) {
       return UsersModel.findOne({ _id: data.author });
+    },
+    createdAt(data) {
+      return new Date(data.createdAt);
+    },
+    updatedAt(data) {
+      return new Date(data.updatedAt);
+    },
+  },
+  Event: {
+    author(data) {
+      return UsersModel.findOne({ _id: data.author });
+    },
+    building(data) {
+      return BuildingsModel.findOne({ _id: data.building });
+    },
+    start(data) {
+      return new Date(data.start);
+    },
+    end(data) {
+      return new Date(data.end);
+    },
+    invites(data) {
+      return UsersModel.find({ _id: { $in: data.invites } });
+    },
+    interests(data) {
+      return UsersModel.find({ _id: { $in: data.interests } });
+    },
+    joins(data) {
+      return UsersModel.find({ _id: { $in: data.joins } });
     },
     createdAt(data) {
       return new Date(data.createdAt);
@@ -799,6 +917,14 @@ export const resolvers = {
     },
     building(data) {
       return AddressServices.getBuilding(data.building);
+    },
+  },
+  RequestsToJoinBuilding: {
+    building(data) {
+      return AddressServices.getBuilding(data.building);
+    },
+    user(data) {
+      return UsersModel.findOne({ _id: data.user });
     },
   },
 };

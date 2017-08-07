@@ -55,6 +55,33 @@ const PostSchema = new Schema({
     ref: 'User',
   }],
   message: Schema.Types.Mixed,
+  name: {
+    type: String,
+  },
+  location: {
+    type: String,
+  },
+  start: {
+    type: Date,
+  },
+  end: {
+    type: Date,
+  },
+  invites: [{
+    type: ObjectId,
+    ref: 'User',
+    default: [],
+  }],
+  interests: [{
+    type: ObjectId,
+    ref: 'User',
+    default: [],
+  }],
+  joins: [{
+    type: ObjectId,
+    ref: 'User',
+    default: [],
+  }],
 });
 
 // https://github.com/drudge/mongoosetimestamp

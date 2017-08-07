@@ -32,13 +32,10 @@ function splitWord(word) {
   return result;
 }
 
-export function generateSearchField(user) {
+export function generateSearchField(building) {
   let search = '';
-  if (user && user.profile && user.profile.firstName) {
-    search += `${user.profile.firstName.trim()} `;
-  }
-  if (user && user.profile && user.profile.lastName) {
-    search += `${user.profile.lastName.trim()} `;
+  if (building && building.name) {
+    search += `${building.name.trim()} `;
   }
   // search = first name + last name
   if (search.length > 0) {
