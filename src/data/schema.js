@@ -69,6 +69,7 @@ type Query {
   # users,
   test: Test
   resident(_id: String): User
+  requestsToJoinBuilding(_id: String): RequestsToJoinBuilding
 }
 
 input ProfileInput {
@@ -149,6 +150,22 @@ input DeleteBuildingAnnouncementInput {
 
 type DeleteBuildingAnnouncementPayload {
   announcement: BuildingAnnouncement
+}
+
+input ApprovingUserToBuildingInput {
+  requestsToJoinBuildingId: String!
+}
+
+type ApprovingUserToBuildingPayload {
+  request: RequestsToJoinBuilding
+}
+
+input RejectingUserToBuildingInput {
+  requestsToJoinBuildingId: String!
+}
+
+type RejectingUserToBuildingPayload {
+  request: RequestsToJoinBuilding
 }
 
 type Mutation {
@@ -235,6 +252,13 @@ type Mutation {
   deleteBuildingAnnouncement(
     input: DeleteBuildingAnnouncementInput!
   ): DeleteBuildingAnnouncementPayload
+
+  approvingUserToBuilding(
+    input: ApprovingUserToBuildingInput!
+  ): ApprovingUserToBuildingPayload
+  rejectingUserToBuilding(
+    input: RejectingUserToBuildingInput!
+  ): RejectingUserToBuildingPayload
 }
 
 schema {
@@ -374,6 +398,9 @@ const rootResolvers = {
     resident(root, { _id }) {
       return UsersService.getUser(_id);
     },
+    requestsToJoinBuilding(root, { _id }) {
+      return BuildingMembersModel.findOne({ _id });
+    },
   },
   Mutation: {
     acceptFriend({ request }, { _id }) {
@@ -497,9 +524,6 @@ const rootResolvers = {
         },
       });
       return UsersModel.findOne({ _id: userId });
-      // return new Promise(async (resolve, reject) => {
-      //   setTimeout(reject, 5000);
-      // });
     },
     async rejectRequestForJoiningBuilding({ request }, { buildingId, userId }) {
       const isAdmin = await BuildingMembersModel.findOne({
@@ -746,6 +770,66 @@ const rootResolvers = {
       announcement = announcement[0];
       return {
         announcement,
+      };
+    },
+    async approvingUserToBuilding({ request }, { input }) {
+      const { requestsToJoinBuildingId } = input;
+      const record = await BuildingMembersModel.findOne({ _id: requestsToJoinBuildingId });
+      if (!record) {
+        throw new Error('not found the request');
+      }
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: record.building,
+        user: request.user.id,
+      });
+      if (!isAdmin || isAdmin.type !== ADMIN) {
+        throw new Error('you don\'t have permission to approve request');
+      }
+      if (record.status !== PENDING) {
+        return {
+          request: record,
+        };
+      }
+      // NOTE: what happens if we lost connection to db
+      await BuildingMembersModel.update({
+        _id: requestsToJoinBuildingId,
+      }, {
+        $set: {
+          status: ACCEPTED,
+        },
+      });
+      return {
+        request: BuildingMembersModel.findOne({ _id: requestsToJoinBuildingId }),
+      };
+    },
+    async rejectingUserToBuilding({ request }, { input }) {
+      const { requestsToJoinBuildingId } = input;
+      const record = await BuildingMembersModel.findOne({ _id: requestsToJoinBuildingId });
+      if (!record) {
+        throw new Error('not found the request');
+      }
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: record.building,
+        user: request.user.id,
+      });
+      if (!isAdmin || isAdmin.type !== ADMIN) {
+        throw new Error('you don\'t have permission to reject request');
+      }
+      if (record.status !== PENDING) {
+        return {
+          request: record,
+        };
+      }
+      // NOTE: what happens if we lost connection to db
+      await BuildingMembersModel.update({
+        _id: requestsToJoinBuildingId,
+      }, {
+        $set: {
+          status: REJECTED,
+        },
+      });
+      return {
+        request: BuildingMembersModel.findOne({ _id: requestsToJoinBuildingId }),
       };
     },
   },

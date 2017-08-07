@@ -6,22 +6,37 @@ const { Schema } = mongoose;
 const { Types: { ObjectId } } = Schema;
 
 const AddressSchema = new Schema({
+  basisPoint: {
+    type: String,
+    required: true,
+    trim: true,
+  },
   country: {
     type: String,
     required: true,
     trim: true,
   },
-  city: {
+  province: {
     type: String,
     required: true,
     trim: true,
   },
-  state: {
+  district: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  ward: {
     type: String,
     required: true,
     trim: true,
   },
   street: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  countryCode: {
     type: String,
     required: true,
     trim: true,

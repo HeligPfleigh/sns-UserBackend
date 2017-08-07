@@ -10,10 +10,21 @@ import {
   ApartmentsModel,
   FriendsRelationModel,
   NotificationsModel,
-  EventModel,
+  // EventModel,
 } from '../models';
 import AddressServices from '../apis/AddressServices';
-import { ADMIN, ACCEPTED, MEMBER, PENDING, PUBLIC, FRIEND, ONLY_ADMIN_BUILDING, } from '../../constants';
+import {
+  ADMIN,
+  ACCEPTED,
+  MEMBER,
+  PENDING,
+  PUBLIC,
+  FRIEND,
+  ONLY_ADMIN_BUILDING,
+} from '../../constants';
+// import {
+//   building,
+// } from '../../utils/authorization';
 import Service from '../mongo/service';
 
 export const schema = [`
@@ -211,6 +222,16 @@ type NotificationsResult {
 
 ### User Type
 # Represents a user in system.
+type Email {
+  address: String
+  verified: Boolean
+}
+
+type Phone {
+  number: String
+  verified: Boolean
+}
+
 type User implements Node {
   _id: ID!
   username: String
@@ -221,6 +242,8 @@ type User implements Node {
   friendRequests( cursor: String, limit: Int): UserConnection!
   friendSuggestions( cursor: String, limit: Int): UserConnection!
   building: Building
+  emails: Email
+  phone: Phone
 
   apartments: [Apartment]
   totalFriends: Int
@@ -241,10 +264,13 @@ type UserConnection {
 ### Building Type
 # Represents a building in system.
 type Address {
+  basisPoint: String
   country: String
-  city: String
-  state: String
+  province: String
+  district: String
+  ward: String
   street: String
+  countryCode: String
 }
 
 enum BuildingAnnouncementType {
@@ -282,14 +308,45 @@ type Building implements Node {
   address: Address
   isAdmin: Boolean
   announcements(skip: Int, limit: Int): BuildingAnnouncementConnection!
-
-  requests( _id: String, limit: Int): [Friend]
   posts( cursor: String, limit: Int): BuildingPostsConnection
+
+  # members : [Users]
+  requests(_id: String, limit: Int): [Friend]
 
   createdAt: Date
   updatedAt: Date
 }
 
+### RequestsToJoinBuilding Type
+# Represents a request to join building in system.
+
+type RequestApartmentInformation {
+  number: String
+}
+
+type RequestInformation {
+  apartment: RequestApartmentInformation
+}
+
+enum RequestsToJoinBuildingType {
+  ADMIN
+  MEMBER
+}
+
+enum RequestsToJoinBuildingStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+type RequestsToJoinBuilding implements Node {
+  _id: ID!
+  building: Building
+  user: User
+  type: RequestsToJoinBuildingType
+  status: RequestsToJoinBuildingStatus
+  requestInformation: RequestInformation
+}
 `];
 
 const PostsService = Service({
@@ -322,6 +379,7 @@ const ApartmentsService = Service({
 export const resolvers = {
   Date: DateScalarType,
   Building: {
+    // @building
     async posts(building, { cursor = null, limit = 5 }, { user }) {
       if (!user) {
         return {
@@ -821,6 +879,14 @@ export const resolvers = {
     },
     building(data) {
       return AddressServices.getBuilding(data.building);
+    },
+  },
+  RequestsToJoinBuilding: {
+    building(data) {
+      return AddressServices.getBuilding(data.building);
+    },
+    user(data) {
+      return UsersModel.findOne({ _id: data.user });
     },
   },
 };
