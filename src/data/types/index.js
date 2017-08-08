@@ -325,9 +325,6 @@ type Building implements Node {
   announcements(skip: Int, limit: Int): BuildingAnnouncementConnection!
   requests(cursor: String, limit: Int): UsersAwaitingApprovalConnection
   posts(cursor: String, limit: Int): BuildingPostsConnection
-  # members : [Users]
-  requests(_id: String, limit: Int): [Friend]
-
   createdAt: Date
   updatedAt: Date
 }
