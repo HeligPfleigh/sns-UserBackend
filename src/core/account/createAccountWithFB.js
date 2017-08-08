@@ -6,11 +6,11 @@ import config from '../../config';
 import fetch from '../fetch';
 import {
   UsersModel,
-  ApartmentsModel,
-  BuildingMembersModel,
+  // ApartmentsModel,
+  // BuildingMembersModel,
 } from '../../data/models';
-import { ACCEPTED, MEMBER } from '../../constants';
-import removeToneVN, { generateSearchField } from '../../utils/removeToneVN';
+// import { ACCEPTED, MEMBER } from '../../constants';
+import removeToneVN, { generateUserSearchField } from '../../utils/removeToneVN';
 
 const { Types: { ObjectId } } = mongoose;
 const building = ObjectId('58da279f0ff5af8c8be59c36');
@@ -39,10 +39,12 @@ export default async function (accessToken, profile, chatToken) {
   if (chatToken) {
     u.chatId = chatToken.chatId;
   }
+
   const longlivedToken = await getLongTermToken(accessToken);
   u.services = {
     facebook: longlivedToken,
   };
+
   // username
   if (profile && profile._json && profile._json.email) {
     u.username = profile._json.email.replace(/@.*$/, '');
@@ -51,6 +53,7 @@ export default async function (accessToken, profile, chatToken) {
   } else if (profile.displayName) {
     u.username = removeToneVN(profile.displayName.replace(/\s/g, '').toLowerCase());
   }
+
   // email
   if (profile && profile._json && profile._json.email) {
     u.emails = {
@@ -58,10 +61,11 @@ export default async function (accessToken, profile, chatToken) {
       verified: true,
     };
   }
+
   u.profile = {
-    gender: profile._json.gender,
-    lastName: profile._json.last_name,
-    firstName: profile._json.first_name,
+    gender: profile._json.gender || 'male',
+    lastName: profile._json.last_name || 'NAME',
+    firstName: profile._json.first_name || 'NO',
     picture: `https://graph.facebook.com/${profile.id}/picture?type=large`,
   };
 
@@ -69,21 +73,22 @@ export default async function (accessToken, profile, chatToken) {
 
   // u.password = UsersModel.generateHash();
   u.password = await bcrypt.hashSync('12345678', bcrypt.genSaltSync(), null);
-  u.search = generateSearchField(u);
+  u.search = generateUserSearchField(u);
 
   const data = await UsersModel.create(u);
-  ApartmentsModel.create({
-    number: '27',
-    building,
-    user: data._id,
-    isOwner: true,
-  });
-  BuildingMembersModel.create({
-    user: data.id,
-    building,
-    status: ACCEPTED,
-    type: MEMBER,
-  });
+
+  // ApartmentsModel.create({
+  //   number: '27',
+  //   building,
+  //   user: data._id,
+  //   isOwner: true,
+  // });
+  // BuildingMembersModel.create({
+  //   user: data.id,
+  //   building,
+  //   status: ACCEPTED,
+  //   type: MEMBER,
+  // });
 
   return data;
 }

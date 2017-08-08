@@ -31,9 +31,12 @@ const BuildingMembersSchema = new Schema({
     default: PENDING,
   },
   requestInformation: {
-    apartment: {
-      number: String,
-    },
+    apartments: [{
+      type: ObjectId,
+      ref: 'Apartment',
+      unique: true,
+      index: true,
+    }],
     detail: Schema.Types.Mixed,
   },
 });

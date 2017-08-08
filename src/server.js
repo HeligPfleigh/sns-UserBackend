@@ -17,15 +17,13 @@ import expressGraphQL from 'express-graphql';
 
 import passport from './core/passport';
 import schema from './data/schema';
-import { generateToken, EXPIRES_IN } from './utils/token';
-
 import config from './config';
 import Mongoose from './data/mongoose';
-import UsersService from './data/apis/UsersService';
-import Mailer from './core/mailer';
 
 import UploadRouter from './core/uploads';
+import MailRouter from './routes/MailRoutes';
 import BuildingRouter from './routes/BuildingRoutes';
+import AuthenticateRouter from './routes/AuthenticateRoutes';
 
 const { port, auth, databaseUrl } = config;
 
@@ -90,94 +88,12 @@ if (__DEV__) {
   app.enable('trust proxy');
 }
 
-app.post('/auth/check_user', async (req, res) => {
-  try {
-    const { username } = req.body;
-    if (!username) {
-      throw new Error('Not exist params');
-    }
-    const status = await UsersService.checkExistUser(username);
-    res.status(200).json({ status });
-  } catch (error) {
-    res.status(500).send({ status: false });
-  }
-});
-
-app.post('/auth/register', async (req, res) => {
-  try {
-    const user = await UsersService.createUser(req.body);
-    res.status(200).json(user);
-  } catch (error) {
-    res.status(500).send({ error: error.message });
-  }
-});
-
-app.post('/auth/active', async (req, res) => {
-  try {
-    const user = await UsersService.activeUser(req.body);
-    res.status(200).json(user);
-  } catch (error) {
-    res.status(500).send({ error: error.message });
-  }
-});
-
-app.get('/send', async (req, res) => {
-  const mailObject = {
-    to: 'linh.le@mttjsc.com',
-    subject: 'Hello ✔',
-    template: 'registration',
-    lang: 'vi-vn',
-    data: {
-      username: 'ninjavungve',
-      email: 'ninjavungve@gmail.com',
-      password: 'abc12345',
-    },
-  };
-
-  const result = await Mailer.sendMail(mailObject);
-
-  if (JSON.parse(result)) {
-    res.status(200).send(result);
-  } else {
-    res.status(500).send('Send mail error');
-  }
-});
-
-app.post('/auth/login', (req, res, next) => {
-  passport.authenticate('local', (error, user) => {
-    if (error || !user) {
-      return res.status(401).json({
-        error,
-      });
-    }
-    const token = generateToken(user);
-    res.cookie('id_token', token, { maxAge: 1000 * EXPIRES_IN });
-    return res.status(200).json(user);
-  })(req, res, next);
-});
-
-app.post('/auth/facebook', (req, res, next) => {
-  passport.authenticate('facebook-token', (error, user) => {
-    if (error || !user) {
-      return res.status(401).json({
-        error,
-      });
-    }
-    const token = generateToken(user);
-    res.cookie('id_token', token, { maxAge: 1000 * EXPIRES_IN });
-    return res.status(200).json(user);
-  })(req, res, next);
-});
-
-app.get('/auth/logout', (req, res) => {
-  res.clearCookie('id_token');
-  res.redirect('/');
-});
-
+// include routes
+app.use('/auth', AuthenticateRouter);
+app.use('/mailer', MailRouter);
 app.use('/upload', UploadRouter);
 
 app.use('/images', express.static(`${__dirname}/public/uploads`));
-
 app.use('/buildings', BuildingRouter);
 
 //

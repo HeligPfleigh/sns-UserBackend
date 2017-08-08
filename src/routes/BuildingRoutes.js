@@ -7,11 +7,11 @@ router.get('/buildingwithapartment', async (req, res) => {
   const page = req.query.page || 1;
   const q = req.query.q;
   if (!q) {
-    res.status(403).send('No search text');
-    return;
+    // res.status(403).send('No search text');
+    return res.json([]);
   }
   const buildings = await BuildingServices.getBuildingWithApartments(page, q);
-  res.json(buildings);
+  return res.json(buildings);
 });
 
 export default router;
