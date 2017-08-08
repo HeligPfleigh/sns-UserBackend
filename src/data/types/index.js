@@ -54,6 +54,9 @@ enum NotificationType {
   ACCEPTED_FRIEND
   FRIEND_REQUEST
   EVENT_INVITE
+  JOIN_EVENT
+  CAN_JOIN_EVENT
+  CANT_JOIN_EVENT
 }
 
 enum PrivacyType {
@@ -110,6 +113,7 @@ type Comment implements Node {
   _id: ID!
   message: String
   post: Post
+
   user: Author
   totalReply: Int
   reply: [Comment]

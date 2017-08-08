@@ -17,6 +17,7 @@ import {
   ACCEPTED_FRIEND,
   FRIEND_REQUEST,
   EVENT_INVITE,
+  JOIN_EVENT,
 } from '../constants';
 
 const getUserFollow = async (postId, userId, status) => {
@@ -86,6 +87,27 @@ function sendEventInviteNotification(author, eventId, usersId) {
   });
 }
 
+async function sendJoinEventNotification(author, userJoin, eventId, type) {
+  const options = {
+    user: author,
+    subject: eventId,
+    seen: false,
+    type,
+  };
+
+  const notify = await NotificationsModel.findOne(options);
+
+  if (!notify) {
+    await NotificationsModel.create({
+      ...options,
+      actors: [userJoin],
+    });
+  } else if (!some(notify.actors, item => item.equals(userJoin))) {
+    notify.actors.unshift(userJoin);
+    await notify.save();
+  }
+}
+
 async function sendAcceptFriendNotification(userIDA, userIDR) {
   const r = await NotificationsModel.create({
     user: userIDR,
@@ -111,4 +133,5 @@ export {
   sendAcceptFriendNotification,
   sendFriendRequestNotification,
   sendEventInviteNotification,
+  sendJoinEventNotification,
 };
