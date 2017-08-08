@@ -32,7 +32,29 @@ function splitWord(word) {
   return result;
 }
 
-export function generateSearchField(building) {
+export function generateUserSearchField(user) {
+  let search = '';
+  if (user && user.profile && user.profile.firstName) {
+    search += `${user.profile.firstName.trim()} `;
+  }
+  if (user && user.profile && user.profile.lastName) {
+    search += `${user.profile.lastName.trim()} `;
+  }
+  // search = first name + last name
+  if (search.length > 0) {
+    search = search.trim();
+    search = `${removeToneVN(search)} ${search}`;
+  }
+  // split to one word
+  const os = search.split(' ').filter((item, pos, self) => self.indexOf(item) === pos);
+
+  for (let i = 0; i < os.length; i++) {
+    search += ` ${splitWord(os[i])}`;
+  }
+  return search;
+}
+
+export function generateBuildingSearchField(building) {
   let search = '';
   if (building && building.name) {
     search += `${building.name.trim()} `;
