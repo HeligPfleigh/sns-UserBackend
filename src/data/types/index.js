@@ -57,6 +57,7 @@ enum NotificationType {
   JOIN_EVENT
   CAN_JOIN_EVENT
   CANT_JOIN_EVENT
+  EVENT_DELETED
 }
 
 enum PrivacyType {
@@ -485,7 +486,7 @@ export const resolvers = {
       });
     },
     async requests(data, { cursor = null, limit = 10 }) {
-      let r = await BuildingMembersService.find({
+      const r = await BuildingMembersService.find({
         $cursor: cursor,
         query: {
           building: data._id,
@@ -512,8 +513,8 @@ export const resolvers = {
         {
           $project: {
             total: {
-              $size: { 
-                $ifNull: [ '$announcements', [] ],
+              $size: {
+                $ifNull: ['$announcements', []],
               },
             },
           },
