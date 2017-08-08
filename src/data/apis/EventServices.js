@@ -1,6 +1,10 @@
 import {
   PostsModel,
 } from '../models';
+
+import {
+  sendEventInviteNotification,
+} from '../../utils/notifications';
 import { EVENT } from '../../constants';
 
 async function createEvent(privacy, author, photos, name, location, start, end, message, invites) {
@@ -36,7 +40,20 @@ async function createEventOnBuilding(privacy, author, photos, building, name, lo
   return event;
 }
 
+async function getEvent(postId) {
+  const event = await PostsModel.findOne({ _id: postId });
+  return event;
+}
+
+async function invitesResidentJoinEvent(eventId, residents) {
+  const event = await PostsModel.findOneAndUpdate({ _id: eventId }, { $set: { invites: residents } }, { new: true });
+  sendEventInviteNotification(event.author, eventId, residents);
+  return event;
+}
+
 export default {
   createEvent,
   createEventOnBuilding,
+  getEvent,
+  invitesResidentJoinEvent,
 };

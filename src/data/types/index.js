@@ -53,6 +53,7 @@ enum NotificationType {
   NEW_POST
   ACCEPTED_FRIEND
   FRIEND_REQUEST
+  EVENT_INVITE
 }
 
 enum PrivacyType {
@@ -84,11 +85,12 @@ type Event implements Node {
   start: Date!
   end: Date!
   message: String!
-  invites: UserConnection
-  interests: UserConnection
-  joins: UserConnection
+  invites: [Friend]
+  interests: [Friend]
+  joins: [Friend]
   createdAt: Date
   updatedAt: Date
+  isAuthor: Boolean
 }
 
 type Notification implements Node {
@@ -135,7 +137,6 @@ type Post implements Node {
   createdAt: Date
   updatedAt: Date
 }
-
 
 type Profile {
   picture: String
@@ -599,6 +600,9 @@ export const resolvers = {
     },
     updatedAt(data) {
       return new Date(data.updatedAt);
+    },
+    isAuthor(data, _, { user }) {
+      return data.author === user.id;
     },
   },
   Notification: {

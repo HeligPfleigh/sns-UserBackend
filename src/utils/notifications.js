@@ -16,6 +16,7 @@ import {
   NEW_POST,
   ACCEPTED_FRIEND,
   FRIEND_REQUEST,
+  EVENT_INVITE,
 } from '../constants';
 
 const getUserFollow = async (postId, userId, status) => {
@@ -62,6 +63,29 @@ function sendPostNotification(postId, userId) {
   getUserFollow(postId, userId, NEW_POST);
 }
 
+function sendEventInviteNotification(author, eventId, usersId) {
+  usersId.forEach(async (id) => {
+    const options = {
+      user: id,
+      subject: eventId,
+      seen: false,
+      type: EVENT_INVITE,
+    };
+
+    const notify = await NotificationsModel.findOne(options);
+
+    if (!notify) {
+      await NotificationsModel.create({
+        ...options,
+        actors: [author],
+      });
+    } else if (!some(notify.actors, item => item.equals(author))) {
+      notify.actors.unshift(author);
+      await notify.save();
+    }
+  });
+}
+
 async function sendAcceptFriendNotification(userIDA, userIDR) {
   const r = await NotificationsModel.create({
     user: userIDR,
@@ -86,4 +110,5 @@ export {
   sendPostNotification,
   sendAcceptFriendNotification,
   sendFriendRequestNotification,
+  sendEventInviteNotification,
 };

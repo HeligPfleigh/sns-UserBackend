@@ -7,7 +7,10 @@ import moment from 'moment';
 import {
   UsersModel,
   FriendsRelationModel,
+  ApartmentsModel,
+  BuildingMembersModel,
 } from '../models';
+import { ACCEPTED, MEMBER } from '../../constants';
 import { getChatToken, createChatUserIfNotExits } from '../../core/passport';
 import {
   sendAcceptFriendNotification,
@@ -157,6 +160,7 @@ async function createUser(params) {
       address: emailAddress,
     },
   } = params;
+  const building = ObjectId('58da279f0ff5af8c8be59c36');
 
   if (isUndefined(password)) {
     throw new Error('password is undefined');
@@ -193,6 +197,7 @@ async function createUser(params) {
     ...params,
     chatId: chatToken && chatToken.chatId,
     activeCode,
+    building,
   };
   user.search = generateSearchField(user);
 
@@ -216,6 +221,18 @@ async function createUser(params) {
 
     await Mailer.sendMail(mailObject);
   }
+  ApartmentsModel.create({
+    number: '27',
+    building,
+    user: result._id,
+    isOwner: true,
+  });
+  BuildingMembersModel.create({
+    user: result._id,
+    building,
+    status: ACCEPTED,
+    type: MEMBER,
+  });
 
   return result;
 }

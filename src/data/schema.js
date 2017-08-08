@@ -67,6 +67,7 @@ type Query {
   notifications(limit: Int, cursor: String): NotificationsResult
   search(keyword: String!, numberOfFriends: Int): [Friend]
   listEvent(limit: Int, cursor: String): Events
+  event(_id: String!): Event
   # users,
   test: Test
   resident(_id: String): User
@@ -240,6 +241,10 @@ type Mutation {
   ): Event
   createNewEventOnBuilding(
     input: CreateNewEventOnBuildingAnnouncementInput!
+  ): Event
+  inviteResidentsJoinEvent(
+    eventId: String!
+    residentsId: [String]!
   ): Event
   updateUserProfile(
     input: UpdateUserProfileInput!
@@ -440,13 +445,13 @@ const rootResolvers = {
         edges: r.data,
       };
     },
-    // @authenticated
-    // @can('create', 'post')
-    // test() {
-    //   return {
-    //     hello: 'world',
-    //   };
-    // },
+    async event({ request }, { _id }) {
+      // TODO
+      const userId = request.user.id;
+      const res = await EventService.getEvent(_id, userId);
+      res.isAuthor = res.author == userId;
+      return res;
+    },
     resident(root, { _id }) {
       return UsersService.getUser(_id);
     },
@@ -474,7 +479,16 @@ const rootResolvers = {
       const { privacy, photos, name, building, location, start, end, message, invites } = input;
       return EventService.createEventOnBuilding(privacy, request.user.id, photos, building, name, location, start, end, message, invites);
     },
-
+    async inviteResidentsJoinEvent({ request }, { eventId, residentsId }) {
+      const event = await PostsModel.findOne({
+        _id: eventId,
+        author: request.user.id,
+      });
+      if (!event) {
+        throw new Error('not found the event');
+      }
+      return EventService.invitesResidentJoinEvent(eventId, residentsId);
+    },
     likePost({ request }, { _id }) {
       return PostsService.likePost(request.user.id, _id);
     },
