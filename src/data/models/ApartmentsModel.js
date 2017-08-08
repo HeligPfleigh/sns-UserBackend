@@ -5,7 +5,17 @@ const { Schema } = mongoose;
 const { Types: { ObjectId } } = Schema;
 
 const ApartmentSchema = new Schema({
+  prefix: {
+    type: String,
+    required: true,
+    trim: true,
+  },
   number: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  name: {
     type: String,
     required: true,
     trim: true,
@@ -15,15 +25,20 @@ const ApartmentSchema = new Schema({
     ref: 'Building',
     index: true,
   },
-  user: {
+  owner: {
     type: ObjectId,
     ref: 'User',
     index: true,
   },
+  users: [{
+    type: ObjectId,
+    ref: 'User',
+    unique: true,
+    index: true,
+  }],
   isOwner: {
     type: Boolean,
     default: false,
-    required: true,
     index: true,
   },
 });
