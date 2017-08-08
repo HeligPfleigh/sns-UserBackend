@@ -246,6 +246,15 @@ type Mutation {
     eventId: String!
     residentsId: [String]!
   ): Event
+  joinEvent(
+    eventId: String!
+  ): Event
+  canJoinEvent(
+    eventId: String!
+  ): Event
+  cantJoinEvent(
+    eventId: String!
+  ): Event
   updateUserProfile(
     input: UpdateUserProfileInput!
   ): UpdateUserProfilePayload
@@ -488,6 +497,33 @@ const rootResolvers = {
         throw new Error('not found the event');
       }
       return EventService.invitesResidentJoinEvent(eventId, residentsId);
+    },
+    async joinEvent({ request }, { eventId }) {
+      const event = await PostsModel.findOne({
+        _id: eventId,
+      });
+      if (!event) {
+        throw new Error('not found the event');
+      }
+      return EventService.joinEvent(request.user.id, eventId);
+    },
+    async canJoinEvent({ request }, { eventId }) {
+      const event = await PostsModel.findOne({
+        _id: eventId,
+      });
+      if (!event) {
+        throw new Error('not found the event');
+      }
+      return EventService.canJoinEvent(request.user.id, eventId);
+    },
+    async cantJoinEvent({ request }, { eventId }) {
+      const event = await PostsModel.findOne({
+        _id: eventId,
+      });
+      if (!event) {
+        throw new Error('not found the event');
+      }
+      return EventService.cantJoinEvent(request.user.id, eventId);
     },
     likePost({ request }, { _id }) {
       return PostsService.likePost(request.user.id, _id);

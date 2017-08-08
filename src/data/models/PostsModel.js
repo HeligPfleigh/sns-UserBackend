@@ -82,6 +82,16 @@ const PostSchema = new Schema({
     ref: 'User',
     default: [],
   }],
+  can_joins: [{
+    type: ObjectId,
+    ref: 'User',
+    default: [],
+  }],
+  cant_joins: [{
+    type: ObjectId,
+    ref: 'User',
+    default: [],
+  }],
 });
 
 // https://github.com/drudge/mongoosetimestamp
