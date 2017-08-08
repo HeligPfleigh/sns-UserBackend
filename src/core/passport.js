@@ -12,6 +12,7 @@ import config from '../config';
 import createAccountWithFB from './account/createAccountWithFB';
 import {
   UsersModel,
+  BuildingMembersModel,
 } from '../data/models';
 import chat from './chat';
 import { generateToken, EXPIRES_IN } from '../utils/token';
@@ -124,6 +125,7 @@ passport.use(new LocalStrategy({
       });
     }
 
+    const buildingsApprove = await BuildingMembersModel.find({ user: user._id });
     let chatToken = null;
     const { emails: { address: email }, password, chatId } = user;
     if (chatId) {
@@ -140,6 +142,8 @@ passport.use(new LocalStrategy({
       chatToken: (chatToken && chatToken.token) || '',
       chatExp: moment().add(1, 'hours').unix(),
       chatId: user && user.chatId,
+      buildings: buildingsApprove || [],
+      isActive: user.isActive || 0,
     });
   };
 
@@ -189,6 +193,9 @@ passport.use(new FacebookTokenStrategy({
       }
 
       createChatUserIfNotExits(user);
+
+      const buildingsApprove = await BuildingMembersModel.find({ user: user._id });
+
       done(null, {
         id: user._id,
         profile: user.profile,
@@ -197,6 +204,8 @@ passport.use(new FacebookTokenStrategy({
         chatToken: chatToken && chatToken.token,
         chatExp: moment().add(1, 'hours').unix(),
         chatId: user && user.chatId,
+        buildings: buildingsApprove || [],
+        isActive: user.isActive || 0,
       });
     } catch (e) {
       console.log(e);
