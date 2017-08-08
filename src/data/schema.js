@@ -21,6 +21,9 @@ import UsersService from './apis/UsersService';
 import PostsService from './apis/PostsService';
 import CommentService from './apis/CommentService';
 import EventService from './apis/EventServices';
+import {
+  sendDeletedEventNotification,
+} from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
 import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT, STATUS } from '../constants';
 // import {
@@ -253,6 +256,9 @@ type Mutation {
     eventId: String!
   ): Event
   cantJoinEvent(
+    eventId: String!
+  ): Event
+  deleteEvent(
     eventId: String!
   ): Event
   updateUserProfile(
@@ -524,6 +530,28 @@ const rootResolvers = {
         throw new Error('not found the event');
       }
       return EventService.cantJoinEvent(request.user.id, eventId);
+    },
+    async deleteEvent({ request }, { eventId }) {
+      const p = await PostsModel.findOne({
+        _id: eventId,
+        author: request.user.id,
+        start: {
+          $gt: new Date(),
+        },
+      });
+      if (!p) {
+        throw new Error('not found the post');
+      }
+      await PostsModel.update({
+        _id: eventId,
+        author: request.user.id,
+      }, {
+        $set: {
+          isDeleted: true,
+        },
+      });
+      sendDeletedEventNotification(p.joins, p._id, request.user.id);
+      return p;
     },
     likePost({ request }, { _id }) {
       return PostsService.likePost(request.user.id, _id);

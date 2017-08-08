@@ -18,6 +18,7 @@ import {
   FRIEND_REQUEST,
   EVENT_INVITE,
   JOIN_EVENT,
+  EVENT_DELETED,
 } from '../constants';
 
 const getUserFollow = async (postId, userId, status) => {
@@ -126,6 +127,29 @@ async function sendFriendRequestNotification(userIDA, userIDR) {
   return r;
 }
 
+async function sendDeletedEventNotification(usersid, eventId, actor) {
+  usersid.forEach(async (id) => {
+    const options = {
+      user: id,
+      subject: eventId,
+      seen: false,
+      type: EVENT_DELETED,
+    };
+
+    const notify = await NotificationsModel.findOne(options);
+
+    if (!notify) {
+      await NotificationsModel.create({
+        ...options,
+        actors: [actor],
+      });
+    } else if (!some(notify.actors, item => item.equals(actor))) {
+      notify.actors.unshift(actor);
+      await notify.save();
+    }
+  });
+}
+
 export {
   sendLikeNotification,
   sendCommentNotification,
@@ -134,4 +158,5 @@ export {
   sendFriendRequestNotification,
   sendEventInviteNotification,
   sendJoinEventNotification,
+  sendDeletedEventNotification,
 };
