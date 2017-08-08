@@ -7,16 +7,16 @@ import moment from 'moment';
 import {
   UsersModel,
   FriendsRelationModel,
-  ApartmentsModel,
   BuildingMembersModel,
+  BuildingsModel,
 } from '../models';
-import { ACCEPTED, MEMBER } from '../../constants';
+import { MEMBER, PENDING } from '../../constants';
 import { getChatToken, createChatUserIfNotExits } from '../../core/passport';
 import {
   sendAcceptFriendNotification,
   sendFriendRequestNotification,
 } from '../../utils/notifications';
-import { generateSearchField } from '../../utils/removeToneVN';
+import { generateUserSearchField } from '../../utils/removeToneVN';
 import Mailer from '../../core/mailer';
 import config from '../../config';
 
@@ -159,8 +159,9 @@ async function createUser(params) {
     emails: {
       address: emailAddress,
     },
+    building,
   } = params;
-  const building = ObjectId('58da279f0ff5af8c8be59c36');
+  // const building = ObjectId('58da279f0ff5af8c8be59c36');
 
   if (isUndefined(password)) {
     throw new Error('password is undefined');
@@ -172,6 +173,14 @@ async function createUser(params) {
 
   if (isUndefined(emailAddress)) {
     throw new Error('email is undefined');
+  }
+
+  if (isUndefined(building)) {
+    throw new Error('building is undefined');
+  }
+
+  if (!await BuildingsModel.findOne({ _id: building })) {
+    throw new Error('building is not exist');
   }
 
   if (await UsersModel.findOne({ username })) {
@@ -192,20 +201,33 @@ async function createUser(params) {
   const chatToken = await getChatToken({ email: emailAddress, password });
   const activeCode = idRandom();
 
-  params.profile.picture = '/avarta-default.jpg';
+  params.profile.picture = '/avatar-default.jpg';
+
+  const { apartments, ...userObj } = params;
   const user = {
-    ...params,
+    ...userObj,
     chatId: chatToken && chatToken.chatId,
     activeCode,
     building,
   };
-  user.search = generateSearchField(user);
+  user.search = generateUserSearchField(user);
 
   createChatUserIfNotExits(user);
   // NOTE: update search here
 
   const result = await UsersModel.create(user);
   if (result) {
+    // create new a request register approve to building
+    await BuildingMembersModel.create({
+      user: result._id,
+      building,
+      status: PENDING,
+      type: MEMBER,
+      requestInformation: {
+        apartments,
+      },
+    });
+
     const mailObject = {
       to: emailAddress,
       subject: 'SNS-SERVICE: Kích hoạt tài khoản',
@@ -221,18 +243,6 @@ async function createUser(params) {
 
     await Mailer.sendMail(mailObject);
   }
-  ApartmentsModel.create({
-    number: '27',
-    building,
-    user: result._id,
-    isOwner: true,
-  });
-  BuildingMembersModel.create({
-    user: result._id,
-    building,
-    status: ACCEPTED,
-    type: MEMBER,
-  });
 
   return result;
 }
@@ -268,10 +278,9 @@ async function activeUser(params) {
     throw new Error('Code active expired');
   }
 
-
   const result = await UsersModel.findOneAndUpdate({ _id: user._id }, {
     $set: {
-      isActive: 1,
+      // isActive: 1,
       activeCode: '',
       'emails.verified': true,
     },
