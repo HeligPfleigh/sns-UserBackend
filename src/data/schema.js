@@ -1,5 +1,6 @@
 import merge from 'lodash/merge';
 import isUndefined from 'lodash/isUndefined';
+import isEmpty from 'lodash/isEmpty';
 import mongoose from 'mongoose';
 import {
   // buildSchemaFromTypeDefinitions,
@@ -13,6 +14,7 @@ import {
   BuildingMembersModel,
   UsersModel,
   BuildingsModel,
+  ApartmentsModel,
 } from './models';
 import Service from './mongo/service';
 import AddressServices from './apis/AddressServices';
@@ -25,7 +27,7 @@ import {
   sendDeletedEventNotification,
 } from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
-import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT, STATUS } from '../constants';
+import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT } from '../constants';
 // import {
 //   everyone,
 //   authenticated,
@@ -903,22 +905,28 @@ const rootResolvers = {
     },
     async approvingUserToBuilding({ request }, { input }) {
       const { requestsToJoinBuildingId } = input;
+
       const record = await BuildingMembersModel.findOne({ _id: requestsToJoinBuildingId });
       if (!record) {
         throw new Error('not found the request');
       }
+
       const isAdmin = await BuildingMembersModel.findOne({
         building: record.building,
         user: request.user.id,
+        type: ADMIN,
       });
-      if (!isAdmin || isAdmin.type !== ADMIN) {
+
+      if (!isAdmin) {
         throw new Error('you don\'t have permission to approve request');
       }
+
       if (record.status !== PENDING) {
         return {
           request: record,
         };
       }
+
       // NOTE: what happens if we lost connection to db
       await BuildingMembersModel.update({
         _id: requestsToJoinBuildingId,
@@ -927,28 +935,67 @@ const rootResolvers = {
           status: ACCEPTED,
         },
       });
+
+      // update users joined apartments
+      const { requestInformation: { apartments } } = record;
+      if (isEmpty(apartments)) {
+        throw new Error('User don\'t provided apartment info. Request rejected');
+      }
+
+      await (apartments || []).map(async (apartmentId) => {
+        await ApartmentsModel.findByIdAndUpdate(apartmentId, {
+          $addToSet: { users: record.user },
+        });
+      });
+
+      // set user active
+      await UsersModel.findByIdAndUpdate(record.user, { isActive: 1 });
+
+      // Send email and notification to user status ACCEPTED
+
       return {
         request: BuildingMembersModel.findOne({ _id: requestsToJoinBuildingId }),
       };
     },
     async rejectingUserToBuilding({ request }, { input }) {
       const { requestsToJoinBuildingId } = input;
+
       const record = await BuildingMembersModel.findOne({ _id: requestsToJoinBuildingId });
       if (!record) {
         throw new Error('not found the request');
       }
+
       const isAdmin = await BuildingMembersModel.findOne({
         building: record.building,
         user: request.user.id,
+        type: ADMIN,
       });
-      if (!isAdmin || isAdmin.type !== ADMIN) {
+
+      if (!isAdmin) {
         throw new Error('you don\'t have permission to reject request');
       }
-      if (record.status !== PENDING) {
+
+      if (record.status === REJECTED) {
         return {
           request: record,
         };
       }
+
+      if (record.status === ACCEPTED) {
+        // update users joined apartments
+        const { requestInformation: { apartments } } = record;
+        if (!isEmpty(apartments)) {
+          await (apartments || []).map(async (apartmentId) => {
+            await ApartmentsModel.findByIdAndUpdate(apartmentId, {
+              $unshift: { users: record.user },
+            });
+          });
+
+          // set user active
+          // await UsersModel.findByIdAndUpdate(record.user, { isActive: 1 });
+        }
+      }
+
       // NOTE: what happens if we lost connection to db
       await BuildingMembersModel.update({
         _id: requestsToJoinBuildingId,
@@ -957,6 +1004,9 @@ const rootResolvers = {
           status: REJECTED,
         },
       });
+
+      // Send email and notification to user status ACCEPTED
+
       return {
         request: BuildingMembersModel.findOne({ _id: requestsToJoinBuildingId }),
       };
