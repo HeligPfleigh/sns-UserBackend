@@ -150,6 +150,9 @@ interface Resident {
   username: String
   profile: Profile
   chatId: String
+  phone: Phone
+  emails: Email
+  chatId: String
   posts: [Post]
   building: [Building]
   apartments: [Apartment]
@@ -158,6 +161,8 @@ interface Resident {
 type Me implements Node, Resident {
   _id: ID!
   username: String
+  phone: Phone
+  emails: Email
   profile: Profile
   chatId: String
   posts: [Post]
@@ -168,7 +173,6 @@ type Me implements Node, Resident {
   friendSuggestions: [Friend]
   totalFriends: Int
   totalNotification: Int
-
   createdAt: Date
   updatedAt: Date
 }
@@ -176,6 +180,8 @@ type Me implements Node, Resident {
 type Friend implements Node, Resident {
   _id: ID!
   username: String
+  phone: Phone
+  emails: Email
   profile: Profile
   chatId: String
   posts: [Post]
@@ -183,7 +189,6 @@ type Friend implements Node, Resident {
   apartments: [Apartment]
   friends: [Friend]
   isFriend: Boolean
-
   createdAt: Date
   updatedAt: Date
 }
@@ -191,13 +196,14 @@ type Friend implements Node, Resident {
 type Author implements Node, Resident {
   _id: ID!
   username: String
+  phone: Phone
+  emails: Email
   profile: Profile
   chatId: String
   posts: [Post]
   building: [Building]
   apartments: [Apartment]
   friends: [Resident]
-
   createdAt: Date
   updatedAt: Date
 }
@@ -250,7 +256,6 @@ type User implements Node {
   building: Building
   emails: Email
   phone: Phone
-
   apartments: [Apartment]
   totalFriends: Int
   totalNotification: Int
@@ -308,19 +313,19 @@ type BuildingAnnouncementConnection {
   edges: [BuildingAnnouncement]
 }
 
+type UsersAwaitingApprovalConnection {
+  pageInfo: PageInfo
+  edges: [Friend]
+}
+
 type Building implements Node {
   _id: ID!
   name: String
   address: Address
   isAdmin: Boolean
   announcements(skip: Int, limit: Int): BuildingAnnouncementConnection!
-
-  requests( _id: String, limit: Int): [Friend]
-  posts( cursor: String, limit: Int): BuildingPostsConnection
-
-  # members : [Users]
-  requests(_id: String, limit: Int): [Friend]
-
+  requests(cursor: String, limit: Int): UsersAwaitingApprovalConnection
+  posts(cursor: String, limit: Int): BuildingPostsConnection
   createdAt: Date
   updatedAt: Date
 }
@@ -362,6 +367,15 @@ const PostsService = Service({
   paginate: {
     default: 5,
     max: 10,
+  },
+  cursor: true,
+});
+
+const BuildingMembersService = Service({
+  Model: BuildingMembersModel,
+  paginate: {
+    default: 10,
+    max: 20,
   },
   cursor: true,
 });
@@ -466,18 +480,23 @@ export const resolvers = {
         return resolve(false);
       });
     },
-    async requests(building, { _id, limit = 2 }) {
-      const q = {
-        building: building._id,
-        type: MEMBER,
-        status: PENDING,
+    async requests(data, { cursor = null, limit = 10 }) {
+      let r = await BuildingMembersService.find({
+        $cursor: cursor,
+        query: {
+          building: data._id,
+          type: MEMBER,
+          status: PENDING,
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      });
+      return {
+        pageInfo: r.paging,
+        edges: UsersModel.find({ _id: { $in: r.data.map(v => v.user) } }),
       };
-      if (_id) {
-        q._id = { $lt: _id };
-      }
-      let bm = await BuildingMembersModel.find(q).sort({ createdAt: -1 }).limit(limit);
-      bm = bm.map(v => v.user);
-      return UsersModel.find({ _id: { $in: bm } });
     },
     async announcements(data, { skip = 0, limit = 5 }) {
       const t = await BuildingsModel.aggregate([
@@ -489,7 +508,9 @@ export const resolvers = {
         {
           $project: {
             total: {
-              $size: '$announcements',
+              $size: { 
+                $ifNull: [ '$announcements', [] ],
+              },
             },
           },
         },
