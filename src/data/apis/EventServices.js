@@ -40,8 +40,9 @@ async function createEventOnBuilding(privacy, author, photos, building, name, lo
   return event;
 }
 
-function getEvent(postId) {
-  return PostsModel.findOne({ _id: postId });
+async function getEvent(postId) {
+  const event = await PostsModel.findOne({ _id: postId });
+  return event;
 }
 
 async function invitesResidentJoinEvent(eventId, residents) {

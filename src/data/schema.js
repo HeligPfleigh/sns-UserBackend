@@ -448,8 +448,8 @@ const rootResolvers = {
     async event({ request }, { _id }) {
       // TODO
       const userId = request.user.id;
-      const res = await EventService.getEvent(_id);
-      res.author === userId ? res.isAuthor = true : res.isAuthor = false;
+      const res = await EventService.getEvent(_id, userId);
+      res.isAuthor = res.author == userId;
       return res;
     },
     resident(root, { _id }) {
