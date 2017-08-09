@@ -61,6 +61,7 @@ enum ResponseType {
 
 type Query {
   feeds(limit: Int, cursor: String): Feeds
+  listEvent(limit: Int, cursor: String): Events
   post(_id: String!): Post
   user(_id: String): Friend
   me: Me,
@@ -70,7 +71,6 @@ type Query {
   comment(_id: String): Comment
   notifications(limit: Int, cursor: String): NotificationsResult
   search(keyword: String!, numberOfFriends: Int): [Friend]
-  listEvent(limit: Int, cursor: String): Events
   event(_id: String!): Event
   # users,
   test: Test
@@ -205,6 +205,7 @@ type Mutation {
     _id: String!
     message: String!
     photos: [String]
+    privacy: String
     isDelPostSharing: Boolean
   ): Post
   deletePost (
@@ -419,7 +420,8 @@ const rootResolvers = {
         .limit(numberOfFriends);
       return r;
     },
-    async listEvent({ request }, { cursor = null, limit = 5 }) {
+    async listEvent({ request }, variables) {
+      const { cursor, limit } = variables;
       const userId = request.user.id;
       const me = await UsersModel.findOne({ _id: userId });
       let friendListByIds = await FriendsModel.find({
@@ -435,7 +437,7 @@ const rootResolvers = {
         query: {
           $or: [
             {
-              author: userId,
+              privacy: PUBLIC,
               type: EVENT,
             }, // post from me
             {
@@ -465,7 +467,7 @@ const rootResolvers = {
       // TODO
       const userId = request.user.id;
       const res = await EventService.getEvent(_id, userId);
-      res.isAuthor = res.author == userId;
+      res.isAuthor = res.author === userId;
       return res;
     },
     resident(root, { _id }) {
@@ -727,7 +729,7 @@ const rootResolvers = {
 
       return userDocument;
     },
-    async editPost(_, { _id, message, photos, isDelPostSharing = true }) {
+    async editPost(_, { _id, message, photos, privacy = PUBLIC, isDelPostSharing = true }) {
       const p = await PostsModel.findOne({ _id });
       if (!p) {
         throw new Error('not found the post');
@@ -738,6 +740,7 @@ const rootResolvers = {
         $set: {
           message,
           photos,
+          privacy,
           sharing: isDelPostSharing ? p.sharing : null,
         },
       });
