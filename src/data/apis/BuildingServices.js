@@ -2,6 +2,8 @@ import {
   BuildingsModel,
   ApartmentsModel,
 } from '../models';
+import Mailer from '../../core/mailer';
+import config from '../../config';
 
 const PAGE_SIZE = 5;
 
@@ -25,6 +27,34 @@ async function getBuildingWithApartments(page, q) {
   return buildingsResult;
 }
 
+async function notifywhenApprovedForUserBelongsToBuilding(email, data) {
+  await Mailer.sendMail({
+    to: email,
+    subject: `SNS-SERVICE: Xác nhận đăng ký làm thành viên tòa nhà ${data.building.name}`,
+    template: 'approvedForUserBelongsToBuilding',
+    lang: 'vi-vn',
+    data: Object.assign(data, {
+      email,
+      host: config.client,
+    }),
+  });
+}
+
+async function notifywhenRejectedForUserBelongsToBuilding(email, data) {
+  await Mailer.sendMail({
+    to: email,
+    subject: `SNS-SERVICE: Từ chối đăng ký làm thành viên tòa nhà ${data.building.name}`,
+    template: 'rejectedForUserBelongsToBuilding',
+    lang: 'vi-vn',
+    data: Object.assign(data, {
+      email,
+      host: config.client,
+    }),
+  });
+}
+
 export default {
   getBuildingWithApartments,
+  notifywhenApprovedForUserBelongsToBuilding,
+  notifywhenRejectedForUserBelongsToBuilding,
 };
