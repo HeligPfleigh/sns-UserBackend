@@ -24,6 +24,8 @@ import CommentService from './apis/CommentService';
 import EventService from './apis/EventServices';
 import {
   sendDeletedEventNotification,
+  acceptedUserBelongsToBuildingNotification,
+  rejectedUserBelongsToBuildingNotification,
 } from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
 import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT } from '../constants';
@@ -656,7 +658,7 @@ const rootResolvers = {
       const record = await BuildingMembersModel.findOne({
         building: buildingId,
         user: userId,
-        // status: PENDING,
+        status: PENDING,
       });
       if (!record) {
         throw new Error('not found the request');
@@ -672,9 +674,25 @@ const rootResolvers = {
         },
       });
 
+      // Get all BOMs
+      const BOMs = await BuildingMembersModel.distinct('user', {
+        building: buildingId,
+        type: ADMIN,
+        status: ACCEPTED,
+        user: {
+          $nin: [request.user.id],
+        },
+      });
+
+      // Notify to BOMs
+      if (BOMs) {
+        BOMs.push(userId);
+        await acceptedUserBelongsToBuildingNotification(userDocument._id, BOMs);
+      }
+
       // Sending email
       if (_.isObject(userDocument.emails) && _.isString(userDocument.emails.address)) {
-        await BuildingServices.notifywhenApprovedForUserBelongsToBuilding(userDocument.emails.address, userDocument);
+        await BuildingServices.notifywhenAcceptedForUserBelongsToBuilding(userDocument.emails.address, userDocument);
       }
 
       return userDocument;
@@ -721,6 +739,22 @@ const rootResolvers = {
           status: REJECTED,
         },
       });
+
+      // Get all BOMs
+      const BOMs = await BuildingMembersModel.distinct('user', {
+        building: buildingId,
+        type: ADMIN,
+        status: ACCEPTED,
+        user: {
+          $nin: [request.user.id],
+        },
+      });
+
+      // Notify to BOMs
+      if (BOMs) {
+        BOMs.push(userId);
+        await rejectedUserBelongsToBuildingNotification(userDocument._id, BOMs);
+      }
 
       // Sending email
       if (_.isObject(userDocument.emails) && _.isString(userDocument.emails.address)) {

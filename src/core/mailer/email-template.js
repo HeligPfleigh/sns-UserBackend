@@ -18,7 +18,7 @@ const ForgotPasswordEmail = email => _render(forgotPasswordEmailTemplate, email)
 const changedPasswordEmailTemplate = new EmailTemplate(path.join(templatesPath, 'account', 'change_password'));
 const ChangedPasswordEmail = email => _render(changedPasswordEmailTemplate, email);
 
-const approvedForUserBelongsToBuilding = email => _render(new EmailTemplate(path.join(templatesPath, 'account', 'approvedForUserBelongsToBuilding')), email);
+const acceptedForUserBelongsToBuilding = email => _render(new EmailTemplate(path.join(templatesPath, 'account', 'acceptedForUserBelongsToBuilding')), email);
 const rejectedForUserBelongsToBuilding = email => _render(new EmailTemplate(path.join(templatesPath, 'account', 'rejectedForUserBelongsToBuilding')), email);
 
 export default {
@@ -26,6 +26,6 @@ export default {
   activated: ActivatedEmail,
   forgot_password: ForgotPasswordEmail,
   change_pasword: ChangedPasswordEmail,
-  approvedForUserBelongsToBuilding,
+  acceptedForUserBelongsToBuilding,
   rejectedForUserBelongsToBuilding,
 };

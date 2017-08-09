@@ -27,11 +27,11 @@ async function getBuildingWithApartments(page, q) {
   return buildingsResult;
 }
 
-async function notifywhenApprovedForUserBelongsToBuilding(email, data) {
+async function notifywhenAcceptedForUserBelongsToBuilding(email, data) {
   await Mailer.sendMail({
     to: email,
     subject: `SNS-SERVICE: Xác nhận đăng ký làm thành viên tòa nhà ${data.building.name}`,
-    template: 'approvedForUserBelongsToBuilding',
+    template: 'acceptedForUserBelongsToBuilding',
     lang: 'vi-vn',
     data: Object.assign(data, {
       email,
@@ -55,6 +55,6 @@ async function notifywhenRejectedForUserBelongsToBuilding(email, data) {
 
 export default {
   getBuildingWithApartments,
-  notifywhenApprovedForUserBelongsToBuilding,
+  notifywhenAcceptedForUserBelongsToBuilding,
   notifywhenRejectedForUserBelongsToBuilding,
 };
