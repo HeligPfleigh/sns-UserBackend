@@ -51,7 +51,7 @@ async function updateRead(userId, notificationId) {
     { _id: notificationId },
     { $set: { isRead: true, user: userId } },
   );
-  return NotificationsModel.findOne({ user: userId });
+  return NotificationsModel.findOne({ _id: notificationId });
 }
 export default {
   updateRead,

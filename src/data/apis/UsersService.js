@@ -10,7 +10,7 @@ import {
   BuildingMembersModel,
   BuildingsModel,
 } from '../models';
-import { MEMBER, PENDING } from '../../constants';
+import { MEMBER, PENDING, ACCEPTED, REJECTED } from '../../constants';
 import { getChatToken, createChatUserIfNotExits } from '../../core/passport';
 import {
   sendAcceptFriendNotification,
@@ -49,7 +49,7 @@ async function acceptFriend(userId, friendId) {
   if (!await FriendsRelationModel.findOne({
     user: friendId,
     friend: userId,
-    status: 'PENDING',
+    status: PENDING,
   })) {
     throw new Error('not found friend request');
   }
@@ -57,14 +57,14 @@ async function acceptFriend(userId, friendId) {
     user: userId,
     friend: friendId,
   }, { $set: {
-    status: 'ACCEPTED',
+    status: ACCEPTED,
     isSubscribe: true,
   } }, { upsert: true });
   await FriendsRelationModel.update({
     user: friendId,
     friend: userId,
   }, { $set: {
-    status: 'ACCEPTED',
+    status: ACCEPTED,
     isSubscribe: true,
   } }, { upsert: true });
   sendAcceptFriendNotification(userId, friendId);
@@ -82,7 +82,7 @@ async function rejectFriend(userId, friendId) {
   if (!await FriendsRelationModel.findOne({
     user: friendId,
     friend: userId,
-    status: 'PENDING',
+    status: PENDING,
   })) {
     throw new Error('not found friend request');
   }
@@ -90,9 +90,9 @@ async function rejectFriend(userId, friendId) {
   await FriendsRelationModel.update({
     user: friendId,
     friend: userId,
-    status: 'PENDING',
+    status: PENDING,
   }, { $set: {
-    status: 'REJECTED',
+    status: REJECTED,
     isSubscribe: false,
   } }, { upsert: true });
   return UsersModel.findOne({ _id: friendId });
@@ -114,7 +114,7 @@ async function sendFriendRequest(userId, friendId) {
   await FriendsRelationModel.create({
     user: userId,
     friend: friendId,
-    status: 'PENDING',
+    status: PENDING,
     isSubscribe: true,
   });
 

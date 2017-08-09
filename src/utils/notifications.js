@@ -1,10 +1,4 @@
-import reject from 'lodash/reject';
-import uniq from 'lodash/uniq';
-import map from 'lodash/map';
-import uniqWith from 'lodash/uniqWith';
-import union from 'lodash/union';
-import isEqual from 'lodash/isEqual';
-import some from 'lodash/some';
+import * as _ from 'lodash';
 import {
   NotificationsModel,
   CommentsModel,
@@ -17,8 +11,9 @@ import {
   ACCEPTED_FRIEND,
   FRIEND_REQUEST,
   EVENT_INVITE,
-  JOIN_EVENT,
   EVENT_DELETED,
+  ACCEPTED_JOIN_BUILDING,
+  REJECTED_JOIN_BUILDING,
 } from '../constants';
 
 const getUserFollow = async (postId, userId, status) => {
@@ -26,9 +21,9 @@ const getUserFollow = async (postId, userId, status) => {
   const comments = await CommentsModel.find({ post: postId }).select('user');
 
   const userLikes = post.likes;
-  const userComment = uniq(map(comments, 'user'));
-  let list = uniqWith(union([post.user], [post.author], userLikes, userComment), isEqual);
-  list = reject(list, item => item.equals(userId));
+  const userComment = _.uniq(_.map(comments, 'user'));
+  let list = _.uniqWith(_.union([post.user], [post.author], userLikes, userComment), _.isEqual);
+  list = _.reject(list, item => item.equals(userId));
 
   list.forEach(async (userFollow) => {
     const options = {
@@ -45,7 +40,7 @@ const getUserFollow = async (postId, userId, status) => {
         ...options,
         actors: [userId],
       });
-    } else if (!some(notify.actors, item => item.equals(userId))) {
+    } else if (!_.some(notify.actors, item => item.equals(userId))) {
       notify.actors.unshift(userId);
       await notify.save();
     }
@@ -81,7 +76,7 @@ function sendEventInviteNotification(author, eventId, usersId) {
         ...options,
         actors: [author],
       });
-    } else if (!some(notify.actors, item => item.equals(author))) {
+    } else if (!_.some(notify.actors, item => item.equals(author))) {
       notify.actors.unshift(author);
       await notify.save();
     }
@@ -103,7 +98,7 @@ async function sendJoinEventNotification(author, userJoin, eventId, type) {
       ...options,
       actors: [userJoin],
     });
-  } else if (!some(notify.actors, item => item.equals(userJoin))) {
+  } else if (!_.some(notify.actors, item => item.equals(userJoin))) {
     notify.actors.unshift(userJoin);
     await notify.save();
   }
@@ -143,10 +138,36 @@ async function sendDeletedEventNotification(usersid, eventId, actor) {
         ...options,
         actors: [actor],
       });
-    } else if (!some(notify.actors, item => item.equals(actor))) {
+    } else if (!_.some(notify.actors, item => item.equals(actor))) {
       notify.actors.unshift(actor);
       await notify.save();
     }
+  });
+}
+
+async function acceptedUserBelongsToBuildingNotification(sender, receivers) {
+  if (!_.isArray(receivers)) {
+    return;
+  }
+  receivers.map(async (receiver) => {
+    await NotificationsModel.create({
+      user: receiver,
+      actors: [sender],
+      type: ACCEPTED_JOIN_BUILDING,
+    });
+  });
+}
+
+async function rejectedUserBelongsToBuildingNotification(sender, receivers) {
+  if (!_.isArray(receivers)) {
+    return;
+  }
+  receivers.map(async (receiver) => {
+    await NotificationsModel.create({
+      user: receiver,
+      actors: [sender],
+      type: REJECTED_JOIN_BUILDING,
+    });
   });
 }
 
@@ -159,4 +180,6 @@ export {
   sendEventInviteNotification,
   sendJoinEventNotification,
   sendDeletedEventNotification,
+  acceptedUserBelongsToBuildingNotification,
+  rejectedUserBelongsToBuildingNotification,
 };
