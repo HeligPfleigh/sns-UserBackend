@@ -62,6 +62,7 @@ enum ResponseType {
 
 type Query {
   feeds(limit: Int, cursor: String): Feeds
+  listEvent(limit: Int, cursor: String): Events
   post(_id: String!): Post
   user(_id: String): Friend
   me: Me,
@@ -71,7 +72,6 @@ type Query {
   comment(_id: String): Comment
   notifications(limit: Int, cursor: String): NotificationsResult
   search(keyword: String!, numberOfFriends: Int): [Friend]
-  listEvent(limit: Int, cursor: String): Events
   event(_id: String!): Event
   # users,
   test: Test
@@ -420,7 +420,8 @@ const rootResolvers = {
         .limit(numberOfFriends);
       return r;
     },
-    async listEvent({ request }, { cursor = null, limit = 5 }) {
+    async listEvent({ request }, variables) {
+      const { cursor, limit } = variables;
       const userId = request.user.id;
       const me = await UsersModel.findOne({ _id: userId });
       let friendListByIds = await FriendsModel.find({
@@ -436,7 +437,7 @@ const rootResolvers = {
         query: {
           $or: [
             {
-              author: userId,
+              privacy: PUBLIC,
               type: EVENT,
             }, // post from me
             {
