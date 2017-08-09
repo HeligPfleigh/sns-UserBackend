@@ -6,7 +6,6 @@ import {
   UsersModel,
   BuildingsModel,
   BuildingMembersModel,
-  BuildingFeedModel,
   CommentsModel,
   ApartmentsModel,
   FriendsRelationModel,
@@ -14,7 +13,9 @@ import {
   // EventModel,
 } from '../models';
 import AddressServices from '../apis/AddressServices';
-
+import {
+  onlyMe,
+} from '../../utils/authorization';
 import {
   ADMIN,
   ACCEPTED,
@@ -867,6 +868,7 @@ export const resolvers = {
         }),
       };
     },
+    @onlyMe()
     async friendSuggestions(data, { cursor = null, limit = 5 }) {
       // get current friends
       const currentFriends = await FriendsRelationModel

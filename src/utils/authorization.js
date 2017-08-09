@@ -87,7 +87,7 @@ export const onlyMe = (field = '_id') => ((target, key, descriptor) => ({
   ...descriptor,
   value: function process(obj, args, context, info) {
     const { user } = context;
-    if (user.id !== get(obj, field)) {
+    if (user.id !== get(obj, field).toString()) {
       throw new Error(`you dont have permission to access ${key}`);
     }
     return descriptor.value.apply(this, [obj, args, context, info]);
