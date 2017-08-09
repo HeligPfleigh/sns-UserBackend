@@ -206,6 +206,7 @@ type Mutation {
     _id: String!
     message: String!
     photos: [String]
+    privacy: String
     isDelPostSharing: Boolean
   ): Post
   deletePost (
@@ -467,7 +468,7 @@ const rootResolvers = {
       // TODO
       const userId = request.user.id;
       const res = await EventService.getEvent(_id, userId);
-      res.isAuthor = res.author == userId;
+      res.isAuthor = res.author === userId;
       return res;
     },
     resident(root, { _id }) {
@@ -686,7 +687,7 @@ const rootResolvers = {
       });
       return UsersModel.findOne({ _id: userId });
     },
-    async editPost(_, { _id, message, photos, isDelPostSharing = true }) {
+    async editPost(_, { _id, message, photos, privacy = PUBLIC, isDelPostSharing = true }) {
       const p = await PostsModel.findOne({ _id });
       if (!p) {
         throw new Error('not found the post');
@@ -697,6 +698,7 @@ const rootResolvers = {
         $set: {
           message,
           photos,
+          privacy,
           sharing: isDelPostSharing ? p.sharing : null,
         },
       });
