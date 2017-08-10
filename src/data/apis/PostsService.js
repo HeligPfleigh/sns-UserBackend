@@ -13,7 +13,10 @@ import {
 import { ACCEPTED } from '../../constants';
 
 function getPost(postId) {
-  return PostsModel.findOne({ _id: postId });
+  return PostsModel.findOne({
+    _id: postId,
+    isDeleted: { $exists: false },
+  });
 }
 
 function feed() {

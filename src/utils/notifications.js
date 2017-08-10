@@ -14,6 +14,7 @@ import {
   EVENT_DELETED,
   ACCEPTED_JOIN_BUILDING,
   REJECTED_JOIN_BUILDING,
+  SHARING_POST,
 } from '../constants';
 
 const getUserFollow = async (postId, userId, status) => {
@@ -171,6 +172,16 @@ async function rejectedUserBelongsToBuildingNotification(sender, receivers) {
   });
 }
 
+async function sendSharingPostNotification(sender, receiver, postId) {
+  // FIXME: check args
+  await NotificationsModel.create({
+    user: receiver,
+    actors: [sender],
+    type: SHARING_POST,
+    subject: postId,
+  });
+}
+
 export {
   sendLikeNotification,
   sendCommentNotification,
@@ -182,4 +193,5 @@ export {
   sendDeletedEventNotification,
   acceptedUserBelongsToBuildingNotification,
   rejectedUserBelongsToBuildingNotification,
+  sendSharingPostNotification,
 };

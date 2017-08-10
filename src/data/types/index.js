@@ -61,6 +61,7 @@ enum NotificationType {
   EVENT_DELETED
   ACCEPTED_JOIN_BUILDING
   REJECTED_JOIN_BUILDING
+  SHARING_POST
 }
 
 enum PrivacyType {

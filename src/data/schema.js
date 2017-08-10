@@ -26,6 +26,7 @@ import {
   sendDeletedEventNotification,
   acceptedUserBelongsToBuildingNotification,
   rejectedUserBelongsToBuildingNotification,
+  sendSharingPostNotification,
 } from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
 import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT } from '../constants';
@@ -364,7 +365,9 @@ const rootResolvers = {
     async post({ request }, { _id }) {
       const userId = request.user.id;
       const res = await PostsService.getPost(_id);
-      res.likes.indexOf(userId) !== -1 ? res.isLiked = true : res.isLiked = false;
+      if (res && res.likes) {
+        res.likes.indexOf(userId) !== -1 ? res.isLiked = true : res.isLiked = false;
+      }
       return res;
     },
     apartment(root, { _id }) {
@@ -793,29 +796,30 @@ const rootResolvers = {
       }
       if (!p) {
         throw new Error('Not found the post');
+      }
+      const sharingId = p.sharing;
+      let r = null;
+      if (!sharingId) {
+        r = await PostsModel.create({
+          author,
+          user: author,
+          privacy,
+          sharing: _id,
+          message,
+        });
       } else {
-        const sharingId = p.sharing;
-        if (!sharingId) {
-          const r = await PostsModel.create({
-            author,
-            user: author,
-            privacy,
-            sharing: _id,
-            message,
-          });
-          r.isLiked = false;
-          return r;
-        }
-        const r = await PostsModel.create({
+        r = await PostsModel.create({
           author,
           user: author,
           privacy,
           sharing: sharingId,
           message,
         });
-        r.isLiked = false;
-        return r;
       }
+      r.isLiked = false;
+      // send notification
+      sendSharingPostNotification(author, p.author, r._id);
+      return r;
       // JSON.parse(message);
     },
     async updateUserProfile({ request }, { input }) {
