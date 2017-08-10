@@ -62,6 +62,7 @@ enum ResponseType {
 }
 
 type Query {
+  test: Test
   feeds(limit: Int, cursor: String): Feeds
   listEvent(limit: Int, cursor: String): Events
   post(_id: String!): Post
@@ -69,13 +70,12 @@ type Query {
   me: Me,
   apartment(_id: String): Apartment
   building(_id: String): Building
+  buildings(query: String, limit: Int): [Building]
   notification(_id: String): Notification
   comment(_id: String): Comment
   notifications(limit: Int, cursor: String): NotificationsResult
   search(keyword: String!, numberOfFriends: Int): [Friend]
   event(_id: String!): Event
-  # users,
-  test: Test
   resident(_id: String): User
   requestsToJoinBuilding(_id: String): RequestsToJoinBuilding
 }
@@ -321,6 +321,11 @@ const NotificationsPagingService = Service({
 
 const rootResolvers = {
   Query: {
+    test() {
+      return {
+        hello: 'Hello world...',
+      };
+    },
     async feeds({ request }, { cursor = null, limit = 5 }) {
       const userId = request.user.id;
       const me = await UsersModel.findOne({ _id: userId });
@@ -372,6 +377,10 @@ const rootResolvers = {
     },
     building(root, { _id }) {
       return AddressServices.getBuilding(_id);
+    },
+    async buildings(root, { query, limit }) {
+      const results = await BuildingServices.searchBuildings(query, limit);
+      return results;
     },
     user(root, { _id }) {
       return UsersService.getUser(_id);
