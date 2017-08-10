@@ -3,6 +3,7 @@ import {
   NotificationsModel,
   CommentsModel,
   PostsModel,
+  UsersModel,
 } from '../data/models';
 import {
   LIKES,
@@ -174,6 +175,12 @@ async function rejectedUserBelongsToBuildingNotification(sender, receivers) {
 
 async function sendSharingPostNotification(sender, receiver, postId) {
   // FIXME: check args
+  if (!await UsersModel.findOne({ _id: sender })) {
+    return;
+  }
+  if (!await UsersModel.findOne({ _id: receiver })) {
+    return;
+  }
   await NotificationsModel.create({
     user: receiver,
     actors: [sender],
