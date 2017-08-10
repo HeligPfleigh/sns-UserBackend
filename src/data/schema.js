@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+import mongoose from 'mongoose';
 import {
   // buildSchemaFromTypeDefinitions,
   makeExecutableSchema,
@@ -30,6 +31,8 @@ import {
 import { schema as schemaType, resolvers as resolversType } from './types';
 import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT } from '../constants';
 import toObjectId from '../utils/toObjectId';
+
+const { Types: { ObjectId } } = mongoose;
 // import {
 //   everyone,
 //   authenticated,
@@ -746,15 +749,14 @@ const rootResolvers = {
         BOMs.push(userId);
         await rejectedUserBelongsToBuildingNotification(userDocument._id, BOMs);
       }
-
       // Sending email
       if (_.isObject(userDocument.emails) && _.isString(userDocument.emails.address)) {
-        await BuildingServices.notifywhenRejectedForUserBelongsToBuilding(userDocument.emails.address);
+        await BuildingServices.notifywhenRejectedForUserBelongsToBuilding(userDocument.emails.address, userDocument);
       }
 
       return userDocument;
     },
-    async editPost(_, { _id, message, photos, privacy = PUBLIC, isDelPostSharing = true }) {
+    async editPost(p_, { _id, message, photos, privacy = PUBLIC, isDelPostSharing = true }) {
       const p = await PostsModel.findOne({ _id });
       if (!p) {
         throw new Error('not found the post');

@@ -4,7 +4,8 @@ import {
   getContext,
 } from '../../../test/helper';
 import schema from '../schema';
-import { UsersModel, BuildingsModel, BuildingMembersModel } from '../models';
+import { UsersModel, BuildingsModel, BuildingMembersModel, ApartmentsModel } from '../models';
+import { buildingData as bd, apartmentData as ad } from './data';
 
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
@@ -13,6 +14,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 const userIdA = '58f9c2502d4581000474b19a';
 const userIdB = '58f9c1bf2d4581000474b198';
 const buildingId = '58da279f0ff5af8c8be59c36';
+const apartmentId = '58f9c1bf2d4581000484b189';
 const buildingMembersIdA = '59441e6deae10b5b59ea93c1';
 const buildingMembersIdB = '59034c6c60f3c7beab57220a';
 const buildingMembersIdC = '59034d8d60f3c7beab57330a';
@@ -71,32 +73,14 @@ const userDataB = {
   __v: 0,
 };
 
-// const buildingData = {
-//   _id: buildingId,
-//   name: 'Vinhomes Riverside',
-//   address: {
-//     basisPoint: 'Số 72',
-//     country: 'Việt Nam',
-//     province: 'Thành Phố Hà Nội',
-//     district: 'Quận Cầu Giấy',
-//     ward: 'Phường Nghĩa Đô',
-//     street: 'Đường Trần Đăng Ninh',
-//     countryCode: 'VN',
-//   },
-//   location: {
-//     coordinates: [105.7976544, 21.0714764],
-//     type: 'Point',
-//   },
-//   announcements: [
-//     {
-//       _id: announcementId,
-//       message: 'Thông báo 1',
-//       type: 'TYPE1',
-//     },
-//   ],
-//   description: 'Vingroup Joint Stock Company',
-//   __v: 0,
-// };
+const buildingData = Object.assign({}, bd, {
+  _id: buildingId,
+});
+
+const apartmentData = Object.assign({}, ad, {
+  _id: apartmentId,
+  building: buildingId,
+});
 
 const buildingMembersDataA = {
   _id: buildingMembersIdA,
@@ -105,9 +89,7 @@ const buildingMembersDataA = {
   status: 'ACCEPTED',
   type: 'ADMIN',
   requestInformation: {
-    apartment: {
-      number: 'A213',
-    },
+    apartments: [apartmentId],
     detail: {},
   },
   __v: 0,
@@ -120,9 +102,7 @@ const buildingMembersDataB = {
   status: 'PENDING',
   type: 'MEMBER',
   requestInformation: {
-    apartment: {
-      number: 'A204',
-    },
+    apartments: [apartmentId],
     detail: {},
   },
   __v: 0,
@@ -135,9 +115,7 @@ const buildingMembersDataD = {
   status: 'ACCEPTED',
   type: 'MEMBER',
   requestInformation: {
-    apartment: {
-      number: 'A204',
-    },
+    apartments: [apartmentId],
     detail: {},
   },
   __v: 0,
@@ -150,14 +128,16 @@ describe('RootApprovingUserToBuildingMutation', () => {
     await user.save();
     const userB = new UsersModel(userDataB);
     await userB.save();
-    // const building = new BuildingsModel(buildingData);
-    // await building.save();
+    const building = new BuildingsModel(buildingData);
+    await building.save();
     const buildingMembersA = new BuildingMembersModel(buildingMembersDataA);
     await buildingMembersA.save();
     const buildingMembersB = new BuildingMembersModel(buildingMembersDataB);
     await buildingMembersB.save();
     const buildingMembersD = new BuildingMembersModel(buildingMembersDataD);
     await buildingMembersD.save();
+    const apartment = new ApartmentsModel(apartmentData);
+    await apartment.save();
   });
 
   test('should approve user to building ', async () => {
@@ -295,16 +275,15 @@ describe('RootApprovingUserToBuildingMutation', () => {
       },
     }));
     // await new Promise((resolve) => {
-    //   setTimeout(() => {
-    //     resolve();
-    //   }, 5000);
+    //   setTimeout(resolve, 5000);
     // });
   });
 
   afterEach(async () => {
     // clear data
     await UsersModel.remove({});
-    // await BuildingsModel.remove({});
+    await BuildingsModel.remove({});
     await BuildingMembersModel.remove({});
+    await ApartmentsModel.remove({});
   });
 });

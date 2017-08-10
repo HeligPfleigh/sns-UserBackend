@@ -125,7 +125,7 @@ describe('RootRejectRequestForJoiningBuildingMutation', () => {
     // language=GraphQL
     const query = `
       mutation M { 
-        rejectRequestForJoiningBuilding(buildingId:"${buildingId}",userId:"58da279f0ff5af8c8be59c42") {
+        rejectRequestForJoiningBuilding(buildingId:"${buildingId}",userId:"${userIdA}") {
           _id
           username
         }
@@ -143,6 +143,30 @@ describe('RootRejectRequestForJoiningBuildingMutation', () => {
     const result = await graphql(schema, query, rootValue, context);
     expect(result.data.rejectRequestForJoiningBuilding).toEqual(null);
     expect(result.errors[0].message).toEqual('not found the request');
+  });
+
+  test('should get error if request not found', async () => {
+    // language=GraphQL
+    const query = `
+      mutation M { 
+        rejectRequestForJoiningBuilding(buildingId:"${buildingId}",userId:"58da279f0ff5af8c8be59c42") {
+          _id
+          username
+        }
+      }
+    `;
+
+    const rootValue = {
+      request: {
+        user: {
+          id: userIdA,
+        },
+      },
+    };
+    const context = getContext({});
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.data.rejectRequestForJoiningBuilding).toEqual(null);
+    expect(result.errors[0].message).toEqual('User not found.');
   });
 
   test('should get user data', async () => {
@@ -165,6 +189,7 @@ describe('RootRejectRequestForJoiningBuildingMutation', () => {
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
+    await new Promise(resolve => setTimeout(resolve, 5000));
     expect(result.data.rejectRequestForJoiningBuilding).toEqual({
       _id: userIdB,
       username: userDataB.username,

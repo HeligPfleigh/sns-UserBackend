@@ -27,6 +27,20 @@ const buildingData = {
   __v: 0,
 };
 
+const apartmentData = {
+  prefix: 'P',
+  number: '27',
+  name: 'name',
+  createdAt: '2017-04-21T08:24:31.178Z',
+  updatedAt: '2017-04-21T08:24:31.178Z',
+  users: [],
+  // owner: 
+  // building: buildingId,
+  isOwner: true,
+  __v: 0,
+};
+
 export {
   buildingData, // eslint-disable-line import/prefer-default-export
+  apartmentData,
 };
