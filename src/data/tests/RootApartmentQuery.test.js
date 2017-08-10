@@ -80,7 +80,6 @@ describe('RootApartmentQuery', () => {
     const rootValue = {};
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    console.log(JSON.stringify(result));
     expect(result.data.apartment).toEqual(Object.assign({}, {
       _id: apartmentData._id,
       building: {

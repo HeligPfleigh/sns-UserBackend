@@ -1,5 +1,4 @@
 import * as _ from 'lodash';
-import mongoose from 'mongoose';
 import {
   // buildSchemaFromTypeDefinitions,
   makeExecutableSchema,
@@ -30,6 +29,7 @@ import {
 } from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
 import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT } from '../constants';
+import toObjectId from '../utils/toObjectId';
 // import {
 //   everyone,
 //   authenticated,
@@ -38,18 +38,6 @@ import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT } from '../co
 //   can,
 //   onlyMe,
 // } from '../utils/authorization';
-
-const { Types: { ObjectId } } = mongoose;
-
-const toObjectId = (idStr) => {
-  let id = null;
-  try {
-    id = ObjectId(idStr);
-  } catch (err) {
-    throw err;
-  }
-  return id;
-};
 
 const rootSchema = [`
 
