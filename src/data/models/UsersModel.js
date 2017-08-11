@@ -21,7 +21,6 @@ const EmailSchema = new Schema({
   },
   verified: {
     type: Boolean,
-    required: true,
     default: false,
   },
 }, {
@@ -31,7 +30,10 @@ const EmailSchema = new Schema({
 const PhoneSchema = new Schema({
   number: String,
   code: String,
-  verified: Boolean,
+  verified: {
+    type: Boolean,
+    default: false,
+  },
 }, {
   _id: false,
 });
