@@ -78,6 +78,7 @@ type Query {
   event(_id: String!): Event
   resident(_id: String): User
   requestsToJoinBuilding(_id: String): RequestsToJoinBuilding
+  checkExistUser(query: String): Boolean
 }
 
 input ProfileInput {
@@ -85,11 +86,33 @@ input ProfileInput {
   firstName: String
   lastName: String
   gender: String
+  dob: Date
+  address: String
 }
 
 input UpdateUserProfileInput {
   userId: String!
   profile: ProfileInput
+}
+
+input EmailsInput {
+  address: String!
+  verified: Boolean
+}
+
+input PhoneInput {
+  number: String!
+  verified: Boolean
+}
+
+input CreateUserInput {
+  apartments: [String!]
+  building: String!
+  emails: EmailsInput!
+  password: String!
+  phone: PhoneInput!
+  username: String!
+  profile: ProfileInput!
 }
 
 type UpdateUserProfilePayload {
@@ -217,6 +240,9 @@ type Mutation {
     postId: String!
     buildingId: String!
   ): Post
+  createUser(
+    user: CreateUserInput!
+  ): Author
   updateProfile(
     profile: ProfileInput!
   ): Author
@@ -487,6 +513,12 @@ const rootResolvers = {
     requestsToJoinBuilding(root, { _id }) {
       return BuildingMembersModel.findOne({ _id });
     },
+    checkExistUser(root, { query }) {
+      if (_.isEmpty(query)) {
+        return false;
+      }
+      return UsersService.checkExistUser(query);
+    },
   },
   Mutation: {
     acceptFriend({ request }, { _id }) {
@@ -621,6 +653,11 @@ const rootResolvers = {
         },
       });
       return p;
+    },
+    async createUser(root, { user }) {
+      console.log(user);
+      const r = await UsersService.createUser(user);
+      return r;
     },
     updateProfile({ request }, { profile }) {
       return UsersService.updateProfile(request.user.id, profile);
@@ -772,7 +809,7 @@ const rootResolvers = {
 
       return userDocument;
     },
-    async editPost(_, { _id, message, photos, privacy = PUBLIC, isDelPostSharing = true }) {
+    async editPost(root, { _id, message, photos, privacy = PUBLIC, isDelPostSharing = true }) {
       const p = await PostsModel.findOne({ _id });
       if (!p) {
         throw new Error('not found the post');
