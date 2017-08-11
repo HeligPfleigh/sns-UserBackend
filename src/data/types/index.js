@@ -42,9 +42,11 @@ type Apartment implements Node {
   _id: ID!
   number: Int
   building: Building
-  user: Author
+  users: [Author]
+  owner: Author
   isOwner: Boolean
-
+  prefix: String
+  name: String
   createdAt: Date
   updatedAt: Date
 }
@@ -331,8 +333,10 @@ type UsersAwaitingApprovalConnection {
 type Building implements Node {
   _id: ID!
   name: String
+  display: String
   address: Address
   isAdmin: Boolean
+  apartments: [Apartment]
   announcements(skip: Int, limit: Int): BuildingAnnouncementConnection!
   requests(cursor: String, limit: Int): UsersAwaitingApprovalConnection
   posts(cursor: String, limit: Int): BuildingPostsConnection
@@ -412,6 +416,13 @@ export const resolvers = {
   Date: DateScalarType,
   Building: {
     // @building
+    display(building) {
+      const address = building.address.toObject();
+      return `${building.name}-${address.ward}, ${address.district}, ${address.province}`;
+    },
+    apartments(building) {
+      return ApartmentsModel.find({ building: building._id });
+    },
     async posts(building, { cursor = null, limit = 5 }, { user }) {
       if (!user) {
         return {
@@ -573,8 +584,11 @@ export const resolvers = {
     building(data) {
       return AddressServices.getBuilding(data.building);
     },
-    user(data) {
-      return UsersModel.findOne({ _id: data.author });
+    users(data) {
+      return UsersModel.find({ _id: { $in: data.users } });
+    },
+    owner(data) {
+      return UsersModel.findOne({ _id: data.owner });
     },
     createdAt(data) {
       return new Date(data.createdAt);

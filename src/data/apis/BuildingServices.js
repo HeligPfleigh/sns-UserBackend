@@ -7,8 +7,13 @@ import config from '../../config';
 
 const PAGE_SIZE = 5;
 
+async function searchBuildings(textSearch = 'v', limit = 5) {
+  const buildings = await BuildingsModel.find({ search: new RegExp(textSearch, 'i') }).limit(limit);
+  return buildings;
+}
+
 async function getBuildingWithApartments(page, q) {
-  const buildings = await BuildingsModel.find({ search: new RegExp(q, 'i') }).limit(PAGE_SIZE).skip((page - 1) * 5);
+  const buildings = await BuildingsModel.find({ search: new RegExp(q, 'i') }).limit(1);
   const buildingsResult = [];
   await Promise.all(buildings.map(async (building) => {
     const apartments = await ApartmentsModel.find({ building: building._id });
@@ -54,6 +59,7 @@ async function notifywhenRejectedForUserBelongsToBuilding(email, data) {
 }
 
 export default {
+  searchBuildings,
   getBuildingWithApartments,
   notifywhenAcceptedForUserBelongsToBuilding,
   notifywhenRejectedForUserBelongsToBuilding,
