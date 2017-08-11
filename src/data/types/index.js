@@ -16,6 +16,7 @@ import AddressServices from '../apis/AddressServices';
 import {
   onlyMe,
 } from '../../utils/authorization';
+import toObjectId from '../../utils/toObjectId';
 import {
   ADMIN,
   ACCEPTED,
@@ -63,6 +64,7 @@ enum NotificationType {
   EVENT_DELETED
   ACCEPTED_JOIN_BUILDING
   REJECTED_JOIN_BUILDING
+  SHARING_POST
 }
 
 enum PrivacyType {
@@ -697,7 +699,7 @@ export const resolvers = {
             $in: ['PENDING', 'ACCEPTED', 'BLOCKED'],
           },
         })
-        .select('user friend _id');
+        .select('user friend _id').lean();
       const ninIds = reduce(currentFriends, (result, item) => {
         result.push(item.user);
         result.push(item.friend);
@@ -708,7 +710,7 @@ export const resolvers = {
       let usersId = await ApartmentsModel.find({
         user: { $nin: ninIds },
         building: user.building,
-      }).select('user _id').limit(5);
+      }).select('user _id').limit(5).lean();
       usersId = usersId.map(v => v.user);
       return UsersModel.find({
         _id: { $in: usersId },
@@ -909,21 +911,20 @@ export const resolvers = {
           result.push(friendID);
         }
         return result;
-      }, []);
-
+      }, [data._id]);
       const r = await ApartmentsService.find({
         $cursor: cursor,
-        field: 'user',
+        field: 'owner',
         query: {
-          user: { $nin: ninIds },
+          owner: { $nin: ninIds.map(toObjectId) },
           building: data.building,
           $sort: {
             createdAt: -1,
           },
-          $limit: limit,
+          $limit: limit + 1,
         },
       });
-      const usersId = r.data.map(v => v.user);
+      const usersId = r.data.map(v => v.toJSON().owner);
       const u = await UsersModel.find({
         _id: { $in: usersId },
       });

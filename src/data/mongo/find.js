@@ -87,6 +87,7 @@ const find = state => ({
     } else {
       rootQuery = Object.assign({}, query);
     }
+
     let q = state.Model.find(rootQuery);
 
     if (filters.$select) {

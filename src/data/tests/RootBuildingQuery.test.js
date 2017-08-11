@@ -48,10 +48,6 @@ const postDataB = {
 
 describe('RootBuildingQuery', () => {
   beforeEach(async () => {
-    await BuildingsModel.remove({});
-    await PostsModel.remove({});
-    await BuildingMembersModel.remove({});
-
     // setup db
     const building = new BuildingsModel(buildingData);
     await building.save();

@@ -5,7 +5,8 @@ import {
 } from '../../../test/helper';
 import schema from '../schema';
 import { UsersModel, BuildingsModel, ApartmentsModel } from '../models';
-import { buildingData as bd } from './data';
+import { buildingData as bd, apartmentData as ad } from './data';
+
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
@@ -41,16 +42,10 @@ const userData = {
   roles: ['user'],
   __v: 0,
 };
-const apartmentData = {
+const apartmentData = Object.assign({}, ad, {
   _id: apartmentId,
-  createdAt: '2017-04-21T08:24:31.178Z',
-  updatedAt: '2017-04-21T08:24:31.178Z',
-  number: '27',
   building: buildingId,
-  user: userId,
-  isOwner: true,
-  __v: 0,
-};
+});
 
 describe('RootApartmentQuery', () => {
   beforeEach(async () => {
@@ -80,7 +75,6 @@ describe('RootApartmentQuery', () => {
     const rootValue = {};
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    console.log(JSON.stringify(result));
     expect(result.data.apartment).toEqual(Object.assign({}, {
       _id: apartmentData._id,
       building: {
