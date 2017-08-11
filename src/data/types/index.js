@@ -897,12 +897,12 @@ export const resolvers = {
           result.push(friendID);
         }
         return result;
-      }, []);
+      }, [data._id]);
       const r = await ApartmentsService.find({
         $cursor: cursor,
-        field: 'user',
+        field: 'owner',
         query: {
-          user: { $nin: ninIds.map(toObjectId) },
+          owner: { $nin: ninIds.map(toObjectId) },
           building: data.building,
           $sort: {
             createdAt: -1,
@@ -910,7 +910,7 @@ export const resolvers = {
           $limit: limit + 1,
         },
       });
-      const usersId = r.data.map(v => v.toJSON().user);
+      const usersId = r.data.map(v => v.toJSON().owner);
       const u = await UsersModel.find({
         _id: { $in: usersId },
       });
