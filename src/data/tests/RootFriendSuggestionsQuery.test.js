@@ -258,11 +258,41 @@ describe('RootFriendSuggestionsQuery', () => {
     });
     const result = await graphql(schema, query, rootValue, context);
     expect(result.errors[0].message).toEqual('you dont have permission to access friendSuggestions');
-    await new Promise((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, 5000);
+  });
+
+  test('should throw error if not found user request', async () => {
+    const query = `
+      {
+        resident (_id:"${userIdF}") {
+          _id
+          friendSuggestions (cursor: null, limit: 5) {
+            pageInfo {
+              endCursor
+              hasNextPage
+              total
+              limit
+            }
+            edges {
+              _id
+              profile {
+                firstName
+                lastName
+                picture
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const rootValue = {};
+    const context = getContext({
+      user: {
+        id: userIdF,
+      },
     });
+    const result = await graphql(schema, query, rootValue, context);
+    expect(result.errors[0].message).toEqual('not found user request');
   });
 
   afterEach(async () => {

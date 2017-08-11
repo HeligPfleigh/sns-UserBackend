@@ -20,8 +20,12 @@ import { generateUserSearchField } from '../../utils/removeToneVN';
 import Mailer from '../../core/mailer';
 import config from '../../config';
 
-function getUser(userId) {
-  return UsersModel.findOne({ _id: userId });
+async function getUser(userId) {
+  const user = await UsersModel.findOne({ _id: userId });
+  if (!user) {
+    throw new Error('not found user request');
+  }
+  return user;
 }
 
 async function checkExistUser(username) {
