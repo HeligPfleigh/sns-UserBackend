@@ -15,6 +15,10 @@ const buildingId = '58da279f0ff5af8c8be59c37';
 const buildingData = Object.assign({
   _id: buildingId,
 }, bd);
+
+const apartmentIdA = '57c9c1bf2d4581000484b189';
+const apartmentIdB = '58f9c1bf2d4581000484b123';
+
 const userIdA = '58f9c2502d4581000474b19a';
 const userIdB = '58f9c1bf2d4581000474b198';
 const userDataA = {
@@ -84,12 +88,18 @@ describe('RootRejectRequestForJoiningBuildingMutation', () => {
         user: userIdA,
         type: ADMIN,
         status: ACCEPTED,
+        requestInformation: {
+          apartments: [apartmentIdA],
+        },
       });
       await BuildingMembersModel.create({
         building: buildingId,
         user: userIdB,
         type: MEMBER,
         status: PENDING,
+        requestInformation: {
+          apartments: [apartmentIdB],
+        },
       });
       // await new Promise(resolve => setTimeout(resolve, 5000));
     } catch (e) {
@@ -200,6 +210,11 @@ describe('RootRejectRequestForJoiningBuildingMutation', () => {
       type: MEMBER,
       status: REJECTED,
     })).toEqual(1);
+    // await new Promise((resolve) => {
+    //   setTimeout(() => {
+    //     resolve();
+    //   }, 5000);
+    // });
   });
 
   afterEach(async () => {

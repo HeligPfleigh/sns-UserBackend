@@ -17,6 +17,10 @@ const buildingMembersIdA = '59441e6deae10b5b59ea93c1';
 const buildingMembersIdB = '59034c6c60f3c7beab57220a';
 const buildingMembersIdC = '59034d8d60f3c7beab57330a';
 const buildingMembersIdD = '76859d8d60f3c7beab57120a';
+
+const apartmentIdA = '57c9c1bf2d4581000484b189';
+const apartmentIdB = '58f9c1bf2d4581000484b123';
+const apartmentIdD = '59a9c1bf2d4581000484b323';
 // const announcementId = '23da279f0ff5af8c8be59c36';
 
 const userDataA = {
@@ -78,10 +82,7 @@ const buildingMembersDataA = {
   status: 'ACCEPTED',
   type: 'ADMIN',
   requestInformation: {
-    apartment: {
-      number: 'A213',
-    },
-    detail: {},
+    apartments: [apartmentIdA],
   },
   __v: 0,
 };
@@ -93,10 +94,7 @@ const buildingMembersDataB = {
   status: 'PENDING',
   type: 'MEMBER',
   requestInformation: {
-    apartment: {
-      number: 'A204',
-    },
-    detail: {},
+    apartments: [apartmentIdB],
   },
   __v: 0,
 };
@@ -108,10 +106,7 @@ const buildingMembersDataD = {
   status: 'REJECTED',
   type: 'MEMBER',
   requestInformation: {
-    apartment: {
-      number: 'A204',
-    },
-    detail: {},
+    apartments: [apartmentIdD],
   },
   __v: 0,
 };

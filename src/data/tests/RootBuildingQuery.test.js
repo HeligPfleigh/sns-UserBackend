@@ -249,15 +249,15 @@ describe('RootBuildingQuery', () => {
       posts: {
         edges: [
           {
-            _id: '590310aec900da00047629a9',
+            _id: '590310aec900da00047629a8',
           },
           {
-            _id: '590310aec900da00047629a8',
+            _id: '590310aec900da00047629a9',
           },
         ],
         pageInfo: {
-          endCursor: '590310aec900da00047629a8',
-          hasNextPage: false,
+          endCursor: '590310aec900da00047629a9',
+          hasNextPage: true,
         },
       },
     }));

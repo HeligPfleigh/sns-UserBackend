@@ -104,7 +104,7 @@ const friendsRelationData = {
   __v: 0,
 };
 
-describe('RootPostQuery', () => {
+describe('RootSearchQuery', () => {
   beforeEach(async () => {
     // setup db
     const userA = new UsersModel(userDataA);
