@@ -48,6 +48,10 @@ const postDataB = {
 
 describe('RootBuildingQuery', () => {
   beforeEach(async () => {
+    // clear data
+    await BuildingsModel.remove({});
+    await PostsModel.remove({});
+    await BuildingMembersModel.remove({});
     // setup db
     const building = new BuildingsModel(buildingData);
     await building.save();
@@ -211,10 +215,10 @@ describe('RootBuildingQuery', () => {
 
   test('should get 2 posts on building if user is author', async () => {
     const uid = '58f9c3d52d4581000484b194';
-    const postModel = new PostsModel(postData);
-    await postModel.save();
     const postModel2 = new PostsModel(postDataB);
     await postModel2.save();
+    const postModel = new PostsModel(postData);
+    await postModel.save();
     await BuildingMembersModel.create({
       building: buildingId,
       user: uid,
@@ -244,20 +248,21 @@ describe('RootBuildingQuery', () => {
       user: { id: uid },
     });
     const result = await graphql(schema, query, rootValue, context);
+    await new Promise(resolve => setTimeout(resolve, 5000));
     expect(result.data.building).toEqual(Object.assign({}, {
       _id: buildingData._id,
       posts: {
         edges: [
           {
-            _id: '590310aec900da00047629a8',
+            _id: '590310aec900da00047629a9',
           },
           {
-            _id: '590310aec900da00047629a9',
+            _id: '590310aec900da00047629a8',
           },
         ],
         pageInfo: {
-          endCursor: '590310aec900da00047629a9',
-          hasNextPage: true,
+          endCursor: '590310aec900da00047629a8',
+          hasNextPage: false,
         },
       },
     }));
@@ -273,10 +278,10 @@ describe('RootBuildingQuery', () => {
   });
 
   test('should get posts on building by id (ADMIN)', async () => {
-    const postModel = new PostsModel(postData);
-    await postModel.save();
     const postModel2 = new PostsModel(postDataB);
     await postModel2.save();
+    const postModel = new PostsModel(postData);
+    await postModel.save();
     await BuildingMembersModel.create({
       building: buildingId,
       user: userId,
@@ -312,15 +317,15 @@ describe('RootBuildingQuery', () => {
       posts: {
         edges: [
           {
-            _id: '590310aec900da00047629a8',
+            _id: '590310aec900da00047629a9',
           },
           {
-            _id: '590310aec900da00047629a9',
+            _id: '590310aec900da00047629a8',
           },
         ],
         pageInfo: {
-          endCursor: '590310aec900da00047629a9',
-          hasNextPage: true,
+          endCursor: '590310aec900da00047629a8',
+          hasNextPage: false,
           total: 2,
         },
       },
