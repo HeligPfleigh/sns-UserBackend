@@ -4,7 +4,7 @@ import {
   getContext,
 } from '../../../test/helper';
 import schema from '../schema';
-import { UsersModel, BuildingsModel, BuildingMembersModel, ApartmentsModel } from '../models';
+import { UsersModel, BuildingsModel, BuildingMembersModel } from '../models';
 import { buildingData as bd, apartmentData as ad } from './data';
 
 // beforeEach(async () => await setupTest());
@@ -14,7 +14,9 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 const userIdA = '58f9c2502d4581000474b19a';
 const userIdB = '58f9c1bf2d4581000474b198';
 const buildingId = '58da279f0ff5af8c8be59c36';
-const apartmentId = '58f9c1bf2d4581000484b189';
+const apartmentIdA = '58f9c1bf2d4581000484b189';
+const apartmentIdB = '57c9c1bf2d4581000484b189';
+const apartmentIdD = '58f9c1bf2d4581000484b123';
 const buildingMembersIdA = '59441e6deae10b5b59ea93c1';
 const buildingMembersIdB = '59034c6c60f3c7beab57220a';
 const buildingMembersIdC = '59034d8d60f3c7beab57330a';
@@ -77,11 +79,6 @@ const buildingData = Object.assign({}, bd, {
   _id: buildingId,
 });
 
-const apartmentData = Object.assign({}, ad, {
-  _id: apartmentId,
-  building: buildingId,
-});
-
 const buildingMembersDataA = {
   _id: buildingMembersIdA,
   building: buildingId,
@@ -89,7 +86,7 @@ const buildingMembersDataA = {
   status: 'ACCEPTED',
   type: 'ADMIN',
   requestInformation: {
-    apartments: [apartmentId],
+    apartments: [apartmentIdA],
     detail: {},
   },
   __v: 0,
@@ -102,7 +99,7 @@ const buildingMembersDataB = {
   status: 'PENDING',
   type: 'MEMBER',
   requestInformation: {
-    apartments: [apartmentId],
+    apartments: [apartmentIdB],
     detail: {},
   },
   __v: 0,
@@ -115,7 +112,7 @@ const buildingMembersDataD = {
   status: 'ACCEPTED',
   type: 'MEMBER',
   requestInformation: {
-    apartments: [apartmentId],
+    apartments: [apartmentIdD],
     detail: {},
   },
   __v: 0,
@@ -136,8 +133,6 @@ describe('RootApprovingUserToBuildingMutation', () => {
     await buildingMembersB.save();
     const buildingMembersD = new BuildingMembersModel(buildingMembersDataD);
     await buildingMembersD.save();
-    const apartment = new ApartmentsModel(apartmentData);
-    await apartment.save();
   });
 
   test('should approve user to building ', async () => {
@@ -284,6 +279,5 @@ describe('RootApprovingUserToBuildingMutation', () => {
     await UsersModel.remove({});
     await BuildingsModel.remove({});
     await BuildingMembersModel.remove({});
-    await ApartmentsModel.remove({});
   });
 });
