@@ -12,39 +12,15 @@ beforeAll(async () => await setupTest());
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
 const buildingId = '58da279f0ff5af8c8be59c37';
-const postId = '590310aec900da00047629a8';
+// const postId = '590310aec900da00047629a8';
 const userId = '58f9c2502d4581000484b18a';
+const authorId = '58f9c3d52d4581000484b194';
+const messageA = '{"entityMap":{},"blocks":[{"key":"ckaun","text":"Test Building Query","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}}]}';
+const messageB = '{"entityMap":{},"blocks":[{"key":"ckaun","text":"Test with creating Posts","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}}]}';
+
 const buildingData = Object.assign({}, bd, {
   _id: buildingId,
 });
-const postData = {
-  _id: postId,
-  createdAt: '2017-04-28T09:51:42.263Z',
-  updatedAt: '2017-04-28T09:51:42.263Z',
-  message: '{"entityMap":{},"blocks":[{"key":"ckaun","text":"dsadsadsa","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}}]}',
-  user: null,
-  author: '58f9c3d52d4581000484b194',
-  building: buildingId,
-  privacy: PUBLIC,
-  likes: [],
-  photos: [],
-  type: 'STATUS',
-  __v: 0,
-};
-const postDataB = {
-  _id: '590310aec900da00047629a9',
-  createdAt: '2017-04-28T09:51:42.263Z',
-  updatedAt: '2017-04-28T09:51:42.263Z',
-  message: '{"entityMap":{},"blocks":[{"key":"ckaun","text":"dsadsadsa","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}}]}',
-  user: null,
-  author: '58f9c3d52d4581000484b194',
-  building: buildingId,
-  privacy: ONLY_ADMIN_BUILDING,
-  likes: [],
-  photos: [],
-  type: 'STATUS',
-  __v: 0,
-};
 
 describe('RootBuildingQuery', () => {
   beforeEach(async () => {
@@ -55,6 +31,21 @@ describe('RootBuildingQuery', () => {
     // setup db
     const building = new BuildingsModel(buildingData);
     await building.save();
+
+    await PostsModel.create({
+      message: messageA,
+      author: authorId,
+      building: buildingId,
+      privacy: PUBLIC,
+      isLiked: false,
+    });
+    await PostsModel.create({
+      message: messageB,
+      author: authorId,
+      building: buildingId,
+      privacy: ONLY_ADMIN_BUILDING,
+      isLiked: false,
+    });
   });
 
   test('should get building by id (not login)', async () => {
@@ -96,6 +87,7 @@ describe('RootBuildingQuery', () => {
   });
 
   test('should get building with isAdmin equal true by id', async () => {
+    await PostsModel.remove({});
     await BuildingMembersModel.create({
       building: buildingId,
       user: userId,
@@ -155,10 +147,7 @@ describe('RootBuildingQuery', () => {
   });
 
   test('should get posts on building by id', async () => {
-    const postModel = new PostsModel(postData);
-    await postModel.save();
-    const postModel2 = new PostsModel(postDataB);
-    await postModel2.save();
+    const postA = await PostsModel.findOne({ privacy: PUBLIC });
     await BuildingMembersModel.create({
       building: buildingId,
       user: userId,
@@ -188,23 +177,23 @@ describe('RootBuildingQuery', () => {
       user: { id: userId },
     });
     const result = await graphql(schema, query, rootValue, context);
+    // console.log(JSON.stringify(result));
+    // await new Promise(resolve => setTimeout(resolve, 5000));
     expect(result.data.building).toEqual(Object.assign({}, {
       _id: buildingData._id,
       posts: {
         edges: [
           {
-            _id: '590310aec900da00047629a8',
+            _id: postA._id.toJSON(),
           },
         ],
         pageInfo: {
-          endCursor: '590310aec900da00047629a8',
+          endCursor: postA._id.toJSON(),
           hasNextPage: false,
         },
       },
     }));
 
-    await postModel.remove();
-    await postModel2.remove();
     await BuildingMembersModel.remove({
       building: buildingId,
       user: userId,
@@ -215,10 +204,8 @@ describe('RootBuildingQuery', () => {
 
   test('should get 2 posts on building if user is author', async () => {
     const uid = '58f9c3d52d4581000484b194';
-    const postModel2 = new PostsModel(postDataB);
-    await postModel2.save();
-    const postModel = new PostsModel(postData);
-    await postModel.save();
+    const postA = await PostsModel.findOne({ privacy: PUBLIC });
+    const postB = await PostsModel.findOne({ privacy: ONLY_ADMIN_BUILDING });
     await BuildingMembersModel.create({
       building: buildingId,
       user: uid,
@@ -248,27 +235,25 @@ describe('RootBuildingQuery', () => {
       user: { id: uid },
     });
     const result = await graphql(schema, query, rootValue, context);
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    // await new Promise(resolve => setTimeout(resolve, 5000));
     expect(result.data.building).toEqual(Object.assign({}, {
       _id: buildingData._id,
       posts: {
         edges: [
           {
-            _id: '590310aec900da00047629a9',
+            _id: postB._id.toJSON(),
           },
           {
-            _id: '590310aec900da00047629a8',
+            _id: postA._id.toJSON(),
           },
         ],
         pageInfo: {
-          endCursor: '590310aec900da00047629a8',
+          endCursor: postA._id.toJSON(),
           hasNextPage: false,
         },
       },
     }));
 
-    await postModel.remove();
-    await postModel2.remove();
     await BuildingMembersModel.remove({
       building: buildingId,
       user: uid,
@@ -278,10 +263,8 @@ describe('RootBuildingQuery', () => {
   });
 
   test('should get posts on building by id (ADMIN)', async () => {
-    const postModel2 = new PostsModel(postDataB);
-    await postModel2.save();
-    const postModel = new PostsModel(postData);
-    await postModel.save();
+    const postA = await PostsModel.findOne({ privacy: PUBLIC });
+    const postB = await PostsModel.findOne({ privacy: ONLY_ADMIN_BUILDING });
     await BuildingMembersModel.create({
       building: buildingId,
       user: userId,
@@ -317,22 +300,20 @@ describe('RootBuildingQuery', () => {
       posts: {
         edges: [
           {
-            _id: '590310aec900da00047629a9',
+            _id: postB._id.toJSON(),
           },
           {
-            _id: '590310aec900da00047629a8',
+            _id: postA._id.toJSON(),
           },
         ],
         pageInfo: {
-          endCursor: '590310aec900da00047629a8',
+          endCursor: postA._id.toJSON(),
           hasNextPage: false,
           total: 2,
         },
       },
     }));
 
-    await postModel.remove();
-    await postModel2.remove();
     await BuildingMembersModel.remove({
       building: buildingId,
       user: userId,
