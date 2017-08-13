@@ -98,7 +98,6 @@ const postDataB = {
 describe('RootSharingPostMutation', () => {
   beforeEach(async () => {
     // setup db
-    console.log('before save');
     const user = new UsersModel(userDataA);
     await user.save();
     const userB = new UsersModel(userDataB);
@@ -107,7 +106,6 @@ describe('RootSharingPostMutation', () => {
     await post.save();
     const postB = new PostsModel(postDataB);
     await postB.save();
-    console.log('after save');
   });
 
   test('should share other people\'s post', async () => {

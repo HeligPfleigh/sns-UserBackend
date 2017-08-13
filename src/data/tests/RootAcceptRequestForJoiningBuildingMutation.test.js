@@ -16,6 +16,10 @@ const buildingId = '58da279f0ff5af8c8be59c37';
 const buildingData = Object.assign({}, bd, {
   _id: buildingId,
 });
+
+const apartmentIdA = '57c9c1bf2d4581000484b189';
+const apartmentIdB = '58f9c1bf2d4581000484b123';
+
 const userIdA = '58f9c2502d4581000474b19a';
 const userIdB = '58f9c1bf2d4581000474b198';
 const userDataA = {
@@ -84,12 +88,18 @@ describe('RootAcceptRequestForJoiningBuildingMutation', () => {
       user: userIdA,
       type: ADMIN,
       status: ACCEPTED,
+      requestInformation: {
+        apartments: [apartmentIdA],
+      },
     });
     await BuildingMembersModel.create({
       building: buildingId,
       user: userIdB,
       type: MEMBER,
       status: PENDING,
+      requestInformation: {
+        apartments: [apartmentIdB],
+      },
     });
   });
 
