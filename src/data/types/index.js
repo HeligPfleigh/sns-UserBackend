@@ -25,6 +25,7 @@ import {
   PUBLIC,
   FRIEND,
   ONLY_ADMIN_BUILDING,
+  EVENT,
 } from '../../constants';
 import Service from '../mongo/service';
 
@@ -146,8 +147,17 @@ type Post implements Node {
   isLiked: Boolean
   sharing: Post
   photos: [String]
+  event: PostEvent
   createdAt: Date
   updatedAt: Date
+}
+
+type PostEvent implements Node {
+  _id: ID!
+  name: String
+  location: String!
+  start: Date!
+  end: Date
 }
 
 type Profile {
@@ -769,6 +779,18 @@ export const resolvers = {
     },
     updatedAt(data) {
       return new Date(data.updatedAt);
+    },
+    event(data) {
+      if (!(data.type === EVENT)) {
+        return null;
+      }
+      return {
+        _id: data._id,
+        name: data.name,
+        location: data.location,
+        start: data.start && new Date(data.start),
+        end: data.end && new Date(data.end),
+      };
     },
   },
   Friend: {
