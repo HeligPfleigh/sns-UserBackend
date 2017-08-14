@@ -173,6 +173,7 @@ interface Resident {
 type Me implements Node, Resident {
   _id: ID!
   username: String
+  fullName: String
   phone: Phone
   emails: Email
   profile: Profile
@@ -192,6 +193,7 @@ type Me implements Node, Resident {
 type Friend implements Node, Resident {
   _id: ID!
   username: String
+  fullName: String
   phone: Phone
   emails: Email
   profile: Profile
@@ -641,6 +643,10 @@ export const resolvers = {
     },
   },
   Me: {
+    fullName(data) {
+      const { profile } = data;
+      return `${(profile && profile.firstName) || 'no'} ${(profile && profile.lastName) || 'name'}`;
+    },
     posts(data) {
       return new Promise((resolve, reject) => {
         const edgesArray = [];
@@ -766,6 +772,10 @@ export const resolvers = {
     },
   },
   Friend: {
+    fullName(data) {
+      const { profile } = data;
+      return `${(profile && profile.firstName) || 'no'} ${(profile && profile.lastName) || 'name'}`;
+    },
     posts(data, _, { user }) {
       return new Promise(async (resolve, reject) => {
         // check if they are friend
