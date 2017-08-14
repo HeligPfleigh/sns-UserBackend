@@ -1,4 +1,9 @@
-import * as _ from 'lodash';
+import isEmpty from 'lodash/isEmpty';
+import isEqual from 'lodash/isEqual';
+import isUndefined from 'lodash/isUndefined';
+import isObject from 'lodash/isObject';
+import isString from 'lodash/isString';
+import merge from 'lodash/merge';
 import mongoose from 'mongoose';
 import {
   // buildSchemaFromTypeDefinitions,
@@ -258,8 +263,9 @@ type Mutation {
   ): Friend
   sharingPost(
     _id: String!,
-    privacy: String,
     message: String!
+    privacy: String!
+    userId: String
   ): Post
   createNewEvent(
     input: CreateNewEventAnnouncementInput!
@@ -508,7 +514,7 @@ const rootResolvers = {
       return BuildingMembersModel.findOne({ _id });
     },
     checkExistUser(root, { query }) {
-      if (_.isEmpty(query)) {
+      if (isEmpty(query)) {
         return false;
       }
       return UsersService.checkExistUser(query);
@@ -649,7 +655,6 @@ const rootResolvers = {
       return p;
     },
     async createUser(root, { user }) {
-      console.log(user);
       const r = await UsersService.createUser(user);
       return r;
     },
@@ -731,7 +736,7 @@ const rootResolvers = {
       }
 
       // Sending email
-      if (_.isObject(userDocument.emails) && _.isString(userDocument.emails.address)) {
+      if (isObject(userDocument.emails) && isString(userDocument.emails.address)) {
         await BuildingServices.notifywhenAcceptedForUserBelongsToBuilding(userDocument.emails.address, userDocument);
       }
 
@@ -796,7 +801,7 @@ const rootResolvers = {
         await rejectedUserBelongsToBuildingNotification(userDocument._id, BOMs);
       }
       // Sending email
-      if (_.isObject(userDocument.emails) && _.isString(userDocument.emails.address)) {
+      if (isObject(userDocument.emails) && isString(userDocument.emails.address)) {
         await BuildingServices.notifywhenRejectedForUserBelongsToBuilding(userDocument.emails.address, userDocument);
       }
 
@@ -821,15 +826,26 @@ const rootResolvers = {
         _id,
       });
     },
-    async sharingPost({ request }, { _id, privacy = PUBLIC, message }) {
+    async sharingPost({ request }, { _id, privacy = PUBLIC, message, userId }) {
       const author = request.user.id;
-      const p = await PostsModel.findOne({ _id });
-      if (_.isUndefined(author)) {
+
+      if (isUndefined(author)) {
         throw new Error('author is undefined');
       }
+
       if (!await UsersModel.findOne({ _id: author })) {
         throw new Error('author does not exist');
       }
+
+      if (userId && !await FriendsModel.findOne({
+        friend: author,
+        user: userId,
+        status: ACCEPTED,
+      })) {
+        throw new Error('You are not user friend');
+      }
+
+      const p = await PostsModel.findOne({ _id });
       if (!p) {
         throw new Error('Not found the post');
       }
@@ -838,25 +854,25 @@ const rootResolvers = {
       if (!sharingId) {
         r = await PostsModel.create({
           author,
-          user: author,
           privacy,
-          sharing: _id,
           message,
+          sharing: _id,
+          user: userId || author,
         });
       } else {
         r = await PostsModel.create({
           author,
-          user: author,
           privacy,
-          sharing: sharingId,
           message,
+          sharing: sharingId,
+          user: userId || author,
         });
       }
+      if (userId && !isEqual(userId, author)) {
+        sendSharingPostNotification(author, p.author, r._id);
+      }
       r.isLiked = false;
-      // send notification
-      sendSharingPostNotification(author, p.author, r._id);
       return r;
-      // JSON.parse(message);
     },
     async updateUserProfile({ request }, { input }) {
       const {
@@ -1057,7 +1073,7 @@ const rootResolvers = {
 
       // update users joined apartments
       const { requestInformation: { apartments } } = record;
-      if (_.isEmpty(apartments)) {
+      if (isEmpty(apartments)) {
         throw new Error('User don\'t provided apartment info. Request rejected');
       }
 
@@ -1103,7 +1119,7 @@ const rootResolvers = {
       if (record.status === ACCEPTED) {
         // update users joined apartments
         const { requestInformation: { apartments } } = record;
-        if (!_.isEmpty(apartments)) {
+        if (!isEmpty(apartments)) {
           await (apartments || []).map(async (apartmentId) => {
             await ApartmentsModel.findByIdAndUpdate(apartmentId, {
               $unshift: { users: record.user },
@@ -1134,7 +1150,7 @@ const rootResolvers = {
 };
 
 const schema = [...rootSchema, ...schemaType];
-const resolvers = _.merge(rootResolvers, resolversType);
+const resolvers = merge(rootResolvers, resolversType);
 
 const executableSchema = makeExecutableSchema({
   typeDefs: schema,
