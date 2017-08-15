@@ -53,7 +53,20 @@ async function invitesResidentJoinEvent(eventId, residents) {
 }
 
 async function joinEvent(userId, eventId) {
-  const event = await PostsModel.findOneAndUpdate({ _id: eventId }, { $pull: { invites: userId, can_joins: userId, cant_joins: userId }, $addToSet: { joins: userId } }, { new: true });
+  const event = await PostsModel.findOneAndUpdate({
+    _id: eventId,
+  }, {
+    $pull: {
+      invites: userId,
+      can_joins: userId,
+      cant_joins: userId,
+    },
+    $addToSet: {
+      joins: userId,
+    },
+  }, {
+    new: true,
+  });
   sendJoinEventNotification(event.author, userId, eventId, JOIN_EVENT);
   return event;
 }

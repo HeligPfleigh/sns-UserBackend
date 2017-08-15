@@ -88,7 +88,6 @@ enum PrivacyEvent {
 type Event implements Node {
   _id: ID!
   privacy: PrivacyType!
-  isDeleted: Boolean
   author: Author
   building: Building
   photos: [String]
@@ -100,6 +99,8 @@ type Event implements Node {
   invites: [Friend]
   interests: [Friend]
   joins: [Friend]
+  can_joins: [Friend]
+  cant_joins: [Friend]
   createdAt: Date
   updatedAt: Date
   isAuthor: Boolean
@@ -147,17 +148,9 @@ type Post implements Node {
   isLiked: Boolean
   sharing: Post
   photos: [String]
-  event: PostEvent
+  event: Event
   createdAt: Date
   updatedAt: Date
-}
-
-type PostEvent implements Node {
-  _id: ID!
-  name: String
-  location: String!
-  start: Date!
-  end: Date
 }
 
 type Profile {
@@ -631,6 +624,12 @@ export const resolvers = {
     joins(data) {
       return UsersModel.find({ _id: { $in: data.joins } });
     },
+    can_joins(data) {
+      return UsersModel.find({ _id: { $in: data.can_joins } });
+    },
+    cant_joins(data) {
+      return UsersModel.find({ _id: { $in: data.cant_joins } });
+    },
     createdAt(data) {
       return new Date(data.createdAt);
     },
@@ -638,7 +637,7 @@ export const resolvers = {
       return new Date(data.updatedAt);
     },
     isAuthor(data, _, { user }) {
-      return data.author === user.id;
+      return String(data.author) === String(user.id);
     },
   },
   Notification: {
@@ -784,13 +783,7 @@ export const resolvers = {
       if (!(data.type === EVENT)) {
         return null;
       }
-      return {
-        _id: data._id,
-        name: data.name,
-        location: data.location,
-        start: data.start && new Date(data.start),
-        end: data.end && new Date(data.end),
-      };
+      return data;
     },
   },
   Friend: {
