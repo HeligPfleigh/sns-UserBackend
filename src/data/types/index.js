@@ -332,7 +332,7 @@ type BuildingAnnouncementConnection {
 
 type UsersAwaitingApprovalConnection {
   pageInfo: PageInfo
-  edges: [User]
+  edges: [Friend]
 }
 
 type Building implements Node {
@@ -358,7 +358,7 @@ type RequestApartmentInformation {
 }
 
 type RequestInformation {
-  apartments: RequestApartmentInformation
+  apartment: RequestApartmentInformation
 }
 
 enum RequestsToJoinBuildingType {
