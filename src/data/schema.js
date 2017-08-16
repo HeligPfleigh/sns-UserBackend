@@ -277,6 +277,9 @@ type Mutation {
     eventId: String!
     residentsId: [String]!
   ): Event
+  interestEvent(
+    eventId: String!
+  ): Event
   joinEvent(
     eventId: String!
   ): Event
@@ -534,6 +537,9 @@ const rootResolvers = {
     createNewEvent({ request }, { input }) {
       const { privacy, photos, name, location, start, end, message, invites } = input;
       return EventService.createEvent(privacy, request.user.id, photos, name, location, start, end, message, invites);
+    },
+    async interestEvent({ request }, { eventId }) {
+      return EventService.interestEvent(request.user.id, eventId);
     },
 
     createNewEventOnBuilding({ request }, { input }) {

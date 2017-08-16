@@ -5,6 +5,7 @@ import {
 import {
   sendEventInviteNotification,
   sendJoinEventNotification,
+  sendInterestEventNotification,
 } from '../../utils/notifications';
 import { EVENT, EVENT_INVITE, JOIN_EVENT, CAN_JOIN_EVENT, CANT_JOIN_EVENT } from '../../constants';
 
@@ -96,6 +97,20 @@ async function cantJoinEvent(userId, eventId) {
   return event;
 }
 
+async function interestEvent(userId, eventId) {
+  const event = await PostsModel.findOneAndUpdate({
+    _id: eventId,
+  }, {
+    $addToSet: {
+      interests: userId,
+    },
+  }, {
+    new: true,
+  });
+  sendInterestEventNotification(event.author, userId, eventId);
+  return event;
+}
+
 
 export default {
   createEvent,
@@ -105,4 +120,5 @@ export default {
   joinEvent,
   canJoinEvent,
   cantJoinEvent,
+  interestEvent,
 };

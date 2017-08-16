@@ -16,6 +16,7 @@ import {
   ACCEPTED_JOIN_BUILDING,
   REJECTED_JOIN_BUILDING,
   SHARING_POST,
+  INTEREST_EVENT,
 } from '../constants';
 
 const getUserFollow = async (postId, userId, status) => {
@@ -189,6 +190,27 @@ async function sendSharingPostNotification(sender, receiver, postId) {
   });
 }
 
+async function sendInterestEventNotification(author, userJoin, eventId) {
+  const options = {
+    user: author,
+    subject: eventId,
+    seen: false,
+    type: INTEREST_EVENT,
+  };
+
+  const notify = await NotificationsModel.findOne(options);
+
+  if (!notify) {
+    await NotificationsModel.create({
+      ...options,
+      actors: [userJoin],
+    });
+  } else if (!_.some(notify.actors, item => item.equals(userJoin))) {
+    notify.actors.unshift(userJoin);
+    await notify.save();
+  }
+}
+
 export {
   sendLikeNotification,
   sendCommentNotification,
@@ -201,4 +223,5 @@ export {
   acceptedUserBelongsToBuildingNotification,
   rejectedUserBelongsToBuildingNotification,
   sendSharingPostNotification,
+  sendInterestEventNotification,
 };

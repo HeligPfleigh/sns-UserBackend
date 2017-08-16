@@ -65,6 +65,7 @@ enum NotificationType {
   ACCEPTED_JOIN_BUILDING
   REJECTED_JOIN_BUILDING
   SHARING_POST
+  INTEREST_EVENT
 }
 
 enum PrivacyType {
@@ -102,6 +103,7 @@ type Event implements Node {
   createdAt: Date
   updatedAt: Date
   isAuthor: Boolean
+  isInterest: Boolean
 }
 
 type Notification implements Node {
@@ -626,6 +628,9 @@ export const resolvers = {
     isAuthor(data, _, { user }) {
       return data.author === user.id;
     },
+    isInterest(data, _, { user }) {
+      return data.interests.indexOf(user.id) > -1;
+    },
   },
   Notification: {
     user(notify) {
@@ -958,6 +963,6 @@ export const resolvers = {
           },
         }),
       };
-    }
+    },
   },
 };
