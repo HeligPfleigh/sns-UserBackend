@@ -896,8 +896,10 @@ export const resolvers = {
       const r = await PostsService.find({
         $cursor: cursor,
         query: {
-          author: data._id, // post from me
-          user: data._id,
+          $or: [
+            { author: data._id }, // post from me
+            { user: data._id},
+          ],
           isDeleted: { $exists: false },
           $sort: {
             createdAt: -1,
