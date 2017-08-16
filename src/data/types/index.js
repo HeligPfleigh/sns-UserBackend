@@ -2,12 +2,12 @@
 import reduce from 'lodash/reduce';
 import DateScalarType from './DateScalarType';
 import {
+  ApartmentsModel,
   PostsModel,
   UsersModel,
   BuildingsModel,
   BuildingMembersModel,
   CommentsModel,
-  ApartmentsModel,
   FriendsRelationModel,
   NotificationsModel,
   // EventModel,
@@ -349,12 +349,8 @@ type Building implements Node {
 ### RequestsToJoinBuilding Type
 # Represents a request to join building in system.
 
-type RequestApartmentInformation {
-  number: String
-}
-
 type RequestInformation {
-  apartment: RequestApartmentInformation
+  apartments: [Apartment]
 }
 
 enum RequestsToJoinBuildingType {
@@ -954,5 +950,14 @@ export const resolvers = {
     user(data) {
       return UsersModel.findOne({ _id: data.user });
     },
+    requestInformation(data) {
+      return {
+        apartments: ApartmentsModel.find({
+          _id: {
+            $in: data.requestInformation.apartments,
+          },
+        }),
+      };
+    }
   },
 };
