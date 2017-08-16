@@ -276,7 +276,7 @@ type User implements Node {
   apartments: [Apartment]
   totalFriends: Int
   totalNotification: Int
-
+  isFriend: Boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -332,7 +332,7 @@ type BuildingAnnouncementConnection {
 
 type UsersAwaitingApprovalConnection {
   pageInfo: PageInfo
-  edges: [Friend]
+  edges: [User]
 }
 
 type Building implements Node {
@@ -801,6 +801,7 @@ export const resolvers = {
         });
         const select = {
           user: data._id,
+          isDeleted: { $exists: false },
         };
         if (r) {
           select.privacy = [PUBLIC, FRIEND];
@@ -910,6 +911,13 @@ export const resolvers = {
           return res;
         }),
       };
+    },
+    async isFriend(data, _, { user }) {
+      return !!await FriendsRelationModel.findOne({
+        friend: user.id,
+        user: data._id,
+        status: ACCEPTED,
+      });
     },
     @onlyMe()
     async friendSuggestions(data, { cursor = null, limit = 5 }) {
