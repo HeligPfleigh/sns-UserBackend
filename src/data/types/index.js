@@ -354,10 +354,11 @@ type Building implements Node {
 
 type RequestApartmentInformation {
   number: String
+  name: String
 }
 
 type RequestInformation {
-  apartment: RequestApartmentInformation
+  apartments: RequestApartmentInformation
 }
 
 enum RequestsToJoinBuildingType {
