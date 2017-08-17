@@ -898,7 +898,7 @@ export const resolvers = {
         query: {
           $or: [
             { author: data._id }, // post from me
-            { user: data._id},
+            { user: data._id },
           ],
           isDeleted: { $exists: false },
           $sort: {
