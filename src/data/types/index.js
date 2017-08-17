@@ -2,12 +2,12 @@
 import reduce from 'lodash/reduce';
 import DateScalarType from './DateScalarType';
 import {
-  ApartmentsModel,
   PostsModel,
   UsersModel,
   BuildingsModel,
   BuildingMembersModel,
   CommentsModel,
+  ApartmentsModel,
   FriendsRelationModel,
   NotificationsModel,
   // EventModel,
@@ -25,6 +25,8 @@ import {
   PUBLIC,
   FRIEND,
   ONLY_ADMIN_BUILDING,
+  EVENT,
+  BLOCKED,
 } from '../../constants';
 import Service from '../mongo/service';
 
@@ -88,7 +90,6 @@ enum PrivacyEvent {
 type Event implements Node {
   _id: ID!
   privacy: PrivacyType!
-  isDeleted: Boolean
   author: Author
   building: Building
   photos: [String]
@@ -100,6 +101,8 @@ type Event implements Node {
   invites: [Friend]
   interests: [Friend]
   joins: [Friend]
+  can_joins: [Friend]
+  cant_joins: [Friend]
   createdAt: Date
   updatedAt: Date
   isAuthor: Boolean
@@ -148,6 +151,7 @@ type Post implements Node {
   isLiked: Boolean
   sharing: Post
   photos: [String]
+  event: Event
   createdAt: Date
   updatedAt: Date
 }
@@ -275,7 +279,7 @@ type User implements Node {
   apartments: [Apartment]
   totalFriends: Int
   totalNotification: Int
-
+  isFriend: Boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -331,7 +335,7 @@ type BuildingAnnouncementConnection {
 
 type UsersAwaitingApprovalConnection {
   pageInfo: PageInfo
-  edges: [RequestsToJoinBuilding]
+  edges: [Friend]
 }
 
 type Building implements Node {
@@ -351,8 +355,13 @@ type Building implements Node {
 ### RequestsToJoinBuilding Type
 # Represents a request to join building in system.
 
+type RequestApartmentInformation {
+  number: String
+  name: String
+}
+
 type RequestInformation {
-  apartments: [Apartment]
+  apartment: RequestApartmentInformation
 }
 
 enum RequestsToJoinBuildingType {
@@ -516,7 +525,7 @@ export const resolvers = {
       });
       return {
         pageInfo: r.paging,
-        edges: r.data,
+        edges: UsersModel.find({ _id: { $in: r.data.map(v => v.user) } }),
       };
     },
     async announcements(data, { skip = 0, limit = 5 }) {
@@ -619,6 +628,12 @@ export const resolvers = {
     joins(data) {
       return UsersModel.find({ _id: { $in: data.joins } });
     },
+    can_joins(data) {
+      return UsersModel.find({ _id: { $in: data.can_joins } });
+    },
+    cant_joins(data) {
+      return UsersModel.find({ _id: { $in: data.cant_joins } });
+    },
     createdAt(data) {
       return new Date(data.createdAt);
     },
@@ -626,7 +641,7 @@ export const resolvers = {
       return new Date(data.updatedAt);
     },
     isAuthor(data, _, { user }) {
-      return data.author === user.id;
+      return String(data.author) === String(user.id);
     },
     isInterest(data, _, { user }) {
       return data.interests.indexOf(user.id) > -1;
@@ -678,7 +693,7 @@ export const resolvers = {
     async friends(user) {
       let friendListByIds = await FriendsRelationModel.find({
         user: user._id,
-        status: 'ACCEPTED',
+        status: ACCEPTED,
       }).select('friend _id');
       friendListByIds = friendListByIds.map(v => v.friend);
       return UsersModel.find({
@@ -688,7 +703,7 @@ export const resolvers = {
     async friendRequests(user) {
       let friendListByIds = await FriendsRelationModel.find({
         friend: user._id,
-        status: 'PENDING',
+        status: PENDING,
       }).select('user _id');
       friendListByIds = friendListByIds.map(v => v.user);
       return UsersModel.find({
@@ -703,7 +718,7 @@ export const resolvers = {
             { friend: user._id },
           ],
           status: {
-            $in: ['PENDING', 'ACCEPTED', 'BLOCKED'],
+            $in: [PENDING, ACCEPTED, BLOCKED],
           },
         })
         .select('user friend _id').lean();
@@ -771,6 +786,12 @@ export const resolvers = {
     updatedAt(data) {
       return new Date(data.updatedAt);
     },
+    event(data) {
+      if (!(data.type === EVENT)) {
+        return null;
+      }
+      return data;
+    },
   },
   Friend: {
     fullName(data) {
@@ -787,6 +808,7 @@ export const resolvers = {
         });
         const select = {
           user: data._id,
+          isDeleted: { $exists: false },
         };
         if (r) {
           select.privacy = [PUBLIC, FRIEND];
@@ -816,7 +838,7 @@ export const resolvers = {
       return ApartmentsModel.find({ user: data._id });
     },
     friends(data) {
-      return FriendsRelationModel.find({ user: data._id, status: 'ACCEPTED' });
+      return FriendsRelationModel.find({ user: data._id, status: ACCEPTED });
     },
     async isFriend(data, _, { user }) {
       return !!await FriendsRelationModel.findOne({
@@ -880,8 +902,10 @@ export const resolvers = {
       const r = await PostsService.find({
         $cursor: cursor,
         query: {
-          author: data._id, // post from me
-          user: data._id,
+          $or: [
+            { author: data._id }, // post from me
+            { user: data._id },
+          ],
           isDeleted: { $exists: false },
           $sort: {
             createdAt: -1,
@@ -897,6 +921,13 @@ export const resolvers = {
         }),
       };
     },
+    async isFriend(data, _, { user }) {
+      return !!await FriendsRelationModel.findOne({
+        friend: user.id,
+        user: data._id,
+        status: ACCEPTED,
+      });
+    },
     @onlyMe()
     async friendSuggestions(data, { cursor = null, limit = 5 }) {
       // get current friends
@@ -907,7 +938,7 @@ export const resolvers = {
             { friend: data._id },
           ],
           status: {
-            $in: ['PENDING', 'ACCEPTED', 'BLOCKED'],
+            $in: [PENDING, ACCEPTED, BLOCKED],
           },
         })
         .select('user friend _id');
