@@ -348,7 +348,7 @@ type BuildingAnnouncementConnection {
 
 type UsersAwaitingApprovalConnection {
   pageInfo: PageInfo
-  edges: [RequestsToJoinBuilding]
+  edges: [Friend]
 }
 
 type Building implements Node {
@@ -531,9 +531,22 @@ export const resolvers = {
           $limit: limit,
         },
       });
+
+      if (!r) {
+        return {
+          pageInfo: {
+
+          },
+          edges: [],
+        };
+      }
       return {
         pageInfo: r.paging,
-        edges: r.data,
+        edges: await UsersModel.find({
+          _id: {
+            $in: r.data.map(u => u.user),
+          },
+        }),
       };
     },
     async announcements(data, { skip = 0, limit = 5 }) {
