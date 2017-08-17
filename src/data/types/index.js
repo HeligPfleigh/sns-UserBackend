@@ -26,6 +26,7 @@ import {
   FRIEND,
   ONLY_ADMIN_BUILDING,
   EVENT,
+  BLOCKED,
 } from '../../constants';
 import Service from '../mongo/service';
 
@@ -687,7 +688,7 @@ export const resolvers = {
     async friends(user) {
       let friendListByIds = await FriendsRelationModel.find({
         user: user._id,
-        status: 'ACCEPTED',
+        status: ACCEPTED,
       }).select('friend _id');
       friendListByIds = friendListByIds.map(v => v.friend);
       return UsersModel.find({
@@ -697,7 +698,7 @@ export const resolvers = {
     async friendRequests(user) {
       let friendListByIds = await FriendsRelationModel.find({
         friend: user._id,
-        status: 'PENDING',
+        status: PENDING,
       }).select('user _id');
       friendListByIds = friendListByIds.map(v => v.user);
       return UsersModel.find({
@@ -712,7 +713,7 @@ export const resolvers = {
             { friend: user._id },
           ],
           status: {
-            $in: ['PENDING', 'ACCEPTED', 'BLOCKED'],
+            $in: [PENDING, ACCEPTED, BLOCKED],
           },
         })
         .select('user friend _id').lean();
@@ -832,7 +833,7 @@ export const resolvers = {
       return ApartmentsModel.find({ user: data._id });
     },
     friends(data) {
-      return FriendsRelationModel.find({ user: data._id, status: 'ACCEPTED' });
+      return FriendsRelationModel.find({ user: data._id, status: ACCEPTED });
     },
     async isFriend(data, _, { user }) {
       return !!await FriendsRelationModel.findOne({
@@ -932,7 +933,7 @@ export const resolvers = {
             { friend: data._id },
           ],
           status: {
-            $in: ['PENDING', 'ACCEPTED', 'BLOCKED'],
+            $in: [PENDING, ACCEPTED, BLOCKED],
           },
         })
         .select('user friend _id');
