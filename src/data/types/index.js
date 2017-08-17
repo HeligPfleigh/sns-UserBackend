@@ -335,7 +335,7 @@ type BuildingAnnouncementConnection {
 
 type UsersAwaitingApprovalConnection {
   pageInfo: PageInfo
-  edges: [Friend]
+  edges: [RequestsToJoinBuilding]
 }
 
 type Building implements Node {
@@ -355,13 +355,8 @@ type Building implements Node {
 ### RequestsToJoinBuilding Type
 # Represents a request to join building in system.
 
-type RequestApartmentInformation {
-  number: String
-  name: String
-}
-
 type RequestInformation {
-  apartment: RequestApartmentInformation
+  apartments: [Apartment]
 }
 
 enum RequestsToJoinBuildingType {
@@ -525,7 +520,7 @@ export const resolvers = {
       });
       return {
         pageInfo: r.paging,
-        edges: UsersModel.find({ _id: { $in: r.data.map(v => v.user) } }),
+        edges: r.data,
       };
     },
     async announcements(data, { skip = 0, limit = 5 }) {
