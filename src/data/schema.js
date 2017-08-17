@@ -715,6 +715,18 @@ const rootResolvers = {
         throw new Error('not found the request');
       }
 
+      // update users joined apartments
+      const { requestInformation: { apartments } } = record;
+      if (isEmpty(apartments)) {
+        throw new Error('User don\'t provided apartment info. Request rejected');
+      }
+
+      await (apartments || []).map(async (apartmentId) => {
+        await ApartmentsModel.findByIdAndUpdate(apartmentId, {
+          $addToSet: { users: record.user },
+        });
+      });
+
       // NOTE: what happens if we lost connection to db
       await BuildingMembersModel.update({
         building: buildingId,
@@ -1128,7 +1140,7 @@ const rootResolvers = {
         if (!isEmpty(apartments)) {
           await (apartments || []).map(async (apartmentId) => {
             await ApartmentsModel.findByIdAndUpdate(apartmentId, {
-              $unshift: { users: record.user },
+              $pull: { users: record.user },
             });
           });
 

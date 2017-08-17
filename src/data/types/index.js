@@ -1,5 +1,6 @@
 // import { property } from 'lodash';
 import reduce from 'lodash/reduce';
+import clone from 'lodash/clone';
 import DateScalarType from './DateScalarType';
 import {
   PostsModel,
@@ -172,7 +173,7 @@ interface Resident {
   emails: Email
   chatId: String
   posts: [Post]
-  building: [Building]
+  building: Building
   apartments: [Apartment]
 }
 
@@ -186,7 +187,7 @@ type Me implements Node, Resident {
   chatId: String
   posts: [Post]
   friends: [Friend]
-  building: [Building]
+  building: Building
   apartments: [Apartment]
   friendRequests: [Friend]
   friendSuggestions: [Friend]
@@ -205,12 +206,24 @@ type Friend implements Node, Resident {
   profile: Profile
   chatId: String
   posts: [Post]
-  building: [Building]
+  building: Building
   apartments: [Apartment]
   friends: [Friend]
   isFriend: Boolean
+  requestInformation: UserRequestJoinBuildingInformation
   createdAt: Date
   updatedAt: Date
+}
+
+type UserRequestJoinApartmentInformation {
+  _id: String!
+  number: String
+  name: String
+  building: Building
+}
+
+type UserRequestJoinBuildingInformation {
+  apartments: [UserRequestJoinApartmentInformation]
 }
 
 type Author implements Node, Resident {
@@ -221,7 +234,7 @@ type Author implements Node, Resident {
   profile: Profile
   chatId: String
   posts: [Post]
-  building: [Building]
+  building: Building
   apartments: [Apartment]
   friends: [Resident]
   createdAt: Date
@@ -606,7 +619,7 @@ export const resolvers = {
       return UsersModel.findOne({ _id: data.author });
     },
     building(data) {
-      return BuildingsModel.findOne({ _id: data.building });
+      return AddressServices.getBuilding(data.building);
     },
     start(data) {
       return new Date(data.start);
@@ -680,7 +693,7 @@ export const resolvers = {
       });
     },
     building(data) {
-      return BuildingsModel.find({ _id: data.building });
+      return AddressServices.getBuilding(data.building);
     },
     apartments(data) {
       return ApartmentsModel.find({ user: data._id });
@@ -827,7 +840,7 @@ export const resolvers = {
       });
     },
     building(data) {
-      return BuildingsModel.find({ _id: data.building });
+      return AddressServices.getBuilding(data.building);
     },
     apartments(data) {
       return ApartmentsModel.find({ user: data._id });
@@ -848,13 +861,52 @@ export const resolvers = {
     updatedAt(data) {
       return new Date(data.updatedAt);
     },
+    async requestInformation(data) {
+      const buildingDocument = await BuildingsModel.findOne({
+        _id: data.building,
+      });
+
+      if (!buildingDocument) {
+        return {
+          apartments: [],
+        };
+      }
+
+      const buldingMemberDocument = await BuildingMembersModel.findOne({
+        user: data._id,
+        status: PENDING,
+        building: data.building,
+      });
+      if (!buldingMemberDocument) {
+        return {
+          apartments: [],
+        };
+      }
+
+      const { requestInformation: { apartments } } = buldingMemberDocument;
+      const apartmentDocuments = await ApartmentsModel.find({
+        _id: {
+          $in: apartments,
+        },
+      });
+      if (apartmentDocuments) {
+        apartmentDocuments.map((item) => {
+          const apartment = clone(item);
+          apartment.building = buildingDocument;
+          return apartment;
+        });
+      }
+      return {
+        apartments: apartmentDocuments,
+      };
+    },
   },
   Author: {
     posts(data) {
       return PostsModel.find({ user: data._id });
     },
     building(data) {
-      return BuildingsModel.find({ _id: data.building });
+      return AddressServices.getBuilding(data.building);
     },
     apartments(data) {
       return ApartmentsModel.find({ user: data._id });
