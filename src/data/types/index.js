@@ -959,23 +959,31 @@ export const resolvers = {
   },
   User: {
     async posts(data, { cursor = null, limit = 5 }, { user }) {
-      const r = await PostsService.find({
-        $cursor: cursor,
-        query: {
-          $or: [
-            { author: data._id }, // post from me
-            { user: data._id },
-          ],
-          isDeleted: { $exists: false },
-          $sort: {
-            createdAt: -1,
-          },
-          $limit: limit,
+      const r = await FriendsRelationModel.findOne({
+        friend: user.id,
+        user: data._id,
+        status: ACCEPTED,
+      });
+      const select = {
+        user: data._id,
+        isDeleted: { $exists: false },
+        $sort: {
+          createdAt: -1,
         },
+        $limit: limit,
+      };
+      if (r) {
+        select.privacy = [PUBLIC, FRIEND];
+      } else {
+        select.privacy = [PUBLIC];
+      }
+      const p = await PostsService.find({
+        $cursor: cursor,
+        query: select,
       });
       return {
-        pageInfo: r.paging,
-        edges: r.data.map((res) => {
+        pageInfo: p.paging,
+        edges: p.data.map((res) => {
           res.likes.indexOf(user.id) !== -1 ? res.isLiked = true : res.isLiked = false;
           return res;
         }),
