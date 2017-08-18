@@ -158,6 +158,7 @@ type Post implements Node {
 }
 
 type Profile {
+  fullName: String
   picture: String
   firstName: String
   lastName: String
@@ -431,6 +432,11 @@ const ApartmentsService = Service({
 
 export const resolvers = {
   Date: DateScalarType,
+  Profile: {
+    fullName(profile) {
+      return `${(profile && profile.firstName) || 'no'} ${(profile && profile.lastName) || 'name'}`;
+    },
+  },
   Building: {
     // @building
     display(building) {
