@@ -749,6 +749,7 @@ export const resolvers = {
           },
         })
         .select('user friend _id').lean();
+
       const ninIds = reduce(currentFriends, (result, item) => {
         result.push(item.user);
         result.push(item.friend);
@@ -756,14 +757,13 @@ export const resolvers = {
       }, []);
       ninIds.push(user._id);
 
-      let usersId = await ApartmentsModel.find({
-        user: { $nin: ninIds },
+      const users = await UsersModel.find({
+        _id: { $nin: ninIds },
         building: user.building,
-      }).select('user _id').limit(5).lean();
-      usersId = usersId.map(v => v.user);
-      return UsersModel.find({
-        _id: { $in: usersId },
-      });
+        isActive: 1,
+      }).limit(5).lean();
+
+      return users;
     },
     totalFriends(user) {
       return FriendsRelationModel.count({ user: user._id });
