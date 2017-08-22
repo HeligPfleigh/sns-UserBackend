@@ -531,6 +531,7 @@ export const resolvers = {
         query: {
           building: data._id,
           type: MEMBER,
+          status: PENDING,
           $sort: {
             createdAt: -1,
           },
