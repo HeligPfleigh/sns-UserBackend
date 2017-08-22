@@ -350,7 +350,7 @@ type BuildingAnnouncementConnection {
 
 type UsersAwaitingApprovalConnection {
   pageInfo: PageInfo
-  edges: [Friend]
+  edges: [RequestsToJoinBuilding]
 }
 
 type Building implements Node {
@@ -381,7 +381,7 @@ enum RequestsToJoinBuildingType {
 
 enum RequestsToJoinBuildingStatus {
   PENDING
-  ACCEPTED
+  APPROVED
   REJECTED
 }
 
@@ -455,7 +455,7 @@ export const resolvers = {
       const r = await BuildingMembersModel.findOne({
         user: user.id,
         building: building._id,
-        status: ACCEPTED,
+        status: APPROVED,
       });
       if (!r) {
         return {
@@ -526,7 +526,6 @@ export const resolvers = {
         query: {
           building: data._id,
           type: MEMBER,
-          status: PENDING,
           $sort: {
             createdAt: -1,
           },
@@ -544,11 +543,7 @@ export const resolvers = {
       }
       return {
         pageInfo: r.paging,
-        edges: await UsersModel.find({
-          _id: {
-            $in: r.data.map(u => u.user),
-          },
-        }),
+        edges: r.data,
       };
     },
     async announcements(data, { skip = 0, limit = 5 }) {
