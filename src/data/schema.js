@@ -34,7 +34,7 @@ import {
   sendSharingPostNotification,
 } from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
-import { ADMIN, PENDING, REJECTED, ACCEPTED, APPROVED, PUBLIC, FRIEND, EVENT } from '../constants';
+import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT } from '../constants';
 import toObjectId from '../utils/toObjectId';
 
 const { Types: { ObjectId } } = mongoose;
@@ -733,7 +733,7 @@ const rootResolvers = {
         user: userId,
       }, {
         $set: {
-          status: APPROVED,
+          status: ACCEPTED,
         },
       });
 
@@ -741,7 +741,7 @@ const rootResolvers = {
       const BOMs = await BuildingMembersModel.distinct('user', {
         building: buildingId,
         type: ADMIN,
-        status: APPROVED,
+        status: ACCEPTED,
         user: {
           $nin: [request.user.id],
         },
@@ -810,7 +810,7 @@ const rootResolvers = {
       const BOMs = await BuildingMembersModel.distinct('user', {
         building: buildingId,
         type: ADMIN,
-        status: APPROVED,
+        status: ACCEPTED,
         user: {
           $nin: [request.user.id],
         },
@@ -1088,7 +1088,7 @@ const rootResolvers = {
         _id: requestsToJoinBuildingId,
       }, {
         $set: {
-          status: APPROVED,
+          status: ACCEPTED,
         },
       });
 

@@ -21,7 +21,6 @@ import toObjectId from '../../utils/toObjectId';
 import {
   ADMIN,
   ACCEPTED,
-  APPROVED,
   MEMBER,
   PENDING,
   PUBLIC,
@@ -382,7 +381,7 @@ enum RequestsToJoinBuildingType {
 
 enum RequestsToJoinBuildingStatus {
   PENDING
-  APPROVED
+  ACCEPTED
   REJECTED
 }
 
@@ -461,7 +460,7 @@ export const resolvers = {
       const r = await BuildingMembersModel.findOne({
         user: user.id,
         building: building._id,
-        status: APPROVED,
+        status: ACCEPTED,
       });
       if (!r) {
         return {
@@ -521,7 +520,7 @@ export const resolvers = {
           building: building._id,
           user: user.id,
           type: ADMIN,
-          status: APPROVED,
+          status: ACCEPTED,
         })) return resolve(true);
         return resolve(false);
       });
