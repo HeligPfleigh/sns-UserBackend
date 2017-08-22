@@ -21,6 +21,7 @@ import toObjectId from '../../utils/toObjectId';
 import {
   ADMIN,
   ACCEPTED,
+  APPROVED,
   MEMBER,
   PENDING,
   PUBLIC,
@@ -514,7 +515,7 @@ export const resolvers = {
           building: building._id,
           user: user.id,
           type: ADMIN,
-          status: ACCEPTED,
+          status: APPROVED,
         })) return resolve(true);
         return resolve(false);
       });
