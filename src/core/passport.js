@@ -17,6 +17,7 @@ import {
 import chat from './chat';
 import { generateToken, EXPIRES_IN } from '../utils/token';
 import removeToneVN from '../utils/removeToneVN';
+import { ACCEPTED } from '../constants';
 
 let defaultAdminApp = null;
 if (process.env.NODE_ENV !== 'test') {
@@ -125,7 +126,7 @@ passport.use(new LocalStrategy({
       });
     }
 
-    const buildingsApprove = await BuildingMembersModel.find({ user: user._id });
+    const buildingsApprove = await BuildingMembersModel.find({ user: user._id, status: ACCEPTED });
     let chatToken = null;
     const { emails, password, chatId } = user;
 
@@ -143,7 +144,7 @@ passport.use(new LocalStrategy({
       chatToken: (chatToken && chatToken.token) || '',
       chatExp: moment().add(1, 'hours').unix(),
       chatId: user && user.chatId,
-      buildings: buildingsApprove || [],
+      buildings: [] || buildingsApprove,
       isActive: user.isActive || 0,
     });
   };
@@ -195,7 +196,7 @@ passport.use(new FacebookTokenStrategy({
 
       createChatUserIfNotExits(user);
 
-      const buildingsApprove = await BuildingMembersModel.find({ user: user._id });
+      const buildingsApprove = await BuildingMembersModel.find({ user: user._id, status: ACCEPTED });
 
       done(null, {
         id: user._id,
