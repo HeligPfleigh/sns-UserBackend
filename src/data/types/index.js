@@ -160,6 +160,7 @@ type Post implements Node {
 }
 
 type Profile {
+  fullName: String
   picture: String
   firstName: String
   lastName: String
@@ -413,17 +414,8 @@ const BuildingMembersService = Service({
   cursor: true,
 });
 
-// const UsersService = Service({
-//   Model: UsersModel,
-//   paginate: {
-//     default: 5,
-//     max: 10,
-//   },
-//   cursor: true,
-// });
-
-const ApartmentsService = Service({
-  Model: ApartmentsModel,
+const UsersService = Service({
+  Model: UsersModel,
   paginate: {
     default: 5,
     max: 10,
@@ -431,8 +423,22 @@ const ApartmentsService = Service({
   cursor: true,
 });
 
+// const ApartmentsService = Service({
+//   Model: ApartmentsModel,
+//   paginate: {
+//     default: 5,
+//     max: 10,
+//   },
+//   cursor: true,
+// });
+
 export const resolvers = {
   Date: DateScalarType,
+  Profile: {
+    fullName(profile) {
+      return `${(profile && profile.firstName) || 'no'} ${(profile && profile.lastName) || 'name'}`;
+    },
+  },
   Building: {
     // @building
     display(building) {
@@ -740,6 +746,7 @@ export const resolvers = {
           },
         })
         .select('user friend _id').lean();
+
       const ninIds = reduce(currentFriends, (result, item) => {
         result.push(item.user);
         result.push(item.friend);
@@ -747,14 +754,13 @@ export const resolvers = {
       }, []);
       ninIds.push(user._id);
 
-      let usersId = await ApartmentsModel.find({
-        user: { $nin: ninIds },
+      const users = await UsersModel.find({
+        _id: { $nin: ninIds },
         building: user.building,
-      }).select('user _id').limit(5).lean();
-      usersId = usersId.map(v => v.user);
-      return UsersModel.find({
-        _id: { $in: usersId },
-      });
+        isActive: 1,
+      }).limit(5).lean();
+
+      return users;
     },
     totalFriends(user) {
       return FriendsRelationModel.count({ user: user._id });
@@ -1023,25 +1029,23 @@ export const resolvers = {
         }
         return result;
       }, [data._id]);
-      const r = await ApartmentsService.find({
+
+      const r = await UsersService.find({
         $cursor: cursor,
-        field: 'owner',
         query: {
-          owner: { $nin: ninIds.map(toObjectId) },
+          _id: { $nin: ninIds.map(toObjectId) },
           building: data.building,
+          isActive: 1,
           $sort: {
             createdAt: -1,
           },
-          $limit: limit + 1,
+          $limit: limit,
         },
       });
-      const usersId = r.data.map(v => v.toJSON().owner);
-      const u = await UsersModel.find({
-        _id: { $in: usersId },
-      });
+
       return {
         pageInfo: r.paging,
-        edges: u,
+        edges: r.data || [],
       };
     },
     building(data) {

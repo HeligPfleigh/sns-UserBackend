@@ -127,11 +127,12 @@ passport.use(new LocalStrategy({
 
     const buildingsApprove = await BuildingMembersModel.find({ user: user._id });
     let chatToken = null;
-    const { emails: { address: email }, password, chatId } = user;
+    const { emails, password, chatId } = user;
+
     if (chatId) {
       chatToken = await getChatToken({ chatId });
-    } else if (email && password) {
-      chatToken = await getChatToken({ email, password: passwordVal });
+    } else if ((emails && emails.address) && password) {
+      chatToken = await getChatToken({ email: emails.address, password: passwordVal });
     }
 
     return done(null, {
