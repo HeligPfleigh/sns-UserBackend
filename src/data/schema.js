@@ -761,7 +761,6 @@ const rootResolvers = {
         building: buildingId,
         user: userId,
       });
-      console.log(buildingMember);
       return userDocument;
     },
     async rejectRequestForJoiningBuilding({ request }, { buildingId, userId }) {
