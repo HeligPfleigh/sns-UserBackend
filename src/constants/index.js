@@ -52,6 +52,10 @@ export const NOTIFY_TYPES = [
   INTEREST_EVENT,
 ];
 
+export const PAID = 'PAID';
+export const UNPAID = 'UNPAID';
+export const FEE_STATUS = [PAID, UNPAID];
+
 export const CONTROL_NEW_CONVERSATION = 'CONTROL_NEW_CONVERSATION';
 export const ADD_USER_NEW_CONVERSATION = 'ADD_USER_NEW_CONVERSATION';
 export const CHAT_SET_USER = 'CHAT_SET_USER';
