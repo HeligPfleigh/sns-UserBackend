@@ -110,6 +110,7 @@ input CreateUserInput {
   phone: PhoneInput!
   username: String!
   profile: ProfileInput!
+  services: String
 }
 
 type UpdateUserProfilePayload {
