@@ -1,4 +1,5 @@
 import express from 'express';
+import isEmpty from 'lodash/isEmpty';
 import passport from '../core/passport';
 import UsersService from '../data/apis/UsersService';
 import { generateToken, EXPIRES_IN } from '../utils/token';
@@ -43,10 +44,12 @@ router.post('/login', (req, res, next) => {
         error,
       });
     }
-    const token = generateToken(user);
-    res.cookie('id_token', token, { maxAge: 1000 * EXPIRES_IN });
 
-    user.id_token = token;
+    if (!isEmpty(user.buildings) && user.isActive !== 0) {
+      const token = generateToken(user);
+      res.cookie('id_token', token, { maxAge: 1000 * EXPIRES_IN });
+      user.id_token = token;
+    }
     return res.status(200).json(user);
   })(req, res, next);
 });
@@ -58,10 +61,12 @@ router.post('/facebook', (req, res, next) => {
         error,
       });
     }
-    const token = generateToken(user);
-    res.cookie('id_token', token, { maxAge: 1000 * EXPIRES_IN });
 
-    user.id_token = token;
+    if (!isEmpty(user.buildings) && user.isActive !== 0) {
+      const token = generateToken(user);
+      res.cookie('id_token', token, { maxAge: 1000 * EXPIRES_IN });
+      user.id_token = token;
+    }
     return res.status(200).json(user);
   })(req, res, next);
 });

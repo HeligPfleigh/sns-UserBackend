@@ -9,14 +9,13 @@ import * as firebase from 'firebase';
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import config from '../config';
-import createAccountWithFB from './account/createAccountWithFB';
+import { getLongTermToken } from './account/createAccountWithFB';
 import {
   UsersModel,
   BuildingMembersModel,
 } from '../data/models';
 import chat from './chat';
 import { generateToken, EXPIRES_IN } from '../utils/token';
-import removeToneVN from '../utils/removeToneVN';
 
 let defaultAdminApp = null;
 if (process.env.NODE_ENV !== 'test') {
@@ -160,60 +159,66 @@ passport.use(new FacebookTokenStrategy({
 }, (accessToken, refreshToken, profile, done) => {
   const fooBar = async () => {
     try {
-      let user = null;
-      if (profile._json.email) {
-        user = await UsersModel.findOne({
-          'emails.address': profile._json.email,
-        });
-      } else {
-        let username = null;
-        if (profile && profile._json && profile._json.last_name && profile._json.first_name) {
-          username = removeToneVN(`${profile._json.last_name}_${profile._json.first_name}`.replace(/\s/g, ''));
-        } else if (profile.displayName) {
-          username = removeToneVN(profile.displayName.replace(/\s/g, ''));
-        }
-        user = await UsersModel.findOne({
-          username,
-        });
-      }
-      let chatToken;
+      const user = await UsersModel.findOne({ 'services.facebook.id': profile.id });
+
       if (!user) {
-        chatToken = await getChatToken({ accessToken });
-        user = await createAccountWithFB(accessToken, profile, chatToken);
-      } else if (!(user && user.chatId)) {
-        chatToken = await getChatToken({ accessToken });
-        await UsersModel.update({
-          _id: user._id,
-        }, {
-          $set: {
-            chatId: chatToken && chatToken.chatId,
+        const longlivedToken = await getLongTermToken(accessToken);
+        const result = {
+          email: profile._json.email || '',
+          profile: {
+            gender: profile._json.gender || 'male',
+            lastName: profile._json.last_name || 'NAME',
+            firstName: profile._json.first_name || 'NO',
+            picture: `https://graph.facebook.com/${profile.id}/picture?type=large`,
           },
-        });
+          services: {
+            facebook: {
+              id: profile.id,
+              ...longlivedToken,
+            },
+          },
+          buildings: [],
+          isActive: 0,
+        };
+
+        done(null, result);
       } else {
-        chatToken = await getChatToken({ chatId: user && user.chatId });
+        let chatToken;
+        if (!user.chatId) {
+          chatToken = await getChatToken({ accessToken });
+          await UsersModel.update({
+            _id: user._id,
+          }, {
+            $set: {
+              chatId: chatToken && chatToken.chatId,
+            },
+          });
+        } else {
+          chatToken = await getChatToken({ chatId: user && user.chatId });
+        }
+
+        createChatUserIfNotExits(user);
+
+        const buildingsApprove = await BuildingMembersModel.find({ user: user._id });
+
+        done(null, {
+          id: user._id,
+          profile: user.profile,
+          email: (user.emails && user.emails.address) || '',
+          roles: user.roles,
+          chatToken: chatToken && chatToken.token,
+          chatExp: moment().add(1, 'hours').unix(),
+          chatId: user && user.chatId,
+          buildings: buildingsApprove || [],
+          isActive: user.isActive || 0,
+        });
       }
-
-      createChatUserIfNotExits(user);
-
-      const buildingsApprove = await BuildingMembersModel.find({ user: user._id });
-
-      done(null, {
-        id: user._id,
-        profile: user.profile,
-        email: (user.emails && user.emails.address) || '',
-        roles: user.roles,
-        chatToken: chatToken && chatToken.token,
-        chatExp: moment().add(1, 'hours').unix(),
-        chatId: user && user.chatId,
-        buildings: buildingsApprove || [],
-        isActive: user.isActive || 0,
-      });
     } catch (e) {
-      console.log(e);
+      done();
     }
   };
 
-  fooBar().catch(done);
+  fooBar();
 }));
 
 export default passport;
