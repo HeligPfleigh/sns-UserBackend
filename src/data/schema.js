@@ -757,7 +757,10 @@ const rootResolvers = {
       if (isObject(userDocument.emails) && isString(userDocument.emails.address)) {
         await BuildingServices.notifywhenAcceptedForUserBelongsToBuilding(userDocument.emails.address, userDocument);
       }
-
+      const buildingMember = await BuildingMembersModel.findOne({
+        building: buildingId,
+        user: userId,
+      });
       return userDocument;
     },
     async rejectRequestForJoiningBuilding({ request }, { buildingId, userId }) {
