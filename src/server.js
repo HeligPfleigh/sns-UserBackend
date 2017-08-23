@@ -14,13 +14,12 @@ import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import expressJwt from 'express-jwt';
 import expressGraphQL from 'express-graphql';
-
 import passport from './core/passport';
 import schema from './data/schema';
 import config from './config';
 import Mongoose from './data/mongoose';
 
-import UploadRouter from './core/uploads';
+import UploadRouter, { apolloUploadExpress } from './core/uploads';
 import MailRouter from './routes/MailRoutes';
 import BuildingRouter from './routes/BuildingRoutes';
 import AuthenticateRouter from './routes/AuthenticateRoutes';
@@ -102,6 +101,7 @@ app.use('/mailer', MailRouter);
 app.use('/upload', UploadRouter);
 
 app.use('/images', express.static(`${__dirname}/public/uploads`));
+app.use('/public', express.static(`${__dirname}/public`));
 app.use('/buildings', BuildingRouter);
 
 //
@@ -123,7 +123,10 @@ const graphqlMiddleware = expressGraphQL(req => ({
   },
 }));
 
-app.use('/graphql', graphqlMiddleware);
+app.use('/graphql', apolloUploadExpress({
+  // Optional, defaults to OS temp directory
+  uploadDir: `${__dirname}/public/uploads`,
+}), graphqlMiddleware);
 
 //
 // Register server-side rendering middleware
