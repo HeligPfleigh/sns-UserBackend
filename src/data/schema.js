@@ -110,6 +110,7 @@ input CreateUserInput {
   phone: PhoneInput!
   username: String!
   profile: ProfileInput!
+  services: String
 }
 
 type UpdateUserProfilePayload {
@@ -196,7 +197,35 @@ type RejectingUserToBuildingPayload {
   request: RequestsToJoinBuilding
 }
 
+input Upload {
+  name: String!
+  type: String!
+  size: Int!
+  url: String!
+}
+
+type UploadFileResponse {
+  name: String!
+  type: String!
+  size: Int!
+  url: String!
+}
+
+type UploadSingleFileResponse {
+  file: UploadFileResponse!
+}
+
+type UploadMultiFileResponse {
+  files: [UploadFileResponse]!
+}
+
 type Mutation {
+  uploadSingleFile(
+    file: Upload!
+  ): UploadSingleFileResponse!
+  uploadMultiFile(
+    files: [Upload!]!
+  ): UploadMultiFileResponse!
   acceptFriend (
     _id: String!
   ): Friend
@@ -1165,6 +1194,16 @@ const rootResolvers = {
 
       return {
         request: BuildingMembersModel.findOne({ _id: requestsToJoinBuildingId }),
+      };
+    },
+    uploadSingleFile(root, { file }) {
+      return {
+        file,
+      };
+    },
+    uploadMultiFile(root, { files }) {
+      return {
+        files,
       };
     },
   },

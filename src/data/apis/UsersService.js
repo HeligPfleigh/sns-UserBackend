@@ -205,14 +205,15 @@ async function createUser(params) {
   const chatToken = await getChatToken({ email: emailAddress, password });
   const activeCode = idRandom();
 
-  params.profile.picture = '/avatar-default.jpg';
+  params.profile.picture = params.profile.picture || '/avatar-default.jpg';
 
-  const { apartments, ...userObj } = params;
+  const { apartments, services, ...userObj } = params;
   const user = {
     ...userObj,
-    chatId: chatToken && chatToken.chatId,
-    activeCode,
     building,
+    activeCode,
+    chatId: chatToken && chatToken.chatId,
+    services: services && JSON.parse(services),
   };
   user.search = generateUserSearchField(user);
 
