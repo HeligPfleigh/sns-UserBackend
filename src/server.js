@@ -102,6 +102,7 @@ app.use('/mailer', MailRouter);
 app.use('/upload', UploadRouter);
 
 app.use('/images', express.static(`${__dirname}/public/uploads`));
+app.use('/document', express.static(`${__dirname}/public/documents`));
 app.use('/buildings', BuildingRouter);
 
 //

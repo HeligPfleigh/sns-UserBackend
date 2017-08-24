@@ -43,7 +43,7 @@ const FeeSchema = new Schema({
     type: ObjectId,
     ref: 'Building',
   },
-  payment: {
+  total: {
     type: Number,
     required: true,
   },
@@ -54,6 +54,15 @@ const FeeSchema = new Schema({
     enum: FEE_STATUS,
     default: UNPAID,
     index: true,
+  },
+  description: String,
+  month: {
+    type: Number,
+    required: true,
+  },
+  year: {
+    type: Number,
+    required: true,
   },
 });
 
