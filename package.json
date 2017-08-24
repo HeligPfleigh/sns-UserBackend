@@ -40,6 +40,7 @@
     "mongoose": "^4.11.5",
     "mongoose-auto-increment": "^5.0.1",
     "mongoose-timestamp": "^0.6.0",
+    "multer": "^1.3.0",
     "node-fetch": "^1.6.3",
     "nodemailer": "^4.0.1",
     "passport": "^0.3.2",
@@ -54,7 +55,9 @@
     "whatwg-fetch": "^2.0.2",
     "winston": "^2.3.1",
     "winston-daily-rotate-file": "^1.4.6",
-    "winston-syslog": "^1.2.6"
+    "winston-syslog": "^1.2.6",
+    "xls-to-json-lc": "^0.3.4",
+    "xlsx-to-json-lc": "^0.4.1"
   },
   "devDependencies": {
     "assets-webpack-plugin": "^3.5.1",
