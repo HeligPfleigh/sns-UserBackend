@@ -128,7 +128,7 @@ input AnnouncementInput {
   message: String
 }
 
-input CreateNewEventAnnouncementInput {
+input CreateEventInput {
   privacy: PrivacyType
   building: String
   photos: [String]!
@@ -140,11 +140,11 @@ input CreateNewEventAnnouncementInput {
   invites: [String]
 }
 
-input CreateNewEventOnBuildingAnnouncementInput {
+input EditEventInput {
+  _id: String!
   privacy: PrivacyType
   building: String
   photos: [String]!
-  building: String!
   name: String
   location: String!
   start: Date!
@@ -297,10 +297,13 @@ type Mutation {
     userId: String
   ): Post
   createNewEvent(
-    input: CreateNewEventAnnouncementInput!
+    input: CreateEventInput!
   ): Event
   createNewEventOnBuilding(
-    input: CreateNewEventOnBuildingAnnouncementInput!
+    input: CreateEventInput!
+  ): Event
+  editEvent(
+    input: EditEventInput!
   ): Event
   inviteResidentsJoinEvent(
     eventId: String!
@@ -562,7 +565,25 @@ const rootResolvers = {
     sendFriendRequest({ request }, { _id }) {
       return UsersService.sendFriendRequest(request.user.id, _id);
     },
+    async editEvent({ request }, { input: { _id, ...data } }) {
+      const p = await PostsModel.findOne({ _id });
+      if (!p) {
+        throw new Error('Post not found');
+      }
 
+      if (isUndefined(p.author)) {
+        throw new Error('Access denied');
+      }
+
+      if (!await UsersModel.findOne({ _id: p.author })) {
+        throw new Error('Author does not exist');
+      }
+
+      const r = await EventService.editEvent(_id, {
+        ...data,
+      });
+      return r;
+    },
     createNewEvent({ request }, { input }) {
       const { privacy, photos, name, location, start, end, message, invites } = input;
       return EventService.createEvent(privacy, request.user.id, photos, name, location, start, end, message, invites);
