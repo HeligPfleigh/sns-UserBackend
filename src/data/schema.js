@@ -18,6 +18,7 @@ import {
   UsersModel,
   BuildingsModel,
   ApartmentsModel,
+  FeeModel,
 } from './models';
 import Service from './mongo/service';
 import AddressServices from './apis/AddressServices';
@@ -76,6 +77,7 @@ type Query {
   resident(_id: String): User
   requestsToJoinBuilding(_id: String): RequestsToJoinBuilding
   checkExistUser(query: String): Boolean
+  fee(_id: String!): Fee
 }
 
 input ProfileInput {
@@ -550,6 +552,9 @@ const rootResolvers = {
         return false;
       }
       return UsersService.checkExistUser(query);
+    },
+    fee(root, { _id }) {
+      return FeeModel.findOne({ _id });
     },
   },
   Mutation: {

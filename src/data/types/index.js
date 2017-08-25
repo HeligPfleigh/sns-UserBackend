@@ -11,6 +11,7 @@ import {
   ApartmentsModel,
   FriendsRelationModel,
   NotificationsModel,
+  // FeeModel,
   // EventModel,
 } from '../models';
 import AddressServices from '../apis/AddressServices';
@@ -392,6 +393,27 @@ type RequestsToJoinBuilding implements Node {
   type: RequestsToJoinBuildingType
   status: RequestsToJoinBuildingStatus
   requestInformation: RequestInformation
+}
+
+### Fee Type
+
+type FeeType {
+  code: Int
+  name: String
+}
+
+type Fee implements Node {
+  _id: ID!
+  type: FeeType
+  from: Date
+  to: Date
+  apartment: Apartment
+  building: Building
+  total: Int
+  status: String
+  description: String
+  month: Int
+  year: Int
 }
 `];
 
@@ -1067,6 +1089,14 @@ export const resolvers = {
           },
         }),
       };
+    },
+  },
+  Fee: {
+    building(data) {
+      return AddressServices.getBuilding(data.building);
+    },
+    apartment(data) {
+      return ApartmentsModel.findOne({ _id: data.apartment });
     },
   },
 };
