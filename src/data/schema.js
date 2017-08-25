@@ -115,6 +115,17 @@ input CreateUserInput {
   services: String
 }
 
+input UpdateFeeDetailInput {
+  feeId: String!
+  total: Int!
+  status: String!
+  buildingId: String!
+}
+
+type UpdateFeeDetailPayload {
+  fee: Fee
+}
+
 type UpdateUserProfilePayload {
   user: User
 }
@@ -342,6 +353,10 @@ type Mutation {
   rejectingUserToBuilding(
     input: RejectingUserToBuildingInput!
   ): RejectingUserToBuildingPayload
+
+  updateFeeDetail(
+    input: UpdateFeeDetailInput!
+  ): UpdateFeeDetailPayload
 }
 
 schema {
@@ -1209,6 +1224,35 @@ const rootResolvers = {
     uploadMultiFile(root, { files }) {
       return {
         files,
+      };
+    },
+    async updateFeeDetail({ request }, { input }) {
+      const { feeId, total, status, buildingId } = input;
+      const record = await FeeModel.findOne({ _id: feeId });
+      if (!record) {
+        throw new Error('not found the request');
+      }
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: buildingId,
+        user: request.user.id,
+        type: ADMIN,
+      });
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to reject request');
+      }
+      await FeeModel.update({
+        _id: feeId,
+      }, {
+        $set: {
+          total,
+          status,
+        },
+      });
+
+      return {
+        fee: await FeeModel.findOne({
+          _id: feeId,
+        }),
       };
     },
   },
