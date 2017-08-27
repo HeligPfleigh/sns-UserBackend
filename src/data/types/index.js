@@ -307,6 +307,13 @@ type UserConnection {
   edges: [User]
 }
 
+#Fee
+type FeeType implements Node {
+  _id: ID!
+  code: Int!
+  name: String!
+}
+
 ### Building Type
 # Represents a building in system.
 type Address {

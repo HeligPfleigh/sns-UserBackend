@@ -28,6 +28,10 @@ import PostsService from './apis/PostsService';
 import CommentService from './apis/CommentService';
 import EventService from './apis/EventServices';
 import {
+  saveFeeForApartments,
+  getFeeTypes,
+} from './apis/FeeServices';
+import {
   sendDeletedEventNotification,
   acceptedUserBelongsToBuildingNotification,
   rejectedUserBelongsToBuildingNotification,
@@ -64,7 +68,8 @@ type Query {
   listEvent(limit: Int, cursor: String): Events
   post(_id: String!): Post
   user(_id: String): Friend
-  me: Me,
+  me: Me
+  getFeeTypes: [FeeType]
   apartment(_id: String): Apartment
   building(_id: String): Building
   buildings(query: String, limit: Int): [Building]
@@ -553,6 +558,14 @@ const rootResolvers = {
         return false;
       }
       return UsersService.checkExistUser(query);
+    },
+    // Feetype
+    /**
+     * Get fee types
+     * @author: HungTran
+     */
+    getFeeTypes() {
+      return getFeeTypes();
     },
   },
   Mutation: {
