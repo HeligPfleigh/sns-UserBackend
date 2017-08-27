@@ -38,7 +38,7 @@ import {
   sendSharingPostNotification,
 } from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
-import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT } from '../constants';
+import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, ONLY_ME, EVENT } from '../constants';
 import toObjectId from '../utils/toObjectId';
 
 const { Types: { ObjectId } } = mongoose;
@@ -512,20 +512,21 @@ const rootResolvers = {
         $cursor: cursor,
         $field: 'author',
         query: {
+          type: EVENT,
           $or: [
             {
               privacy: PUBLIC,
-              type: EVENT,
             }, // post from me
             {
               user: { $in: friendListByIds },
               privacy: { $in: [PUBLIC, FRIEND] },
-              type: EVENT,
             },
             {
               building: me.building,
               privacy: { $in: [PUBLIC] },
-              type: EVENT,
+            },
+            {
+              author: userId,
             },
           ],
           isDeleted: { $exists: false },
