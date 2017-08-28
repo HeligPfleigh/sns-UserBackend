@@ -11,6 +11,7 @@ import {
   ApartmentsModel,
   FriendsRelationModel,
   NotificationsModel,
+  // FeeModel,
   // EventModel,
 } from '../models';
 import AddressServices from '../apis/AddressServices';
