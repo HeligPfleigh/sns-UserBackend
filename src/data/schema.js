@@ -1330,7 +1330,7 @@ const rootResolvers = {
       const { feeId, total, status, buildingId } = input;
       const record = await FeeModel.findOne({ _id: feeId });
       if (!record) {
-        throw new Error('not found the request');
+        throw new Error('not found the fee');
       }
       const isAdmin = await BuildingMembersModel.findOne({
         building: buildingId,
@@ -1338,7 +1338,7 @@ const rootResolvers = {
         type: ADMIN,
       });
       if (!isAdmin) {
-        throw new Error('you don\'t have permission to reject request');
+        throw new Error('you don\'t have permission to update fee detail');
       }
       await FeeModel.update({
         _id: feeId,
