@@ -136,14 +136,14 @@ function validateData(data, buildingId, callback) {
     if (err || !apartmentsInBuilding || apartmentsInBuilding.length === 0) {
       callback(new Error('Tòa nhà này không có căn hộ nào'));
     } else {
-      const apartmentNumberInBuilding = apartmentsInBuilding.map(apart => apart.number);
+      const apartmentNumberInBuilding = apartmentsInBuilding.map(apart => apart.name);
       apartments.forEach((item) => {
         if (apartmentNumberInBuilding.indexOf(item.number) < 0) {
           if (rowsError[(item.index + 2).toString()]) {
-            rowsError[(item.index + 2).toString()].errors.push(`Căn hộ ${item.number} không có trong tòa nhà`);
+            rowsError[(item.index + 2).toString()].errors.push(`Căn hộ ${item.name} không có trong tòa nhà`);
           } else {
             rowsError[(item.index + 2).toString()] = {
-              errors: [`Căn hộ ${item.number} không có trong tòa nhà`],
+              errors: [`Căn hộ ${item.name} không có trong tòa nhà`],
             };
           }
         }

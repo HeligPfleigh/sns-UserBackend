@@ -817,7 +817,7 @@ export const resolvers = {
       return AddressServices.getBuildings(data._id);
     },
     apartments(data) {
-      return ApartmentsModel.find({ user: data._id });
+      return ApartmentsModel.find({ owner: data._id });
     },
     async friends(user) {
       let friendListByIds = await FriendsRelationModel.find({

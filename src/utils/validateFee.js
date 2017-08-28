@@ -1,6 +1,8 @@
+
+
 const validateData = (data, buildingId, callback) => {
   if (data.length === 0) {
-    callback(new Error('File rỗng'));
+    callback(new Error('Không có dữ liệu'));
     return;
   }
   const rowsError = {};
