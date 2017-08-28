@@ -26,6 +26,8 @@ import BuildingServices from './apis/BuildingServices';
 import NotificationsService from './apis/NotificationsService';
 import UsersService from './apis/UsersService';
 import PostsService from './apis/PostsService';
+import * as DocumentsService from './apis/DocumentsService';
+import * as FAQsService from './apis/FAQsService';
 import CommentService from './apis/CommentService';
 import EventService from './apis/EventServices';
 import {
@@ -84,7 +86,10 @@ type Query {
   resident(_id: String): User
   requestsToJoinBuilding(_id: String): RequestsToJoinBuilding
   checkExistUser(query: String): Boolean
+  documents(building: String, limit: Int, cursor: String): Documents
+  FAQs(building: String, limit: Int, cursor: String): FAQs
   fee(_id: String!): Fee
+
 }
 
 input ProfileInput {
@@ -148,7 +153,7 @@ input AnnouncementInput {
   message: String
 }
 
-input CreateNewEventAnnouncementInput {
+input CreateEventInput {
   privacy: PrivacyType
   building: String
   photos: [String]!
@@ -160,11 +165,11 @@ input CreateNewEventAnnouncementInput {
   invites: [String]
 }
 
-input CreateNewEventOnBuildingAnnouncementInput {
+input EditEventInput {
+  _id: String!
   privacy: PrivacyType
   building: String
   photos: [String]!
-  building: String!
   name: String
   location: String!
   start: Date!
@@ -199,6 +204,42 @@ input DeleteBuildingAnnouncementInput {
 
 type DeleteBuildingAnnouncementPayload {
   announcement: BuildingAnnouncement
+}
+
+input CreateDocumentInput {
+  name: String!
+  file: String!
+  building: String!  
+}
+
+input UpdateDocumentInput {
+  _id: String!
+  name: String!
+  file: String!
+  building: String!  
+}
+
+input DeleteDocumentInput {
+  _id: String!
+  building: String!
+}
+
+input CreateFAQInput {
+  name: String!
+  message: String!
+  building: String!  
+}
+
+input UpdateFAQInput {
+  _id: String!
+  name: String!
+  message: String!
+  building: String!  
+}
+
+input DeleteFAQInput {
+  _id: String!
+  building: String!
 }
 
 input ApprovingUserToBuildingInput {
@@ -317,10 +358,13 @@ type Mutation {
     userId: String
   ): Post
   createNewEvent(
-    input: CreateNewEventAnnouncementInput!
+    input: CreateEventInput!
   ): Event
   createNewEventOnBuilding(
-    input: CreateNewEventOnBuildingAnnouncementInput!
+    input: CreateEventInput!
+  ): Event
+  editEvent(
+    input: EditEventInput!
   ): Event
   inviteResidentsJoinEvent(
     eventId: String!
@@ -353,7 +397,24 @@ type Mutation {
   deleteBuildingAnnouncement(
     input: DeleteBuildingAnnouncementInput!
   ): DeleteBuildingAnnouncementPayload
-
+  createDocument(
+    input: CreateDocumentInput!
+  ): Document
+  updateDocument(
+    input: UpdateDocumentInput!
+  ): Document
+  deleteDocument(
+    input: DeleteDocumentInput!
+  ): Document
+  createFAQ(
+    input: CreateFAQInput!
+  ): FAQ
+  updateFAQ(
+    input: UpdateFAQInput!
+  ): FAQ
+  deleteFAQ(
+    input: DeleteFAQInput!
+  ): FAQ
   approvingUserToBuilding(
     input: ApprovingUserToBuildingInput!
   ): ApprovingUserToBuildingPayload
@@ -455,9 +516,53 @@ const rootResolvers = {
         }),
       };
     },
+    async documents({ request }, { building, limit = 20, cursor = null }) {
+      const r = await DocumentsService.service({ limit }).find({
+        $cursor: cursor,
+        $field: 'author',
+        query: {
+          building,
+          isDeleted: { $exists: false },
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      });
+      return {
+        pageInfo: r.paging,
+        edges: r.data,
+      };
+    },
+    async FAQs({ request }, { building, limit = 20, cursor = null }) {
+      const r = await FAQsService.service({ limit }).find({
+        $cursor: cursor,
+        $field: 'author',
+        query: {
+          building,
+          isDeleted: { $exists: false },
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      });
+      return {
+        pageInfo: r.paging,
+        edges: r.data,
+      };
+    },
+    async post({ request }, { _id }) {
+      const userId = request.user.id;
+      const res = await PostsService.getPost(_id);
+      if (res && res.likes) {
+        res.likes.indexOf(userId) !== -1 ? res.isLiked = true : res.isLiked = false;
+      }
+      return res;
+    },
     async feesReport(context, { buildingId, page = 1, limit = 10, feeType }) {
       // eslint-disable-next-line
-      let filters = {
+          let filters = {
         $match: {
           building: toObjectId(buildingId),
         },
@@ -530,14 +635,6 @@ const rootResolvers = {
         pageInfo: r.paging,
         edges: r.data,
       };
-    },
-    async post({ request }, { _id }) {
-      const userId = request.user.id;
-      const res = await PostsService.getPost(_id);
-      if (res && res.likes) {
-        res.likes.indexOf(userId) !== -1 ? res.isLiked = true : res.isLiked = false;
-      }
-      return res;
     },
     apartment(root, { _id }) {
       return AddressServices.getApartment(_id);
@@ -613,20 +710,21 @@ const rootResolvers = {
         $cursor: cursor,
         $field: 'author',
         query: {
+          type: EVENT,
           $or: [
             {
               privacy: PUBLIC,
-              type: EVENT,
             }, // post from me
             {
               user: { $in: friendListByIds },
               privacy: { $in: [PUBLIC, FRIEND] },
-              type: EVENT,
             },
             {
               building: me.building,
               privacy: { $in: [PUBLIC] },
-              type: EVENT,
+            },
+            {
+              author: userId,
             },
           ],
           isDeleted: { $exists: false },
@@ -686,7 +784,25 @@ const rootResolvers = {
     sendFriendRequest({ request }, { _id }) {
       return UsersService.sendFriendRequest(request.user.id, _id);
     },
+    async editEvent({ request }, { input: { _id, ...data } }) {
+      const p = await PostsModel.findOne({ _id });
+      if (!p) {
+        throw new Error('Post not found');
+      }
 
+      if (isUndefined(p.author)) {
+        throw new Error('Access denied');
+      }
+
+      if (!await UsersModel.findOne({ _id: p.author })) {
+        throw new Error('Author does not exist');
+      }
+
+      const r = await EventService.editEvent(_id, {
+        ...data,
+      });
+      return r;
+    },
     createNewEvent({ request }, { input }) {
       const { privacy, photos, name, location, start, end, message, invites } = input;
       return EventService.createEvent(privacy, request.user.id, photos, name, location, start, end, message, invites);
@@ -910,6 +1026,10 @@ const rootResolvers = {
       if (isObject(userDocument.emails) && isString(userDocument.emails.address)) {
         await BuildingServices.notifywhenAcceptedForUserBelongsToBuilding(userDocument.emails.address, userDocument);
       }
+      // const buildingMember = await BuildingMembersModel.findOne({
+      //   building: buildingId,
+      //   user: userId,
+      // });
       return userDocument;
     },
     async rejectRequestForJoiningBuilding({ request }, { buildingId, userId }) {
@@ -1207,6 +1327,100 @@ const rootResolvers = {
       return {
         announcement,
       };
+    },
+    async createDocument({ request }, { input }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: input.building,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to approve request');
+      }
+
+      return DocumentsService.create({
+        ...input,
+        author: request.user.id,
+      });
+    },
+    async updateDocument({ request }, { input }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: input.building,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to approve request');
+      }
+
+      return DocumentsService.update({
+        ...input,
+        author: request.user.id,
+      });
+    },
+    async deleteDocument({ request }, { input }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: input.building,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to approve request');
+      }
+
+      return DocumentsService.softDelete({
+        ...input,
+      });
+    },
+    async createFAQ({ request }, { input }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: input.building,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to approve request');
+      }
+
+      return FAQsService.create({
+        ...input,
+        author: request.user.id,
+      });
+    },
+    async updateFAQ({ request }, { input }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: input.building,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to approve request');
+      }
+
+      return FAQsService.update({
+        ...input,
+        author: request.user.id,
+      });
+    },
+    async deleteFAQ({ request }, { input }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: input.building,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to approve request');
+      }
+
+      return FAQsService.softDelete({
+        ...input,
+      });
     },
     async approvingUserToBuilding({ request }, { input }) {
       const { requestsToJoinBuildingId } = input;

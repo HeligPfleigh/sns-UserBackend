@@ -124,6 +124,40 @@ async function interestEvent(userId, eventId) {
   return event;
 }
 
+async function editEvent(_id, {
+  privacy,
+  photos,
+  name,
+  location,
+  start,
+  end,
+  message,
+  invites,
+}) {
+  const r = await PostsModel.findOneAndUpdate(
+    {
+      _id,
+    },
+    {
+      $set: {
+        privacy,
+        photos,
+        name,
+        location,
+        start,
+        end,
+        message,
+        invites,
+      },
+    },
+    {
+      new: true,
+    },
+  );
+
+  return r;
+}
+
 
 export default {
   createEvent,
@@ -134,4 +168,5 @@ export default {
   canJoinEvent,
   cantJoinEvent,
   interestEvent,
+  editEvent,
 };

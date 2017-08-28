@@ -159,6 +159,50 @@ type Post implements Node {
   updatedAt: Date
 }
 
+interface DocumentPayload {
+  _id: ID!
+  name: String
+  file: String
+  author: Friend
+  building: Building
+  createdAt: Date
+  updatedAt: Date
+  isDeleted: Boolean
+}
+
+type Document implements DocumentPayload, Node {
+  _id: ID!
+  name: String
+  file: String
+  author: Friend
+  building: Building
+  createdAt: Date
+  updatedAt: Date
+  isDeleted: Boolean
+}
+
+interface FAQPayload {
+  _id: ID!
+  name: String
+  message: String
+  author: Friend
+  building: Building
+  createdAt: Date
+  updatedAt: Date
+  isDeleted: Boolean
+}
+
+type FAQ implements FAQPayload, Node {
+  _id: ID!
+  name: String
+  message: String
+  author: Friend
+  building: Building
+  createdAt: Date
+  updatedAt: Date
+  isDeleted: Boolean
+}
+
 type Profile {
   fullName: String
   picture: String
@@ -257,6 +301,16 @@ type PageInfo {
 type Feeds {
   pageInfo: PageInfo
   edges: [Post]
+}
+
+type Documents {
+  pageInfo: PageInfo
+  edges: [Document]
+}
+
+type FAQs {
+  pageInfo: PageInfo
+  edges: [FAQ]
 }
 
 type Events {
@@ -868,6 +922,40 @@ export const resolvers = {
       return data;
     },
   },
+  Document: {
+    author(data) {
+      return UsersModel.findOne({ _id: data.author });
+    },
+    building(data) {
+      return AddressServices.getBuilding(data.building);
+    },
+    createdAt(data) {
+      return new Date(data.createdAt);
+    },
+    updatedAt(data) {
+      return new Date(data.updatedAt);
+    },
+    isDeleted(data) {
+      return data && data.isDeleted;
+    },
+  },
+  FAQ: {
+    author(data) {
+      return UsersModel.findOne({ _id: data.author });
+    },
+    building(data) {
+      return AddressServices.getBuilding(data.building);
+    },
+    createdAt(data) {
+      return new Date(data.createdAt);
+    },
+    updatedAt(data) {
+      return new Date(data.updatedAt);
+    },
+    isDeleted(data) {
+      return data && data.isDeleted;
+    },
+  },
   Friend: {
     fullName(data) {
       const { profile } = data;
@@ -1101,6 +1189,22 @@ export const resolvers = {
     },
     building(data) {
       return AddressServices.getBuilding(data.building);
+    },
+  },
+  DocumentPayload: {
+    building(data) {
+      return AddressServices.getBuilding(data.building);
+    },
+    author(data) {
+      return UsersModel.findOne({ _id: data.author });
+    },
+  },
+  FAQPayload: {
+    building(data) {
+      return AddressServices.getBuilding(data.building);
+    },
+    author(data) {
+      return UsersModel.findOne({ _id: data.author });
     },
   },
   RequestsToJoinBuilding: {
