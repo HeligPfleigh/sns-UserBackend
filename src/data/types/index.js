@@ -438,27 +438,6 @@ type RequestsToJoinBuilding implements Node {
   status: RequestsToJoinBuildingStatus
   requestInformation: RequestInformation
 }
-
-### Fee Type
-
-type FeeType {
-  code: Int
-  name: String
-}
-
-type Fee implements Node {
-  _id: ID!
-  type: FeeType
-  from: Date
-  to: Date
-  apartment: Apartment
-  building: Building
-  total: Int
-  status: String
-  description: String
-  month: Int
-  year: Int
-}
 `];
 
 const PostsService = Service({

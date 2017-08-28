@@ -660,8 +660,12 @@ const rootResolvers = {
       }
       return UsersService.checkExistUser(query);
     },
-    fee(root, { _id }) {
-      return FeeModel.findOne({ _id });
+    async fee(root, { _id }) {
+      const f = await FeeModel.findOne({ _id });
+      if (!f) {
+        throw new Error('not found the fee');
+      }
+      return f;
     },
     // Feetype
     /**
