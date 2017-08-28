@@ -84,6 +84,7 @@ type Query {
   resident(_id: String): User
   requestsToJoinBuilding(_id: String): RequestsToJoinBuilding
   checkExistUser(query: String): Boolean
+  fee(_id: String!): Fee
 }
 
 input ProfileInput {
@@ -119,6 +120,17 @@ input CreateUserInput {
   username: String!
   profile: ProfileInput!
   services: String
+}
+
+input UpdateFeeDetailInput {
+  feeId: String!
+  total: Int!
+  status: String!
+  buildingId: String!
+}
+
+type UpdateFeeDetailPayload {
+  fee: Fee
 }
 
 type UpdateUserProfilePayload {
@@ -348,6 +360,10 @@ type Mutation {
   rejectingUserToBuilding(
     input: RejectingUserToBuildingInput!
   ): RejectingUserToBuildingPayload
+
+  updateFeeDetail(
+    input: UpdateFeeDetailInput!
+  ): UpdateFeeDetailPayload
 }
 
 schema {
@@ -644,6 +660,13 @@ const rootResolvers = {
       }
       return UsersService.checkExistUser(query);
     },
+    async fee(root, { _id }) {
+      const f = await FeeModel.findOne({ _id });
+      if (!f) {
+        throw new Error('not found the fee');
+      }
+      return f;
+    },
     // Feetype
     /**
      * Get fee types
@@ -887,10 +910,6 @@ const rootResolvers = {
       if (isObject(userDocument.emails) && isString(userDocument.emails.address)) {
         await BuildingServices.notifywhenAcceptedForUserBelongsToBuilding(userDocument.emails.address, userDocument);
       }
-      const buildingMember = await BuildingMembersModel.findOne({
-        building: buildingId,
-        user: userId,
-      });
       return userDocument;
     },
     async rejectRequestForJoiningBuilding({ request }, { buildingId, userId }) {
@@ -1305,6 +1324,35 @@ const rootResolvers = {
     uploadMultiFile(root, { files }) {
       return {
         files,
+      };
+    },
+    async updateFeeDetail({ request }, { input }) {
+      const { feeId, total, status, buildingId } = input;
+      const record = await FeeModel.findOne({ _id: feeId });
+      if (!record) {
+        throw new Error('not found the fee');
+      }
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: buildingId,
+        user: request.user.id,
+        type: ADMIN,
+      });
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to update fee detail');
+      }
+      await FeeModel.update({
+        _id: feeId,
+      }, {
+        $set: {
+          total,
+          status,
+        },
+      });
+
+      return {
+        fee: await FeeModel.findOne({
+          _id: feeId,
+        }),
       };
     },
   },
