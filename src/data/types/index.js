@@ -190,6 +190,7 @@ type Me implements Node, Resident {
   posts: [Post]
   friends: [Friend]
   building: Building
+  buildings: [Building]
   apartments: [Apartment]
   friendRequests: [Friend]
   friendSuggestions: [Friend]
@@ -307,11 +308,46 @@ type UserConnection {
   edges: [User]
 }
 
-#Fee
+#FeeType
 type FeeType implements Node {
   _id: ID!
   code: Int!
   name: String!
+}
+
+#Fee
+type Fee implements Node {
+  _id: ID!
+  month: Int!
+  year: Int!
+  apartment: Apartment
+  building: Building
+  total: Int
+  status: String
+  from: Date!
+  to: Date!
+  type: FeeType
+  createdAt: Date
+  updatedAt: Date
+}
+
+type FeesResult {
+  pageInfo: PageInfo
+  edges: [Fee]
+}
+
+type FeeReport {
+  month: Int
+  year: Int
+  apartment: Apartment
+  building: Building
+  detail: [Fee]
+  totals: Int
+}
+
+type FeesReportResult {
+  pageInfo: PageInfo
+  edges: [FeeReport]
 }
 
 ### Building Type
@@ -367,6 +403,7 @@ type Building implements Node {
   address: Address
   isAdmin: Boolean
   apartments: [Apartment]
+  totalApartment: Int
   announcements(skip: Int, limit: Int): BuildingAnnouncementConnection!
   requests(cursor: String, limit: Int): UsersAwaitingApprovalConnection
   posts(cursor: String, limit: Int): BuildingPostsConnection
@@ -453,6 +490,9 @@ export const resolvers = {
     },
     apartments(building) {
       return ApartmentsModel.find({ building: building._id });
+    },
+    totalApartment(building) {
+      return ApartmentsModel.count({ building: building._id });
     },
     async posts(building, { cursor = null, limit = 5 }, { user }) {
       if (!user) {
@@ -718,6 +758,9 @@ export const resolvers = {
     building(data) {
       return AddressServices.getBuilding(data.building);
     },
+    buildings(data) {
+      return AddressServices.getBuildings(data._id);
+    },
     apartments(data) {
       return ApartmentsModel.find({ user: data._id });
     },
@@ -982,13 +1025,13 @@ export const resolvers = {
         },
         $limit: limit,
       };
-      if (data._id == user.id) {
+      if (data._id === user.id) {
         select.privacy = [PUBLIC, FRIEND, ONLY_ME];
       }
       if (r) {
         select.privacy = [PUBLIC, FRIEND];
       }
-      if (data._id != user.id && !r) {
+      if (data._id !== user.id && !r) {
         select.privacy = [PUBLIC];
       }
       const p = await PostsService.find({
@@ -1074,6 +1117,28 @@ export const resolvers = {
           },
         }),
       };
+    },
+  },
+  Fee: {
+    apartment(data) {
+      return ApartmentsModel.findOne({ _id: data.apartment });
+    },
+    building(data) {
+      return AddressServices.getBuilding(data.building);
+    },
+    createdAt(data) {
+      return new Date(data.createdAt);
+    },
+    updatedAt(data) {
+      return new Date(data.updatedAt);
+    },
+  },
+  FeeReport: {
+    apartment(data) {
+      return ApartmentsModel.findOne({ _id: data.apartment });
+    },
+    building(data) {
+      return AddressServices.getBuilding(data.building);
     },
   },
 };

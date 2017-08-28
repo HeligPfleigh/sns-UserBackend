@@ -8,6 +8,7 @@ import NotificationsModel from './NotificationsModel';
 import BuildingMembersModel from './BuildingMembersModel';
 import BuildingsModel from './BuildingsModel';
 import ApartmentsModel from './ApartmentsModel';
+import { FeeModel, FeeTypeModel } from './FeeModel';
 
 export {
   UsersModel,
@@ -18,4 +19,6 @@ export {
   BuildingMembersModel,
   BuildingsModel,
   ApartmentsModel,
+  FeeModel,
+  FeeTypeModel,
 };
