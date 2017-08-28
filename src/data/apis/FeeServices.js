@@ -48,6 +48,17 @@ async function saveFeeForApartments(datas, buildingId, feeType) {
   return feesSaved;
 }
 
+async function getFeeTypes() {
+  const types = await FeeTypeModel.find({ });
+  return types;
+}
+
 export {
   saveFeeForApartments,
+  getFeeTypes,
+};
+
+export default {
+  saveFeeForApartments,
+  getFeeTypes,
 };

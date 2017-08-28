@@ -8,7 +8,7 @@ import NotificationsModel from './NotificationsModel';
 import BuildingMembersModel from './BuildingMembersModel';
 import BuildingsModel from './BuildingsModel';
 import ApartmentsModel from './ApartmentsModel';
-import FeeModel from './FeeModel';
+import { FeeModel, FeeTypeModel } from './FeeModel';
 
 export {
   UsersModel,
@@ -20,4 +20,5 @@ export {
   BuildingsModel,
   ApartmentsModel,
   FeeModel,
+  FeeTypeModel,
 };
