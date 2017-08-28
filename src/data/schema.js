@@ -27,6 +27,7 @@ import NotificationsService from './apis/NotificationsService';
 import UsersService from './apis/UsersService';
 import PostsService from './apis/PostsService';
 import * as DocumentsService from './apis/DocumentsService';
+import * as FAQsService from './apis/FAQsService';
 import CommentService from './apis/CommentService';
 import EventService from './apis/EventServices';
 import {
@@ -86,6 +87,7 @@ type Query {
   requestsToJoinBuilding(_id: String): RequestsToJoinBuilding
   checkExistUser(query: String): Boolean
   documents(building: String, limit: Int, cursor: String): Documents
+  FAQs(building: String, limit: Int, cursor: String): FAQs
 }
 
 input ProfileInput {
@@ -205,6 +207,24 @@ input UpdateDocumentInput {
 }
 
 input DeleteDocumentInput {
+  _id: String!
+  building: String!
+}
+
+input CreateFAQInput {
+  name: String!
+  message: String!
+  building: String!  
+}
+
+input UpdateFAQInput {
+  _id: String!
+  name: String!
+  message: String!
+  building: String!  
+}
+
+input DeleteFAQInput {
   _id: String!
   building: String!
 }
@@ -373,6 +393,15 @@ type Mutation {
   deleteDocument(
     input: DeleteDocumentInput!
   ): Document
+  createFAQ(
+    input: CreateFAQInput!
+  ): FAQ
+  updateFAQ(
+    input: UpdateFAQInput!
+  ): FAQ
+  deleteFAQ(
+    input: DeleteFAQInput!
+  ): FAQ
   approvingUserToBuilding(
     input: ApprovingUserToBuildingInput!
   ): ApprovingUserToBuildingPayload
@@ -472,6 +501,24 @@ const rootResolvers = {
     },
     async documents({ request }, { building, limit = 20, cursor = null }) {
       const r = await DocumentsService.service({ limit }).find({
+        $cursor: cursor,
+        $field: 'author',
+        query: {
+          building,
+          isDeleted: { $exists: false },
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      });
+      return {
+        pageInfo: r.paging,
+        edges: r.data,
+      };
+    },
+    async FAQs({ request }, { building, limit = 20, cursor = null }) {
+      const r = await FAQsService.service({ limit }).find({
         $cursor: cursor,
         $field: 'author',
         query: {
@@ -1301,6 +1348,53 @@ const rootResolvers = {
       }
 
       return DocumentsService.softDelete({
+        ...input,
+      });
+    },
+    async createFAQ({ request }, { input }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: input.building,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to approve request');
+      }
+
+      return FAQsService.create({
+        ...input,
+        author: request.user.id,
+      });
+    },
+    async updateFAQ({ request }, { input }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: input.building,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to approve request');
+      }
+
+      return FAQsService.update({
+        ...input,
+        author: request.user.id,
+      });
+    },
+    async deleteFAQ({ request }, { input }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: input.building,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to approve request');
+      }
+
+      return FAQsService.softDelete({
         ...input,
       });
     },

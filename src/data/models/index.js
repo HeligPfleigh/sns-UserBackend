@@ -4,6 +4,7 @@ import UsersModel from './UsersModel';
 import FriendsRelationModel from './FriendsRelationModel';
 import PostsModel from './PostsModel';
 import DocumentsModel from './DocumentsModel';
+import FAQsModel from './FAQsModel';
 import CommentsModel from './CommentsModel';
 import NotificationsModel from './NotificationsModel';
 import BuildingMembersModel from './BuildingMembersModel';
@@ -16,6 +17,7 @@ export {
   FriendsRelationModel,
   PostsModel,
   DocumentsModel,
+  FAQsModel,
   CommentsModel,
   NotificationsModel,
   BuildingMembersModel,
