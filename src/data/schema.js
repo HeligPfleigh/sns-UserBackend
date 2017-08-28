@@ -18,6 +18,7 @@ import {
   UsersModel,
   BuildingsModel,
   ApartmentsModel,
+  FeeModel,
 } from './models';
 import Service from './mongo/service';
 import AddressServices from './apis/AddressServices';
@@ -29,7 +30,7 @@ import * as DocumentsService from './apis/DocumentsService';
 import CommentService from './apis/CommentService';
 import EventService from './apis/EventServices';
 import {
-  saveFeeForApartments,
+  // saveFeeForApartments,
   getFeeTypes,
 } from './apis/FeeServices';
 import {
@@ -66,6 +67,8 @@ enum ResponseType {
 type Query {
   test: Test
   feeds(limit: Int, cursor: String): Feeds
+  fees(buildingId: String!, limit: Int, cursor: String): FeesResult
+  feesReport(buildingId: String!, page: Int, limit: Int, feeType: Int): FeesReportResult
   listEvent(limit: Int, cursor: String): Events
   post(_id: String!): Post
   user(_id: String): Friend
@@ -393,6 +396,15 @@ const FeedsService = Service({
   cursor: true,
 });
 
+const FeesService = Service({
+  Model: FeeModel,
+  paginate: {
+    default: 5,
+    max: 50,
+  },
+  cursor: true,
+});
+
 const EventsListService = Service({
   Model: PostsModel,
   paginate: {
@@ -483,6 +495,82 @@ const rootResolvers = {
         res.likes.indexOf(userId) !== -1 ? res.isLiked = true : res.isLiked = false;
       }
       return res;
+    },
+    async feesReport(context, { buildingId, page = 1, limit = 10, feeType }) {
+      // eslint-disable-next-line
+          let filters = {
+        $match: {
+          building: toObjectId(buildingId),
+        },
+      };
+
+      // add filter data by fee type
+      if (feeType && feeType !== 0) {
+        filters = {
+          $match: {
+            building: toObjectId(buildingId),
+            'type.code': feeType,
+          },
+        };
+      }
+
+      const options = [
+        filters,
+        {
+          $group: { _id: {
+            month: '$month',
+            year: '$year',
+            apartment: '$apartment',
+            building: '$building',
+          },
+          count: { $sum: 1 },
+          totals: { $sum: '$total' },
+          },
+        },
+      ];
+
+      const count = (await FeeModel.aggregate([...options])).length;
+
+      const result = await FeeModel.aggregate([
+        ...options,
+        {
+          $sort: {
+            '_id.year': -1,
+            '_id.month': -1,
+          },
+        },
+        { $skip: (page - 1) * limit },
+        { $limit: limit },
+      ]);
+
+      const data = await Promise.all((result || []).map(async (item) => {
+        const detail = await FeeModel.find(item._id);
+        return { ...item._id, totals: item.totals, detail };
+      }));
+
+      return {
+        pageInfo: {
+          total: count,
+          limit,
+        },
+        edges: data,
+      };
+    },
+    async fees(context, { buildingId, cursor = null, limit = 25 }) {
+      const r = await FeesService.find({
+        $cursor: cursor,
+        query: {
+          building: buildingId,
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      });
+      return {
+        pageInfo: r.paging,
+        edges: r.data,
+      };
     },
     apartment(root, { _id }) {
       return AddressServices.getApartment(_id);
@@ -867,10 +955,10 @@ const rootResolvers = {
       if (isObject(userDocument.emails) && isString(userDocument.emails.address)) {
         await BuildingServices.notifywhenAcceptedForUserBelongsToBuilding(userDocument.emails.address, userDocument);
       }
-      const buildingMember = await BuildingMembersModel.findOne({
-        building: buildingId,
-        user: userId,
-      });
+      // const buildingMember = await BuildingMembersModel.findOne({
+      //   building: buildingId,
+      //   user: userId,
+      // });
       return userDocument;
     },
     async rejectRequestForJoiningBuilding({ request }, { buildingId, userId }) {
