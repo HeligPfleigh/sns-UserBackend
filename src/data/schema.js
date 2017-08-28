@@ -30,6 +30,7 @@ import * as DocumentsService from './apis/DocumentsService';
 import * as FAQsService from './apis/FAQsService';
 import CommentService from './apis/CommentService';
 import EventService from './apis/EventServices';
+import ApartmentServices from './apis/ApartmentServices';
 import {
   // saveFeeForApartments,
   getFeeTypes,
@@ -70,6 +71,7 @@ type Query {
   feeds(limit: Int, cursor: String): Feeds
   fees(buildingId: String!, limit: Int, cursor: String): FeesResult
   feesReport(buildingId: String!, page: Int, limit: Int, feeType: Int): FeesReportResult
+  feesOfApartment(apartmentId: String!, month: Int, year: Int): FeesReportResult
   listEvent(limit: Int, cursor: String): Events
   post(_id: String!): Post
   user(_id: String): Friend
@@ -89,7 +91,6 @@ type Query {
   documents(building: String, limit: Int, cursor: String): Documents
   FAQs(building: String, limit: Int, cursor: String): FAQs
   fee(_id: String!): Fee
-
 }
 
 input ProfileInput {
@@ -562,7 +563,7 @@ const rootResolvers = {
     },
     async feesReport(context, { buildingId, page = 1, limit = 10, feeType }) {
       // eslint-disable-next-line
-          let filters = {
+      let filters = {
         $match: {
           building: toObjectId(buildingId),
         },
@@ -634,6 +635,49 @@ const rootResolvers = {
       return {
         pageInfo: r.paging,
         edges: r.data,
+      };
+    },
+    async feesOfApartment(context, { apartmentId, month, year }) {
+      // eslint-disable-next-line
+      let filters = {
+        $match: {
+          apartment: new mongoose.Types.ObjectId(apartmentId),
+          month,
+          year,
+        },
+      };
+
+      const options = [
+        filters,
+        {
+          $group: { _id: {
+            month: '$month',
+            year: '$year',
+            apartment: '$apartment',
+          },
+          count: { $sum: 1 },
+          totals: { $sum: '$total' },
+          },
+        },
+      ];
+
+      const result = await FeeModel.aggregate([
+        ...options,
+        {
+          $sort: {
+            '_id.year': -1,
+            '_id.month': -1,
+          },
+        },
+      ]);
+
+      const data = await Promise.all((result || []).map(async (item) => {
+        const detail = await FeeModel.find(item._id);
+        return { ...item._id, totals: item.totals, detail };
+      }));
+
+      return {
+        edges: data,
       };
     },
     apartment(root, { _id }) {
