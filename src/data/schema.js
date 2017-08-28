@@ -25,6 +25,7 @@ import BuildingServices from './apis/BuildingServices';
 import NotificationsService from './apis/NotificationsService';
 import UsersService from './apis/UsersService';
 import PostsService from './apis/PostsService';
+import * as DocumentsService from './apis/DocumentsService';
 import CommentService from './apis/CommentService';
 import EventService from './apis/EventServices';
 import {
@@ -38,7 +39,7 @@ import {
   sendSharingPostNotification,
 } from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
-import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, ONLY_ME, EVENT } from '../constants';
+import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT } from '../constants';
 import toObjectId from '../utils/toObjectId';
 
 const { Types: { ObjectId } } = mongoose;
@@ -81,6 +82,7 @@ type Query {
   resident(_id: String): User
   requestsToJoinBuilding(_id: String): RequestsToJoinBuilding
   checkExistUser(query: String): Boolean
+  documents(building: String, limit: Int, cursor: String): Documents
 }
 
 input ProfileInput {
@@ -184,6 +186,24 @@ input DeleteBuildingAnnouncementInput {
 
 type DeleteBuildingAnnouncementPayload {
   announcement: BuildingAnnouncement
+}
+
+input CreateDocumentInput {
+  name: String!
+  file: String!
+  building: String!  
+}
+
+input UpdateDocumentInput {
+  _id: String!
+  name: String!
+  file: String!
+  building: String!  
+}
+
+input DeleteDocumentInput {
+  _id: String!
+  building: String!
 }
 
 input ApprovingUserToBuildingInput {
@@ -341,7 +361,15 @@ type Mutation {
   deleteBuildingAnnouncement(
     input: DeleteBuildingAnnouncementInput!
   ): DeleteBuildingAnnouncementPayload
-
+  createDocument(
+    input: CreateDocumentInput!
+  ): Document
+  updateDocument(
+    input: UpdateDocumentInput!
+  ): Document
+  deleteDocument(
+    input: DeleteDocumentInput!
+  ): Document
   approvingUserToBuilding(
     input: ApprovingUserToBuildingInput!
   ): ApprovingUserToBuildingPayload
@@ -428,6 +456,24 @@ const rootResolvers = {
           res.likes.indexOf(userId) !== -1 ? res.isLiked = true : res.isLiked = false;
           return res;
         }),
+      };
+    },
+    async documents({ request }, { building, limit = 20, cursor = null }) {
+      const r = await DocumentsService.service({ limit }).find({
+        $cursor: cursor,
+        $field: 'author',
+        query: {
+          building,
+          isDeleted: { $exists: false },
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      });
+      return {
+        pageInfo: r.paging,
+        edges: r.data,
       };
     },
     async post({ request }, { _id }) {
@@ -1122,6 +1168,53 @@ const rootResolvers = {
       return {
         announcement,
       };
+    },
+    async createDocument({ request }, { input }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: input.building,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to approve request');
+      }
+
+      return DocumentsService.create({
+        ...input,
+        author: request.user.id,
+      });
+    },
+    async updateDocument({ request }, { input }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: input.building,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to approve request');
+      }
+
+      return DocumentsService.update({
+        ...input,
+        author: request.user.id,
+      });
+    },
+    async deleteDocument({ request }, { input }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: input.building,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to approve request');
+      }
+
+      return DocumentsService.softDelete({
+        ...input,
+      });
     },
     async approvingUserToBuilding({ request }, { input }) {
       const { requestsToJoinBuildingId } = input;
