@@ -12,7 +12,7 @@ const find = state => ({
 
     return select;
   },
-  _findBySkip(params, count, getFilter = filter) {
+  findBySkip(params, count = true, getFilter = filter) {
     // Start with finding all, and limit when necessary.
     const { filters, query } = getFilter(params.query || {});
     let q = state.Model.find(query);
@@ -39,7 +39,7 @@ const find = state => ({
     }
     q = q.cursor();
 
-    const data = new Promise((resolve, reject) => {
+    const promise = new Promise((resolve, reject) => {
       const edgesArray = [];
       q.on('data', async (res) => {
         edgesArray.push(res);
@@ -55,7 +55,7 @@ const find = state => ({
     });
 
     if (!count) {
-      return Promise.all([data]).then(values => ({
+      return Promise.all([promise]).then(values => ({
         paging: {
           total: null,
           limit: filters.$limit,
@@ -64,14 +64,14 @@ const find = state => ({
         data: values[0],
       }));
     }
-    const total = state.Model.count(query);
-    return Promise.all([data, total]).then(values => ({
+    return Promise.all([promise, state.Model.count(query)]).then(([data, numberOfRows]) => ({
       paging: {
-        total: values[1],
+        total: numberOfRows,
         limit: filters.$limit,
-        skip: filters.$skip || 0,
+        skip: filters.$skip,
+        hasNextPage: numberOfRows > filters.$limit * (filters.$skip + 1),
       },
-      data: values[0],
+      data,
     }));
   },
 
@@ -166,7 +166,7 @@ const find = state => ({
     const paginate = (params && typeof params.paginate !== 'undefined') ? params.paginate : state.paginate;
     let result = null;
     if (state.cursor !== true) {
-      result = this._findBySkip(params, !!paginate.default,
+      result = this.findBySkip(params, !!paginate.default,
         query => filter(query, paginate),
       );
     } else {

@@ -46,6 +46,34 @@ interface Node {
   _id: ID!
 }
 
+interface PageInfo {
+  total: Int
+  limit: Int
+  hasNextPage: Boolean
+}
+
+# Pagination
+type PageInfoWithCursor implements PageInfo {
+  endCursor: String
+  hasNextPage: Boolean
+  total: Int
+  limit: Int
+}
+
+type PageInfoWithSkip implements PageInfo {
+  skip: Int
+  hasNextPage: Boolean
+  total: Int
+  limit: Int
+}
+
+type PageInfoWithActivePage implements PageInfo {
+  page: Int
+  hasNextPage: Boolean
+  total: Int
+  limit: Int
+}
+
 type Apartment implements Node {
   _id: ID!
   number: Int
@@ -302,35 +330,28 @@ type Author implements Node, Resident {
 
 
 # Feeds
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean
-  total: Int
-  limit: Int
-}
-
 type Feeds {
-  pageInfo: PageInfo
+  pageInfo: PageInfoWithCursor
   edges: [Post]
 }
 
 type Documents {
-  pageInfo: PageInfo
+  pageInfo: PageInfoWithActivePage
   edges: [Document]
 }
 
 type FAQs {
-  pageInfo: PageInfo
+  pageInfo: PageInfoWithActivePage
   edges: [FAQ]
 }
 
 type Events {
-  pageInfo: PageInfo
+  pageInfo: PageInfoWithCursor
   edges: [Event]
 }
 
 type NotificationsResult {
-  pageInfo: PageInfo
+  pageInfo: PageInfoWithCursor
   edges: [Notification]
 }
 
@@ -366,11 +387,11 @@ type User implements Node {
   updatedAt: Date
 }
 type PostConnection {
-  pageInfo: PageInfo
+  pageInfo: PageInfoWithCursor
   edges: [Post]
 }
 type UserConnection {
-  pageInfo: PageInfo
+  pageInfo: PageInfoWithCursor
   edges: [User]
 }
 
@@ -402,7 +423,7 @@ type Fee implements Node {
 }
 
 type FeesResult {
-  pageInfo: PageInfo
+  pageInfo: PageInfoWithCursor
   edges: [Fee]
 }
 
@@ -430,25 +451,18 @@ type BuildingAnnouncement {
   message: String
 }
 
-type PageSkipInfo {
-  skip: Int
-  hasNextPage: Boolean
-  total: Int
-  limit: Int
-}
-
 type BuildingPostsConnection {
-  pageInfo: PageInfo
+  pageInfo: PageInfoWithCursor
   edges: [Post]
 }
 
 type BuildingAnnouncementConnection {
-  pageInfo: PageSkipInfo
+  pageInfo: PageInfoWithSkip
   edges: [BuildingAnnouncement]
 }
 
 type UsersAwaitingApprovalConnection {
-  pageInfo: PageInfo
+  pageInfo: PageInfoWithCursor
   edges: [RequestsToJoinBuilding]
 }
 

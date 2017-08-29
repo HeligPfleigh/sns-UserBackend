@@ -43,6 +43,7 @@ import {
   acceptedUserBelongsToBuildingNotification,
   rejectedUserBelongsToBuildingNotification,
   sendSharingPostNotification,
+  sendNewFeeForApartmentNotification,
 } from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
 import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT, PAID, UNPAID, PARTIALLY_PAID } from '../constants';
@@ -91,8 +92,8 @@ type Query {
   resident(_id: String): User
   requestsToJoinBuilding(_id: String): RequestsToJoinBuilding
   checkExistUser(query: String): Boolean
-  documents(building: String, limit: Int, cursor: String): Documents
-  FAQs(building: String, limit: Int, cursor: String): FAQs
+  documents(building: String, limit: Int, page: Int, cursor: String): Documents
+  FAQs(building: String, limit: Int, page: Int, cursor: String): FAQs
   fee(_id: String!): Fee
 }
 
@@ -136,6 +137,12 @@ input UpdateFeeDetailInput {
   total: Int!
   status: String!
   buildingId: String!
+}
+
+input ReminderToPayFeeInput {
+  _id: String!
+  apartment: String!
+  building: String!
 }
 
 type UpdateFeeDetailPayload {
@@ -429,6 +436,9 @@ type Mutation {
   updateFeeDetail(
     input: UpdateFeeDetailInput!
   ): UpdateFeeDetailPayload
+  reminderToPayFee(
+    input: ReminderToPayFeeInput!
+  ): Fee
 }
 
 schema {
@@ -520,39 +530,43 @@ const rootResolvers = {
         }),
       };
     },
-    async documents(_, { building, limit = 20, cursor = null }) {
-      const r = await DocumentsService.service({ limit }).find({
-        $cursor: cursor,
-        $field: 'author',
+    async documents(_, { building, limit = 20, page = 0 }) {
+      const r = await DocumentsService.service({ limit }).findBySkip({
         query: {
           building,
           isDeleted: { $exists: false },
           $sort: {
             createdAt: -1,
           },
+          $skip: page * limit,
           $limit: limit,
         },
       });
       return {
-        pageInfo: r.paging,
+        pageInfo: {
+          ...r.paging,
+          page,
+        },
         edges: r.data,
       };
     },
-    async FAQs(_, { building, limit = 20, cursor = null }) {
-      const r = await FAQsService.service({ limit }).find({
-        $cursor: cursor,
-        $field: 'author',
+    async FAQs(_, { building, limit = 20, page = 0 }) {
+      const r = await FAQsService.service({ limit }).findBySkip({
         query: {
           building,
           isDeleted: { $exists: false },
           $sort: {
             createdAt: -1,
           },
+          $skip: page * limit,
           $limit: limit,
         },
       });
       return {
-        pageInfo: r.paging,
+        pageInfo: {
+          ...r.paging,
+          page,
+        },
         edges: r.data,
       };
     },
@@ -1664,6 +1678,53 @@ const rootResolvers = {
           _id: feeId,
         }),
       };
+    },
+    async reminderToPayFee({ request }, { input: { _id, apartment, building } }) {
+      // Determine whether user has granted to perform this action.
+      const isAdmin = await BuildingMembersModel.findOne({
+        building,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to update fee detail.');
+      }
+
+      // Determine whether the fee already exists.
+      const feeDoc = await FeeModel.findOne({
+        _id,
+        apartment,
+        building,
+      });
+      if (!feeDoc) {
+        throw new Error('The fee does not exists.');
+      }
+
+      // Determine whether the apartment already exists.
+      const apartmentDoc = await ApartmentsModel.findOne({
+        _id: apartment,
+      });
+      if (!apartmentDoc) {
+        throw new Error('The apartment does not exists.');
+      }
+
+      // Determine whether the building already exists.
+      const buildingDoc = await BuildingsModel.findOne({
+        _id: building,
+      });
+      if (!buildingDoc) {
+        throw new Error('The building does not exists.');
+      }
+
+      sendNewFeeForApartmentNotification({
+        apartment: feeDoc.apartment,
+        month: feeDoc.month,
+        year: feeDoc.year,
+        text: `Thông báo nộp tiền ${feeDoc.type.name.toString().toLowerCase()} tháng ${feeDoc.month}/${feeDoc.year}`,
+      });
+
+      return feeDoc;
     },
   },
 };
