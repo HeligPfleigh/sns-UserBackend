@@ -74,7 +74,7 @@ type Query {
   feeds(limit: Int, cursor: String): Feeds
   fees(buildingId: String!, limit: Int, cursor: String): FeesResult
   feesReport(buildingId: String!, page: Int, limit: Int, feeDate: String, feeType: Int): FeesResult
-  feesOfApartment(apartmentId: String!, month: Int, year: Int): Fee
+  feesOfApartment(apartmentId: String!, month: Int, year: Int): FeesResult
   listEvent(limit: Int, cursor: String): Events
   post(_id: String!): Post
   user(_id: String): Friend
