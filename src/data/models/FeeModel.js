@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import timestamp from 'mongoose-timestamp';
-import { FEE_STATUS, PAID, UNPAID } from '../../constants';
+import { FEE_STATUS, UNPAID } from '../../constants';
 
 const { Schema } = mongoose;
 const { Types: { ObjectId } } = Schema;
@@ -16,6 +16,7 @@ const FeeTypeSchema = new Schema({
     unique: true,
     required: true,
   },
+  icon: String,
 });
 
 FeeTypeSchema.plugin(timestamp);
@@ -26,6 +27,7 @@ const FeeSchema = new Schema({
   type: {
     code: Number,
     name: String,
+    icon: String,
   },
   from: {
     type: Date,

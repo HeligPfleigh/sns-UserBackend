@@ -27,6 +27,7 @@ async function saveFeeForApartments(datas, buildingId, feeType) {
     type: {
       code: type.code,
       name: type.name,
+      icon: type.icon,
     },
     total: data.total,
     status: data.paid ? PAID : UNPAID,
