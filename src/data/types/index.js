@@ -32,6 +32,7 @@ import {
   BLOCKED,
   PAID,
   UNPAID,
+  NEW_FEE_APARTMENT,
 } from '../../constants';
 import Service from '../mongo/service';
 
@@ -73,6 +74,7 @@ enum NotificationType {
   REJECTED_JOIN_BUILDING
   SHARING_POST
   INTEREST_EVENT
+  NEW_FEE_APARTMENT
 }
 
 enum PrivacyType {

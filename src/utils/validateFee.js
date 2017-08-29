@@ -1,4 +1,4 @@
-
+import ApartmentsModel from '../data/models/ApartmentsModel';
 
 const validateData = (data, buildingId, callback) => {
   if (data.length === 0) {
@@ -55,7 +55,7 @@ const validateData = (data, buildingId, callback) => {
     };
   });
 
-  ApartmentModel.find({
+  ApartmentsModel.find({
     building: buildingId,
   }, (err, apartmentsInBuilding) => {
     if (err || !apartmentsInBuilding || apartmentsInBuilding.length === 0) {

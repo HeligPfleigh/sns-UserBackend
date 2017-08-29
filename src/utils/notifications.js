@@ -4,6 +4,7 @@ import {
   CommentsModel,
   PostsModel,
   UsersModel,
+  ApartmentsModel,
 } from '../data/models';
 import {
   LIKES,
@@ -17,6 +18,7 @@ import {
   REJECTED_JOIN_BUILDING,
   SHARING_POST,
   INTEREST_EVENT,
+  NEW_FEE_APARTMENT,
 } from '../constants';
 
 const getUserFollow = async (postId, userId, status) => {
@@ -211,6 +213,29 @@ async function sendInterestEventNotification(author, userJoin, eventId) {
   }
 }
 
+async function sendNewFeeForApartmentNotification(data) {
+  const apartment = await ApartmentsModel.findOne({ _id: data.apartment });
+
+  const options = {
+    user: apartment.owner,
+    seen: false,
+    type: NEW_FEE_APARTMENT,
+    'data.month': data.month,
+    'data.year': data.year,
+    'data.apartment': data.apartment,
+  };
+  const notify = await NotificationsModel.findOne(options);
+
+  if (!notify) {
+    await NotificationsModel.create({
+      user: apartment.owner,
+      seen: false,
+      type: NEW_FEE_APARTMENT,
+      data,
+    });
+  }
+}
+
 export {
   sendLikeNotification,
   sendCommentNotification,
@@ -224,4 +249,5 @@ export {
   rejectedUserBelongsToBuildingNotification,
   sendSharingPostNotification,
   sendInterestEventNotification,
+  sendNewFeeForApartmentNotification,
 };
