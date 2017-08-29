@@ -23,18 +23,11 @@ import UploadRouter, { apolloUploadExpress } from './core/uploads';
 import MailRouter from './routes/MailRoutes';
 import BuildingRouter from './routes/BuildingRoutes';
 import AuthenticateRouter from './routes/AuthenticateRoutes';
-import {
-  initFeeTypes,
-} from './initialData/FeeDataInit';
 
 const { port, auth, databaseUrl } = config;
 
 // Create connect database
-Mongoose.connect(databaseUrl, (err) => {
-  if (!err) {
-    initFeeTypes();
-  }
-});
+Mongoose.connect(databaseUrl);
 
 const app = express();
 
