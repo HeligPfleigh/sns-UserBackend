@@ -1,11 +1,15 @@
 
 import mongoose from 'mongoose';
-import { PAID, UNPAID } from '../../constants';
+import { PAID, UNPAID, NEW_FEE_APARTMENT, NOTIFY_TYPES } from '../../constants';
 
 import {
   FeeTypeModel,
   FeeModel,
 } from '../models/FeeModel';
+
+import {
+  sendNewFeeForApartmentNotification,
+} from '../../utils/notifications';
 
 import {
   BuildingsModel,
@@ -14,11 +18,12 @@ import {
 
 async function saveFeeForApartments(datas, buildingId, feeType) {
   const type = await FeeTypeModel.findOne({ code: feeType });
-  const apartments = await ApartmentsModel.find({ building: buildingId });
+  const apartmentNames = datas.map(data => data.apartment_number);
+  const apartments = await ApartmentsModel.find({ building: buildingId, name: { $in: apartmentNames } });
   const apartmentGroupByNumber = {};
   apartments.forEach((apartment) => {
-    if (!apartmentGroupByNumber[apartment.number.toString()]) {
-      apartmentGroupByNumber[apartment.number.toString()] = apartment;
+    if (!apartmentGroupByNumber[apartment.name.toString()]) {
+      apartmentGroupByNumber[apartment.name.toString()] = apartment;
     }
   });
   const fees = datas.map(data => ({
@@ -43,9 +48,14 @@ async function saveFeeForApartments(datas, buildingId, feeType) {
       year: fee.year,
       'type.code': type.code,
     }, fee, { upsert: true });
+    sendNewFeeForApartmentNotification({
+      apartment: fee.apartment,
+      month: fee.month,
+      year: fee.year,
+      text: `Thông báo nộp tiền ${fee.type.name.toString().toLowerCase()} tháng ${fee.month}/${fee.year}`,
+    });
     feesSaved.push(feeSaved);
   }));
-
   return feesSaved;
 }
 

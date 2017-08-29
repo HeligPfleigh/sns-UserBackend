@@ -19,6 +19,7 @@ const NotificationSchema = new Schema({
     default: LIKES,
     index: true,
   },
+  data: Schema.Types.Mixed,
   seen: {
     type: Boolean,
     default: false,
