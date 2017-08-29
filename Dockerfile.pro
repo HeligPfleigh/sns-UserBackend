@@ -28,6 +28,8 @@ RUN cd /usr/src/app &&  $HOME/.yarn/bin/yarn install --pure-lockfile
 
 EXPOSE 3005
 
+CMD [ "npm", "start" ]
+
 # Install PM2 process manager
-RUN npm install pm2 -g
-CMD ["pm2-docker", "process.yml"]
+# RUN npm install pm2 -g
+# CMD ["pm2-docker", "process.yml"]
