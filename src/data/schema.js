@@ -4,7 +4,11 @@ import isUndefined from 'lodash/isUndefined';
 import isObject from 'lodash/isObject';
 import isString from 'lodash/isString';
 import merge from 'lodash/merge';
+import map from 'lodash/map';
+import includes from 'lodash/includes';
+import without from 'lodash/without';
 import mongoose from 'mongoose';
+import { generate as keyRandom } from 'shortid';
 import {
   // buildSchemaFromTypeDefinitions,
   makeExecutableSchema,
@@ -30,7 +34,6 @@ import * as DocumentsService from './apis/DocumentsService';
 import * as FAQsService from './apis/FAQsService';
 import CommentService from './apis/CommentService';
 import EventService from './apis/EventServices';
-import ApartmentServices from './apis/ApartmentServices';
 import {
   // saveFeeForApartments,
   getFeeTypes,
@@ -42,7 +45,7 @@ import {
   sendSharingPostNotification,
 } from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
-import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT } from '../constants';
+import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT, PAID, UNPAID, PARTIALLY_PAID } from '../constants';
 import toObjectId from '../utils/toObjectId';
 
 const { Types: { ObjectId } } = mongoose;
@@ -70,8 +73,8 @@ type Query {
   test: Test
   feeds(limit: Int, cursor: String): Feeds
   fees(buildingId: String!, limit: Int, cursor: String): FeesResult
-  feesReport(buildingId: String!, page: Int, limit: Int, feeType: Int): FeesReportResult
-  feesOfApartment(apartmentId: String!, month: Int, year: Int): FeesReportResult
+  feesReport(buildingId: String!, page: Int, limit: Int, feeDate: String, feeType: Int): FeesResult
+  feesOfApartment(apartmentId: String!, month: Int, year: Int): Fee
   listEvent(limit: Int, cursor: String): Events
   post(_id: String!): Post
   user(_id: String): Friend
@@ -517,7 +520,7 @@ const rootResolvers = {
         }),
       };
     },
-    async documents({ request }, { building, limit = 20, cursor = null }) {
+    async documents(_, { building, limit = 20, cursor = null }) {
       const r = await DocumentsService.service({ limit }).find({
         $cursor: cursor,
         $field: 'author',
@@ -535,7 +538,7 @@ const rootResolvers = {
         edges: r.data,
       };
     },
-    async FAQs({ request }, { building, limit = 20, cursor = null }) {
+    async FAQs(_, { building, limit = 20, cursor = null }) {
       const r = await FAQsService.service({ limit }).find({
         $cursor: cursor,
         $field: 'author',
@@ -561,38 +564,48 @@ const rootResolvers = {
       }
       return res;
     },
-    async feesReport(context, { buildingId, page = 1, limit = 10, feeType }) {
+    async feesReport(context, { buildingId, page = 1, limit = 10, feeDate, feeType }) {
+      let treeMode = true;
       // eslint-disable-next-line
       let filters = {
-        $match: {
-          building: toObjectId(buildingId),
-        },
+        building: toObjectId(buildingId),
       };
 
-      // add filter data by fee type
-      if (feeType && feeType !== 0) {
+      // add filter data by fee date
+      if (feeDate && feeDate !== '') {
+        const [month, year] = feeDate.split('-');
         filters = {
-          $match: {
-            building: toObjectId(buildingId),
-            'type.code': feeType,
-          },
+          ...filters,
+          month: Number(month),
+          year: Number(year),
         };
       }
 
-      const options = [
-        filters,
-        {
-          $group: { _id: {
-            month: '$month',
-            year: '$year',
-            apartment: '$apartment',
-            building: '$building',
+      // add filter data by fee type
+      if (feeType && feeType !== 0) {
+        treeMode = false;
+        filters = {
+          ...filters,
+          'type.code': feeType,
+        };
+      }
+
+      const options = [{ $match: filters }];
+
+      if (treeMode) {
+        options.push({
+          $group: {
+            _id: {
+              month: '$month',
+              year: '$year',
+              apartment: '$apartment',
+              building: '$building',
+            },
+            count: { $sum: 1 },
+            totals: { $sum: '$total' },
           },
-          count: { $sum: 1 },
-          totals: { $sum: '$total' },
-          },
-        },
-      ];
+        });
+      }
 
       const count = (await FeeModel.aggregate([...options])).length;
 
@@ -609,8 +622,47 @@ const rootResolvers = {
       ]);
 
       const data = await Promise.all((result || []).map(async (item) => {
-        const detail = await FeeModel.find(item._id);
-        return { ...item._id, totals: item.totals, detail };
+        if (treeMode) {
+          const detail = await FeeModel.find(item._id);
+
+          const statusList = map(detail, 'status');
+          let status = includes(statusList, PAID) ? PAID : UNPAID;
+          if (status === PAID) {
+            const paids = without(statusList, UNPAID);
+            status = paids.length === statusList.length ? PAID : PARTIALLY_PAID;
+          }
+
+          return {
+            _id: keyRandom(),
+            ...item._id,
+            type: {
+              _id: keyRandom(),
+              code: 0,
+              name: 'Chọn chi phí',
+            },
+            totals: item.totals,
+            detail,
+            status,
+          };
+        }
+
+        const {
+          _id, month, year,
+          building, apartment,
+          type, total, status,
+        } = item;
+
+        return {
+          _id,
+          month,
+          year,
+          apartment,
+          building,
+          type,
+          totals: total,
+          detail: [],
+          status,
+        };
       }));
 
       return {
@@ -828,7 +880,7 @@ const rootResolvers = {
     sendFriendRequest({ request }, { _id }) {
       return UsersService.sendFriendRequest(request.user.id, _id);
     },
-    async editEvent({ request }, { input: { _id, ...data } }) {
+    async editEvent(_, { input: { _id, ...data } }) {
       const p = await PostsModel.findOne({ _id });
       if (!p) {
         throw new Error('Post not found');

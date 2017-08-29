@@ -54,6 +54,7 @@ export const NOTIFY_TYPES = [
 
 export const PAID = 'PAID';
 export const UNPAID = 'UNPAID';
+export const PARTIALLY_PAID = 'PARTIALLY_PAID';
 export const FEE_STATUS = [PAID, UNPAID];
 
 export const CONTROL_NEW_CONVERSATION = 'CONTROL_NEW_CONVERSATION';
