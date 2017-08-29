@@ -30,6 +30,8 @@ import {
   ONLY_ADMIN_BUILDING,
   EVENT,
   BLOCKED,
+  PAID,
+  UNPAID,
 } from '../../constants';
 import Service from '../mongo/service';
 
@@ -382,6 +384,9 @@ type Fee implements Node {
   from: Date!
   to: Date!
   type: FeeType
+  detail: [Fee]
+  totals: Int
+  status: String
   createdAt: Date
   updatedAt: Date
 }
@@ -389,20 +394,6 @@ type Fee implements Node {
 type FeesResult {
   pageInfo: PageInfo
   edges: [Fee]
-}
-
-type FeeReport {
-  month: Int
-  year: Int
-  apartment: Apartment
-  building: Building
-  detail: [Fee]
-  totals: Int
-}
-
-type FeesReportResult {
-  pageInfo: PageInfo
-  edges: [FeeReport]
 }
 
 ### Building Type
@@ -1231,19 +1222,21 @@ export const resolvers = {
     building(data) {
       return AddressServices.getBuilding(data.building);
     },
+    status(data) {
+      switch (data.status) {
+        case PAID:
+          return 'Đã đóng';
+        case UNPAID:
+          return 'Chưa đóng';
+        default:
+          return 'Đóng một phần';
+      }
+    },
     createdAt(data) {
       return new Date(data.createdAt);
     },
     updatedAt(data) {
       return new Date(data.updatedAt);
-    },
-  },
-  FeeReport: {
-    apartment(data) {
-      return ApartmentsModel.findOne({ _id: data.apartment });
-    },
-    building(data) {
-      return AddressServices.getBuilding(data.building);
     },
   },
 };
