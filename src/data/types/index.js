@@ -370,6 +370,7 @@ type FeeType implements Node {
   _id: ID!
   code: Int!
   name: String!
+  icon: String
 }
 
 #Fee
