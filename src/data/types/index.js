@@ -116,6 +116,13 @@ type Event implements Node {
   isInterest: Boolean
 }
 
+type DataNotification {
+  text: String
+  year: Int
+  month: Int
+  apartment: String
+}
+
 type Notification implements Node {
   _id: ID!
   user: Author!
@@ -124,7 +131,7 @@ type Notification implements Node {
   isRead: Boolean
   subject: Post
   actors: [Author]
-
+  data: DataNotification
   createdAt: Date
   updatedAt: Date
 }
