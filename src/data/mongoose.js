@@ -6,7 +6,7 @@ import logger from './logger';
 mongoose.Promise = global.Promise;
 
 const Mongoose = {
-  connect: (uri, options) => {
+  connect: (uri, options = {}) => {
     // http://mongodb.github.io/node-mongodb-native/2.0/api/Server.html#connections
     // options.server = options.server ? options.server : {
     //   socketOptions: { keepAlive: 1 },
