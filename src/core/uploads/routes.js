@@ -1,11 +1,11 @@
 import express from 'express';
+import isEmpty from 'lodash/isEmpty';
 import Constant from './constant';
 import ApartmentModel from '../../data/models/ApartmentsModel';
 import {
   saveFeeForApartments,
 } from '../../data/apis/FeeServices';
 
-const exceltojson = require('xls-to-json-lc');
 const xlstojson = require('xls-to-json-lc');
 const xlsxtojson = require('xlsx-to-json-lc');
 
@@ -30,7 +30,7 @@ const upload = multer({ // multer settings
     if (['xls', 'xlsx'].indexOf(file.originalname.split('.')[file.originalname.split('.').length - 1]) === -1) {
       return callback(new Error('Wrong extension type'));
     }
-    callback(null, true);
+    return callback(null, true);
   },
 }).single('file');
 
@@ -189,9 +189,9 @@ router.post('/document', (req, res) => {
         if (errForParseExcel) {
           return res.json({ error_code: 1, err_desc: err, data: null });
         }
-        validateData(result, buildingId, async (error, data) => {
+        return validateData(result, buildingId, async (error, data) => {
           let hasError = null;
-          for (const i in error) {
+          if (!isEmpty(error)) {
             hasError = error;
           }
           if (!hasError && type) {
