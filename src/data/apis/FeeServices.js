@@ -41,20 +41,26 @@ async function saveFeeForApartments(datas, buildingId, feeType) {
     from: new Date(data.time.year, data.time.month - 1, 1, 0, 0, 0, 0),
     to: new Date(data.time.year, data.time.month, 0, 23, 59, 59, 999),
   }));
+
   const feesSaved = [];
   await Promise.all(fees.map(async (fee) => {
-    const feeSaved = await FeeModel.findOneAndUpdate({
-      month: fee.month,
-      year: fee.year,
-      'type.code': type.code,
-    }, fee, { upsert: true });
+    try {
+      const feeSaved = await FeeModel.findOneAndUpdate({
+        month: fee.month,
+        year: fee.year,
+        'type.code': fee.type.code,
+      }, fee, { upsert: true });
+      feesSaved.push(feeSaved);
+    } catch (e) {
+      console.log(e);
+    }
+
     sendNewFeeForApartmentNotification({
       apartment: fee.apartment,
       month: fee.month,
       year: fee.year,
       text: `Thông báo nộp tiền ${fee.type.name.toString().toLowerCase()} tháng ${fee.month}/${fee.year}`,
     });
-    feesSaved.push(feeSaved);
   }));
   return feesSaved;
 }

@@ -120,7 +120,7 @@ function validateData(data, buildingId, callback) {
     }
 
     return {
-      paid: item['đã thanh toán'] === 'OK',
+      paid: item['đã thanh toán'] === 'đã thanh toán',
       apartment_number: item['căn hộ'],
       total: parseInt(item['số tiền'], 10),
       time: {
