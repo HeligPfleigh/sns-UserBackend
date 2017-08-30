@@ -118,7 +118,6 @@ function validateData(data, buildingId, callback) {
         errors: ['Số tiền rỗng'],
       };
     }
-
     return {
       paid: item['đã thanh toán'] === 'đã thanh toán',
       apartment_number: item['căn hộ'],

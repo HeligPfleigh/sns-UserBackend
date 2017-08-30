@@ -44,17 +44,13 @@ async function saveFeeForApartments(datas, buildingId, feeType) {
 
   const feesSaved = [];
   await Promise.all(fees.map(async (fee) => {
-    try {
-      const feeSaved = await FeeModel.findOneAndUpdate({
-        month: fee.month,
-        year: fee.year,
-        'type.code': fee.type.code,
-      }, fee, { upsert: true });
-      feesSaved.push(feeSaved);
-    } catch (e) {
-      console.log(e);
-    }
-
+    const feeSaved = await FeeModel.findOneAndUpdate({
+      apartment: fee.apartment,
+      month: fee.month,
+      year: fee.year,
+      'type.code': fee.type.code,
+    }, fee, { upsert: true });
+    feesSaved.push(feeSaved);
     sendNewFeeForApartmentNotification({
       apartment: fee.apartment,
       month: fee.month,
