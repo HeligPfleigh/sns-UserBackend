@@ -1246,16 +1246,6 @@ export const resolvers = {
     building(data) {
       return AddressServices.getBuilding(data.building);
     },
-    status(data) {
-      switch (data.status) {
-        case PAID:
-          return 'Đã đóng';
-        case UNPAID:
-          return 'Chưa đóng';
-        default:
-          return 'Đóng một phần';
-      }
-    },
     createdAt(data) {
       return new Date(data.createdAt);
     },
