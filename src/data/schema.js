@@ -366,6 +366,7 @@ type Mutation {
     _id: String!,
     message: String!
     privacy: String!
+    friendId: String
     userId: String
   ): Post
   createNewEvent(
@@ -1226,7 +1227,7 @@ const rootResolvers = {
         _id,
       });
     },
-    async sharingPost({ request }, { _id, privacy = PUBLIC, message, userId }) {
+    async sharingPost({ request }, { _id, privacy = PUBLIC, message, friendId, userId }) {
       const author = request.user.id;
 
       if (isUndefined(author)) {
@@ -1237,9 +1238,9 @@ const rootResolvers = {
         throw new Error('author does not exist');
       }
 
-      if (userId && !await FriendsModel.findOne({
+      if (friendId && !await FriendsModel.findOne({
         friend: author,
-        user: userId,
+        user: friendId,
         status: ACCEPTED,
       })) {
         throw new Error('You are not user friend');
@@ -1257,7 +1258,7 @@ const rootResolvers = {
           privacy,
           message,
           sharing: _id,
-          user: userId || author,
+          user: friendId || author,
         });
       } else {
         r = await PostsModel.create({
@@ -1265,7 +1266,7 @@ const rootResolvers = {
           privacy,
           message,
           sharing: sharingId,
-          user: userId || author,
+          user: friendId || author,
         });
       }
       if (userId && !isEqual(userId, author)) {
