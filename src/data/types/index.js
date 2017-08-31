@@ -1,6 +1,8 @@
-// import { property } from 'lodash';
+import path from 'path';
+import url from 'url';
 import reduce from 'lodash/reduce';
 import clone from 'lodash/clone';
+import kebabCase from 'lodash/kebabCase';
 import DateScalarType from './DateScalarType';
 import {
   PostsModel,
@@ -423,7 +425,7 @@ type Fee implements Node {
 }
 
 type FeesResult {
-  pageInfo: PageInfoWithCursor
+  pageInfo: PageInfoWithSkip
   edges: [Fee]
 }
 
@@ -952,6 +954,11 @@ export const resolvers = {
     },
     isDeleted(data) {
       return data && data.isDeleted;
+    },
+    file(data) {
+      const parsed = url.parse(data.file);
+      const basename = path.basename(parsed.pathname);
+      return data && `${parsed.protocol}//${parsed.host}/download/${basename}?attachment=${kebabCase(data.name || basename)}`;
     },
   },
   FAQ: {

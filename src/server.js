@@ -14,6 +14,9 @@ import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import expressJwt from 'express-jwt';
 import expressGraphQL from 'express-graphql';
+import mime from 'mime';
+import fs from 'fs';
+
 import passport from './core/passport';
 import schema from './data/schema';
 import config from './config';
@@ -97,6 +100,19 @@ app.use('/images', express.static(`${__dirname}/public/uploads`));
 app.use('/document', express.static(`${__dirname}/public/documents`));
 app.use('/public', express.static(`${__dirname}/public`));
 app.use('/buildings', BuildingRouter);
+app.get('/download/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const ext = path.extname(filename);
+  const basename = path.basename(filename);
+  const attachment = req.query.attachment || basename;
+  const mimetype = mime.lookup(filename);
+  const filestream = fs.createReadStream(`${__dirname}/public/uploads/${filename}`);
+
+  res.setHeader('Content-disposition', `attachment; filename=${attachment}.${ext}`);
+  res.setHeader('Content-type', mimetype);
+
+  filestream.pipe(res);
+});
 
 //
 // Register API middleware

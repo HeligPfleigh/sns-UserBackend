@@ -40,7 +40,7 @@ export async function create({ name, file, author, building }) {
     if (isUndefined(name)) {
       throw new Error('document name is undefined');
     }
-    if (isUndefined(file) || !getFilePathFromUrl(file)) {
+    if (isUndefined(file)) {
       throw new Error('document attachment does not exist');
     }
     if (!await BuildingsModel.findOne({ _id: new ObjectId(building) })) {
@@ -71,7 +71,7 @@ export async function update({ _id, name, file, author, building }) {
     if (isUndefined(name)) {
       throw new Error('document name is undefined');
     }
-    if (isUndefined(file) || !getFilePathFromUrl(file)) {
+    if (isUndefined(file)) {
       throw new Error('document attachment does not exist');
     }
     if (!await BuildingsModel.findOne({ _id: new ObjectId(building) })) {
