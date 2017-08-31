@@ -58,13 +58,7 @@ const AnnouncementSchema = new Schema({
   _id: ObjectId,
   date: Date,
   message: String,
-  type: {
-    type: String,
-    required: true,
-    trim: true,
-    enum: ANNOUNCEMENT_TYPE,
-    default: TYPE1,
-  },
+  description: String,
 });
 
 const BuildingSchema = new Schema({

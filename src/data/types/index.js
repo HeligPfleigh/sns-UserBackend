@@ -439,16 +439,11 @@ type Address {
   countryCode: String
 }
 
-enum BuildingAnnouncementType {
-  TYPE1
-  TYPE2
-}
-
 type BuildingAnnouncement {
   _id: ID!
-  type: BuildingAnnouncementType
   date: Date
   message: String
+  description: String
 }
 
 type BuildingPostsConnection {
