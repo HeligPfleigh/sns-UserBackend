@@ -75,7 +75,7 @@ type Query {
   feeds(limit: Int, cursor: String): Feeds
   fees(buildingId: String!, limit: Int, cursor: String): FeesResult
   feesReport(buildingId: String!, page: Int, limit: Int, feeDate: String, feeType: Int): FeesResult
-  feesOfApartment(apartmentId: String!, month: Int, year: Int): FeesResult
+  feesOfApartment(apartmentId: String!, feeDate: String, feeType: Int): [Fee]
   listEvent(limit: Int, cursor: String): Events
   post(_id: String!): Post
   user(_id: String): Friend
@@ -704,29 +704,44 @@ const rootResolvers = {
         edges: r.data,
       };
     },
-    async feesOfApartment(context, { apartmentId, month, year }) {
+    async feesOfApartment(context, { apartmentId, feeDate, feeType }) {
       // eslint-disable-next-line
       let filters = {
-        $match: {
-          apartment: new mongoose.Types.ObjectId(apartmentId),
-          month,
-          year,
-        },
+        apartment: toObjectId(apartmentId),
       };
 
-      const options = [
-        filters,
-        {
-          $group: { _id: {
+      // add filter data by fee date
+      if (feeDate && feeDate !== '') {
+        const [month, year] = feeDate.split('-');
+        filters = {
+          ...filters,
+          month: Number(month),
+          year: Number(year),
+        };
+      }
+
+      // add filter data by fee type
+      if (feeType && feeType !== 0) {
+        filters = {
+          ...filters,
+          'type.code': feeType,
+        };
+      }
+
+      const options = [{
+        $match: filters,
+      }, {
+        $group: {
+          _id: {
             month: '$month',
             year: '$year',
             apartment: '$apartment',
+            building: '$building',
           },
           count: { $sum: 1 },
           totals: { $sum: '$total' },
-          },
         },
-      ];
+      }];
 
       const result = await FeeModel.aggregate([
         ...options,
@@ -736,16 +751,18 @@ const rootResolvers = {
             '_id.month': -1,
           },
         },
+        { $limit: 3 },
       ]);
 
       const data = await Promise.all((result || []).map(async (item) => {
-        const detail = await FeeModel.find(item._id);
+        const detail = await FeeModel.find({
+          ...item._id,
+          'type.code': (feeType && (feeType !== 0)) ? feeType : { $exists: true },
+        });
         return { ...item._id, totals: item.totals, detail };
       }));
 
-      return {
-        edges: data,
-      };
+      return data;
     },
     apartment(root, { _id }) {
       return AddressServices.getApartment(_id);
