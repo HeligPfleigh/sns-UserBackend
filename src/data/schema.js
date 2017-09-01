@@ -551,7 +551,9 @@ const rootResolvers = {
         edges: r.data,
       };
     },
-    async FAQs(_, { building, limit = 20, page = 0 }) {
+    async FAQs(_, { building, limit = 20, page = 1 }) {
+      page = page === 0 ? 1 : page;
+
       const r = await FAQsService.service({ limit }).findBySkip({
         query: {
           building,
@@ -559,10 +561,11 @@ const rootResolvers = {
           $sort: {
             createdAt: -1,
           },
-          $skip: page * limit,
+          $skip: (page - 1) * limit,
           $limit: limit,
         },
       });
+
       return {
         pageInfo: {
           ...r.paging,
@@ -593,6 +596,20 @@ const rootResolvers = {
           ...filters,
           month: Number(month),
           year: Number(year),
+        };
+      }
+
+      if (isUndefined(filters.month)) {
+        const { month, year } = await FeeModel.findOne({
+        }).sort({
+          month: -1,
+          year: -1,
+        }).select('month year');
+
+        filters = {
+          ...filters,
+          month,
+          year,
         };
       }
 
