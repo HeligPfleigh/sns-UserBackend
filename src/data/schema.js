@@ -159,9 +159,9 @@ type responsePayload {
 
 input AnnouncementInput {
   _id: ID
-  type: BuildingAnnouncementType
   date: Date
   message: String
+  description: String
 }
 
 input CreateEventInput {
@@ -1326,8 +1326,8 @@ const rootResolvers = {
       const {
         buildingId,
         announcementInput: {
-          type,
           message,
+          description,
         },
       } = input;
       const role = await BuildingMembersModel.findOne({
@@ -1341,8 +1341,8 @@ const rootResolvers = {
       }
       const announcement = {
         _id: new ObjectId(),
-        type,
         message,
+        description,
         date: new Date(),
       };
       await BuildingsModel.update(
