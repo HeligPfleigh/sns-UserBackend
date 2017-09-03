@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import timestamp from 'mongoose-timestamp';
-import { TYPE1, ANNOUNCEMENT_TYPE } from '../../constants';
 
 const { Schema } = mongoose;
 const { Types: { ObjectId } } = Schema;

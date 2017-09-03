@@ -95,6 +95,7 @@ type Query {
   documents(building: String, limit: Int, page: Int, cursor: String): Documents
   FAQs(building: String, limit: Int, page: Int, cursor: String): FAQs
   fee(_id: String!): Fee
+  announcement(_id: String!): BuildingAnnouncement
 }
 
 input ProfileInput {
@@ -901,7 +902,19 @@ const rootResolvers = {
     getFeeTypes() {
       return getFeeTypes();
     },
-  },
+    async announcement(root, { _id }) {
+      const announcementId = _id;
+      const r = await BuildingsModel.findOne(
+        { 'announcements._id': announcementId },
+        { announcements: {
+          $elemMatch: {
+            _id: announcementId,
+          },
+        } },
+      );
+      const announcement = r.announcements[0];
+      return announcement;
+    },
   Mutation: {
     acceptFriend({ request }, { _id }) {
       return UsersService.acceptFriend(request.user.id, _id);
