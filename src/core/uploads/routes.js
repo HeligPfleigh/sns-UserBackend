@@ -1,10 +1,15 @@
 import express from 'express';
-import isEmpty from 'lodash/isEmpty';
+import path from 'path';
+import isNumber from 'lodash/isNumber';
+import forEach from 'lodash/forEach';
 import Constant from './constant';
 import ApartmentModel from '../../data/models/ApartmentsModel';
 import {
   saveFeeForApartments,
 } from '../../data/apis/FeeServices';
+import {
+  FeeTypeModel,
+} from '../../data/models/FeeModel';
 
 const xlstojson = require('xls-to-json-lc');
 const xlsxtojson = require('xlsx-to-json-lc');
@@ -75,16 +80,41 @@ router.post('/image', (req, res) => {
 });
 
 
-function validateData(data, buildingId, callback) {
+function validateData(data, { building, type }, callback) {
   if (data.length === 0) {
-    callback(new Error('File rỗng'));
+    callback(new Error('Tập tin tải lên không có dữ liệu.'));
     return;
   }
-  const rowsError = {};
+
+  const errors = {};
   const apartments = [];
   const resultValidated = data.map((item, idx) => {
-    const apartment = item['căn hộ'];
-    const total = item['số tiền'];
+    const key = (idx + 2).toString();
+    errors[key] = [];
+
+    const apartment = String(item['căn hộ']).trim();
+    let total = String(item['số tiền']).trim();
+    const datetime = String(item['thời gian']).trim().split('/');
+    let month = datetime[0];
+    let year = datetime[1];
+
+    // Validate datetime
+    if (!(datetime.length === 2)) {
+      errors[key].push('Thời gian đóng phí chưa được nhập.');
+    } else {
+      // Month
+      month = parseInt(month, 10);
+      const mLength = String(month).trim().length;
+      if (!isNumber(month) || mLength < 1 || mLength > 2) {
+        errors[key].push('Giá trị tháng trong cột thời gian không đúng.');
+      }
+
+      // Year
+      year = parseInt(year, 10);
+      if (!isNumber(year) || !(String(year).trim().length === 4)) {
+        errors[key].push('Giá trị năm trong cột thời gian không đúng.');
+      }
+    }
 
     // validate apartment
     if (apartment) {
@@ -92,93 +122,89 @@ function validateData(data, buildingId, callback) {
         index: idx,
         number: apartment,
       });
-    } else if (rowsError[(idx + 2).toString()]) {
-      rowsError[(idx + 2).toString()].errors.push('Căn hộ trống');
     } else {
-      rowsError[(idx + 2).toString()] = {
-        errors: ['Căn hộ trống'],
-      };
+      errors[key].push('Tên căn hộ chưa được nhập.');
     }
 
     // validate total
     if (total) {
-      if (parseInt(total, 10) < 0) {
-        if (rowsError[(idx + 2).toString()]) {
-          rowsError[(idx + 2).toString()].errors.push('Số tiền âm');
-        } else {
-          rowsError[(idx + 2).toString()] = {
-            errors: ['Số tiền âm'],
-          };
-        }
+      total = parseFloat(total, 10);
+      if (!isNumber(total)) {
+        errors[key].push('Số tiền phí không đúng định dạng.');
+      } else if (total < 0) {
+        errors[key].push('Số tiền phí là số âm.');
       }
-    } else if (rowsError[(idx + 2).toString()]) {
-      rowsError[(idx + 2).toString()].errors.push('Số tiền rỗng');
     } else {
-      rowsError[(idx + 2).toString()] = {
-        errors: ['Số tiền rỗng'],
-      };
+      errors[key].push('Số tiền phí chưa được nhập');
     }
+
     return {
       paid: item['đã thanh toán'] === 'đã thanh toán',
       apartment_number: item['căn hộ'],
-      total: parseInt(item['số tiền'], 10),
+      total,
+      fee: item['loại phí'],
       time: {
-        month: parseInt(item['thời gian'].split('/')[0], 10),
-        year: parseInt(item['thời gian'].split('/')[1], 10),
+        month,
+        year,
       },
     };
   });
 
   ApartmentModel.find({
-    building: buildingId,
+    building,
   }, (err, apartmentsInBuilding) => {
     if (err || !apartmentsInBuilding || apartmentsInBuilding.length === 0) {
-      callback(new Error('Tòa nhà này không có căn hộ nào'));
+      callback(new Error('Tòa nhà này không có căn hộ nào.'));
     } else {
       const apartmentNumberInBuilding = apartmentsInBuilding.map(apart => apart.name);
       apartments.forEach((item) => {
+        const key = (item.index + 2).toString();
+        errors[key] = errors[key] || [];
         if (apartmentNumberInBuilding.indexOf(item.number) < 0) {
-          if (rowsError[(item.index + 2).toString()]) {
-            rowsError[(item.index + 2).toString()].errors.push(`Căn hộ ${item.number} không có trong tòa nhà`);
-          } else {
-            rowsError[(item.index + 2).toString()] = {
-              errors: [`Căn hộ ${item.number} không có trong tòa nhà`],
-            };
-          }
+          errors[key].push(`Căn hộ ${item.number} không có trong tòa nhà.`);
         }
       });
-      callback(rowsError, resultValidated);
+      forEach(errors, (value, key) => {
+        if (!value || value.length === 0) {
+          delete errors[key];
+        }
+      });
+      callback(errors, resultValidated);
     }
   });
 }
 
 router.post('/document', (req, res) => {
-  let exceltojson;
-
-  const buildingId = req.query.building;
+  const building = req.query.building;
   const type = req.query.type;
+  const save = req.query.save;
 
-  if (!buildingId) {
-    res.json({
-      error: false,
-      err_desc: 'building_id not found',
-    });
+  // const feeType = await FeeTypeModel.findOne({ code: type });
+
+  if (!building) {
+    res.json({ error: true, message: 'Không xác định được tòa nhà để cập nhật phí.' });
     return;
   }
   upload(req, res, (err) => {
     if (err) {
-      res.json({ error: true, err_desc: err });
+      res.json({ error: true, message: 'Tập tin của bạn không được tải lên.' });
       return;
     }
+
     if (!req.file) {
-      res.json({ error: true, err_desc: 'No file passed' });
+      res.json({ error: true, message: 'Không có tệp tin nào được chọn.' });
       return;
     }
-    if (req.file.originalname.split('.')[req.file.originalname.split('.').length - 1] === 'xlsx') {
+
+    let exceltojson;
+    const ext = path.extname(req.file.originalname);
+
+    if (ext.toLowerCase() === '.xlsx') {
       exceltojson = xlsxtojson;
     } else {
       exceltojson = xlstojson;
     }
+
     try {
       exceltojson({
         input: req.file.path, // the same path where we uploaded our file
@@ -186,29 +212,33 @@ router.post('/document', (req, res) => {
         lowerCaseHeaders: true,
       }, (errForParseExcel, result) => {
         if (errForParseExcel) {
-          return res.json({ error_code: 1, err_desc: err, data: null });
+          return res.json({ error: true, message: 'Không thể đọc được dữ liệu trong tập tin bạn tải lên.' });
         }
-        return validateData(result, buildingId, async (error, data) => {
-          let hasError = null;
-          if (!isEmpty(error)) {
-            hasError = error;
+
+        return validateData(result, { building, type }, async (validationErrors, data) => {
+          validationErrors = Object.assign({}, validationErrors);
+          let error = Object.keys(validationErrors).length > 0;
+          let message = 'Bạn đã cập nhật phí cho tòa nhà thành công.';
+
+          if (!error && save) {
+            try {
+              data = await saveFeeForApartments(data, building, type);
+            } catch (e) {
+              error = true;
+              message = 'Có lỗi xảy ra trong quá trình cập nhật phí cho tòa nhà.';
+            }
           }
-          if (!hasError && type) {
-            const dataSaved = await saveFeeForApartments(data, buildingId, type);
-            res.json({
-              error: null,
-              data: dataSaved,
-            });
-          } else {
-            res.json({
-              error: hasError,
-              data,
-            });
-          }
+
+          await res.json({
+            error,
+            message,
+            validationErrors,
+            data,
+          });
         });
       });
     } catch (e) {
-      res.json({ error_code: 1, err_desc: 'Corupted excel file' });
+      res.json({ error: true, message: e.message });
     }
   });
 });
