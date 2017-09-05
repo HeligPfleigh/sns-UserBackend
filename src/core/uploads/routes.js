@@ -218,11 +218,12 @@ router.post('/document', (req, res) => {
         return validateData(result, { building, type }, async (validationErrors, data) => {
           validationErrors = Object.assign({}, validationErrors);
           let error = Object.keys(validationErrors).length > 0;
-          let message = 'Bạn đã cập nhật phí cho tòa nhà thành công.';
+          let message = 'Không thể đọc được dữ liệu trong tập tin bạn tải lên.';
 
           if (!error && save) {
             try {
               data = await saveFeeForApartments(data, building, type);
+              message = 'Bạn đã cập nhật phí cho tòa nhà thành công.';
             } catch (e) {
               error = true;
               message = 'Có lỗi xảy ra trong quá trình cập nhật phí cho tòa nhà.';
