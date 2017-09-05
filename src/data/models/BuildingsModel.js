@@ -53,12 +53,12 @@ const LocationSchema = new Schema({
   _id: false,
 });
 
-const AnnouncementSchema = new Schema({
-  _id: ObjectId,
-  date: Date,
-  message: String,
-  description: String,
-});
+// const AnnouncementSchema = new Schema({
+//   _id: ObjectId,
+//   date: Date,
+//   message: String,
+//   description: String,
+// });
 
 const BuildingSchema = new Schema({
   name: {
@@ -75,10 +75,10 @@ const BuildingSchema = new Schema({
     required: true,
   },
   description: String,
-  announcements: {
-    type: [AnnouncementSchema],
-    default: [],
-  },
+  // announcements: {
+  //   type: [AnnouncementSchema],
+  //   default: [],
+  // },
   search: String,
 });
 

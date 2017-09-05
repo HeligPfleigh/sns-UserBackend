@@ -8,7 +8,8 @@ import {
 function getBuilding(buildingId) {
   return BuildingsModel.findOne(
     { _id: buildingId },
-  ).select('-announcements');
+  );
+  // .select('-announcements');
 }
 
 async function getBuildings(userId) {
@@ -16,7 +17,8 @@ async function getBuildings(userId) {
   const buildingIds = map(records, 'building');
   return BuildingsModel.find({
     _id: { $in: buildingIds },
-  }).select('-announcements');
+  });
+  // .select('-announcements');
 }
 
 function getApartment(apartmentId) {
