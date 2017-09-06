@@ -5,7 +5,7 @@ import {
 import Mailer from '../../core/mailer';
 import config from '../../config';
 
-const PAGE_SIZE = 5;
+// const PAGE_SIZE = 5;
 
 async function searchBuildings(textSearch = 'v', limit = 5) {
   const buildings = await BuildingsModel.find({ search: new RegExp(textSearch, 'i') }).limit(limit);
@@ -35,7 +35,7 @@ async function getBuildingWithApartments(page, q) {
 async function notifywhenAcceptedForUserBelongsToBuilding(email, data) {
   await Mailer.sendMail({
     to: email,
-    subject: `SNS-SERVICE: Xác nhận đăng ký làm thành viên tòa nhà ${data.building.name}`,
+    subject: 'SNS-SERVICE: Xác nhận đăng ký làm thành viên tòa nhà',
     template: 'acceptedForUserBelongsToBuilding',
     lang: 'vi-vn',
     data: Object.assign(data, {
@@ -48,7 +48,7 @@ async function notifywhenAcceptedForUserBelongsToBuilding(email, data) {
 async function notifywhenRejectedForUserBelongsToBuilding(email, data) {
   await Mailer.sendMail({
     to: email,
-    subject: `SNS-SERVICE: Từ chối đăng ký làm thành viên tòa nhà ${data.building.name}`,
+    subject: 'SNS-SERVICE: Từ chối đăng ký làm thành viên tòa nhà',
     template: 'rejectedForUserBelongsToBuilding',
     lang: 'vi-vn',
     data: Object.assign(data, {

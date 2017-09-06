@@ -34,9 +34,6 @@ import {
   ONLY_ADMIN_BUILDING,
   EVENT,
   BLOCKED,
-  PAID,
-  UNPAID,
-  NEW_FEE_APARTMENT,
 } from '../../constants';
 import Service from '../mongo/service';
 
