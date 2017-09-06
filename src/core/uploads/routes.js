@@ -115,6 +115,7 @@ function validateData(data, { building, type }, callback) {
         errors[key].push('Giá trị năm trong cột thời gian không đúng.');
       }
     }
+    // dasds
 
     // validate apartment
     if (apartment) {
