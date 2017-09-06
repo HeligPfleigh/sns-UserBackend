@@ -212,14 +212,14 @@ type DeleteBuildingAnnouncementPayload {
 input CreateDocumentInput {
   name: String!
   file: String!
-  building: String!  
+  building: String!
 }
 
 input UpdateDocumentInput {
   _id: String!
   name: String!
   file: String!
-  building: String!  
+  building: String!
 }
 
 input DeleteDocumentInput {
@@ -230,14 +230,14 @@ input DeleteDocumentInput {
 input CreateFAQInput {
   name: String!
   message: String!
-  building: String!  
+  building: String!
 }
 
 input UpdateFAQInput {
   _id: String!
   name: String!
   message: String!
-  building: String!  
+  building: String!
 }
 
 input DeleteFAQInput {
@@ -255,6 +255,7 @@ type ApprovingUserToBuildingPayload {
 
 input RejectingUserToBuildingInput {
   requestsToJoinBuildingId: String!
+  message: String!
 }
 
 type RejectingUserToBuildingPayload {
@@ -346,14 +347,6 @@ type Mutation {
     photos: [String]
     privacy: PrivacyType
   ): Post
-  acceptRequestForJoiningBuilding(
-    buildingId: String!
-    userId: String!
-  ): Friend
-  rejectRequestForJoiningBuilding(
-    buildingId: String!
-    userId: String!
-  ): Friend
   sharingPost(
     _id: String!,
     message: String!
@@ -1094,153 +1087,6 @@ const rootResolvers = {
       }
       return PostsService.createNewPostOnBuilding(request.user.id, message, photos, buildingId, privacy);
     },
-    async acceptRequestForJoiningBuilding({ request }, { buildingId, userId }) {
-      // Determine whether building already exists yet.
-      const buildingDocument = await BuildingsModel.findOne({ _id: buildingId });
-      if (!buildingDocument) {
-        throw new Error('Building not found.');
-      }
-
-      // Determine whether user already exists yet.
-      const userDocument = await UsersModel.findOne({ _id: userId });
-      if (!userDocument) {
-        throw new Error('User not found.');
-      }
-
-      // Merge building info into user
-      userDocument.building = buildingDocument;
-
-      const isAdmin = await BuildingMembersModel.findOne({
-        building: buildingId,
-        user: request.user.id,
-        type: ADMIN,
-      });
-      if (!isAdmin) {
-        throw new Error('you don\'t have permission to reject request');
-      }
-
-      const record = await BuildingMembersModel.findOne({
-        building: buildingId,
-        user: userId,
-        status: PENDING,
-      });
-      if (!record) {
-        throw new Error('not found the request');
-      }
-
-      // update users joined apartments
-      const { requestInformation: { apartments } } = record;
-      if (isEmpty(apartments)) {
-        throw new Error('User don\'t provided apartment info. Request rejected');
-      }
-
-      await (apartments || []).map(async (apartmentId) => {
-        await ApartmentsModel.findByIdAndUpdate(apartmentId, {
-          $addToSet: { users: record.user },
-        });
-      });
-
-      // NOTE: what happens if we lost connection to db
-      await BuildingMembersModel.update({
-        building: buildingId,
-        user: userId,
-      }, {
-        $set: {
-          status: ACCEPTED,
-        },
-      });
-
-      // Get all BOMs
-      const BOMs = await BuildingMembersModel.distinct('user', {
-        building: buildingId,
-        type: ADMIN,
-        status: ACCEPTED,
-        user: {
-          $nin: [request.user.id],
-        },
-      });
-
-      // Notify to BOMs
-      if (BOMs) {
-        BOMs.push(userId);
-        await acceptedUserBelongsToBuildingNotification(userDocument._id, BOMs);
-      }
-
-      // Sending email
-      if (isObject(userDocument.emails) && isString(userDocument.emails.address)) {
-        await BuildingServices.notifywhenAcceptedForUserBelongsToBuilding(userDocument.emails.address, userDocument);
-      }
-      // const buildingMember = await BuildingMembersModel.findOne({
-      //   building: buildingId,
-      //   user: userId,
-      // });
-      return userDocument;
-    },
-    async rejectRequestForJoiningBuilding({ request }, { buildingId, userId }) {
-      // Determine whether building already exists yet.
-      const buildingDocument = await BuildingsModel.findOne({ _id: buildingId });
-      if (!buildingDocument) {
-        throw new Error('Building not found.');
-      }
-
-      // Determine whether user already exists yet.
-      const userDocument = await UsersModel.findOne({ _id: userId });
-      if (!userDocument) {
-        throw new Error('User not found.');
-      }
-
-      // Merge building info into user
-      userDocument.building = buildingDocument;
-
-      const isAdmin = await BuildingMembersModel.findOne({
-        building: buildingId,
-        user: request.user.id,
-        type: ADMIN,
-      });
-      if (!isAdmin) {
-        throw new Error('you don\'t have permission to reject request');
-      }
-      const record = await BuildingMembersModel.findOne({
-        building: buildingId,
-        user: userId,
-        status: PENDING,
-      });
-      if (!record) {
-        throw new Error('not found the request');
-      }
-
-      // NOTE: what happens if we lost connection to db
-      await BuildingMembersModel.update({
-        building: buildingId,
-        user: userId,
-      }, {
-        $set: {
-          status: REJECTED,
-        },
-      });
-
-      // Get all BOMs
-      const BOMs = await BuildingMembersModel.distinct('user', {
-        building: buildingId,
-        type: ADMIN,
-        status: ACCEPTED,
-        user: {
-          $nin: [request.user.id],
-        },
-      });
-
-      // Notify to BOMs
-      if (BOMs) {
-        BOMs.push(userId);
-        await rejectedUserBelongsToBuildingNotification(userDocument._id, BOMs);
-      }
-      // Sending email
-      if (isObject(userDocument.emails) && isString(userDocument.emails.address)) {
-        await BuildingServices.notifywhenRejectedForUserBelongsToBuilding(userDocument.emails.address, userDocument);
-      }
-
-      return userDocument;
-    },
     async editPost(root, { _id, message, photos, privacy = PUBLIC, isDelPostSharing = true }) {
       const p = await PostsModel.findOne({ _id });
       if (!p) {
@@ -1563,11 +1409,26 @@ const rootResolvers = {
       });
     },
     async approvingUserToBuilding({ request }, { input }) {
+      // main process
       const { requestsToJoinBuildingId } = input;
+      if (!requestsToJoinBuildingId) {
+        throw new Error('request id is required');
+      }
 
       const record = await BuildingMembersModel.findOne({ _id: requestsToJoinBuildingId });
       if (!record) {
         throw new Error('not found the request');
+      }
+
+      // Determine whether building already exists yet.
+      if (!(await BuildingsModel.findOne({ _id: record.building }))) {
+        throw new Error('Building not found.');
+      }
+
+      // Determine whether user already exists yet.
+      const userDocument = await UsersModel.findOne({ _id: record.user });
+      if (!userDocument) {
+        throw new Error('User not found.');
       }
 
       const isAdmin = await BuildingMembersModel.findOne({
@@ -1611,17 +1472,57 @@ const rootResolvers = {
       await UsersModel.findByIdAndUpdate(record.user, { isActive: 1 });
 
       // Send email and notification to user status ACCEPTED
+      // Get all BOMs
+      const BOMs = await BuildingMembersModel.distinct('user', {
+        building: record.building,
+        type: ADMIN,
+        status: ACCEPTED,
+        user: {
+          $nin: [request.user.id],
+        },
+      });
+
+      // Notify to BOMs
+      if (BOMs) {
+        BOMs.push(userDocument._id);
+        await acceptedUserBelongsToBuildingNotification(userDocument._id, BOMs);
+      }
+
+      // Sending email
+      if (isObject(userDocument.emails) && isString(userDocument.emails.address)) {
+        await BuildingServices.notifywhenAcceptedForUserBelongsToBuilding(userDocument.emails.address, userDocument);
+      }
 
       return {
         request: BuildingMembersModel.findOne({ _id: requestsToJoinBuildingId }),
       };
     },
     async rejectingUserToBuilding({ request }, { input }) {
-      const { requestsToJoinBuildingId } = input;
+      // main proccess
+      const { requestsToJoinBuildingId, message } = input;
+
+      if (!requestsToJoinBuildingId) {
+        throw new Error('request id is required');
+      }
+
+      if (!message) {
+        throw new Error('reject message is required');
+      }
 
       const record = await BuildingMembersModel.findOne({ _id: requestsToJoinBuildingId });
       if (!record) {
         throw new Error('not found the request');
+      }
+
+      // Determine whether building already exists yet.
+      if (!(await BuildingsModel.findOne({ _id: record.building }))) {
+        throw new Error('Building not found.');
+      }
+
+      // Determine whether user already exists yet.
+      const userDocument = await UsersModel.findOne({ _id: record.user });
+      if (!userDocument) {
+        throw new Error('User not found.');
       }
 
       const isAdmin = await BuildingMembersModel.findOne({
@@ -1660,11 +1561,31 @@ const rootResolvers = {
         _id: requestsToJoinBuildingId,
       }, {
         $set: {
+          message,
           status: REJECTED,
         },
       });
 
       // Send email and notification to user status ACCEPTED
+      // Get all BOMs
+      const BOMs = await BuildingMembersModel.distinct('user', {
+        building: record.building,
+        type: ADMIN,
+        status: ACCEPTED,
+        user: {
+          $nin: [request.user.id],
+        },
+      });
+
+      // Notify to BOMs
+      if (BOMs) {
+        BOMs.push(userDocument._id);
+        await rejectedUserBelongsToBuildingNotification(userDocument._id, BOMs);
+      }
+      // Sending email
+      if (isObject(userDocument.emails) && isString(userDocument.emails.address)) {
+        await BuildingServices.notifywhenRejectedForUserBelongsToBuilding(userDocument.emails.address, userDocument);
+      }
 
       return {
         request: BuildingMembersModel.findOne({ _id: requestsToJoinBuildingId }),
