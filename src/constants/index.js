@@ -71,6 +71,7 @@ export const CHAT_ACTIVE_CONVERSATION = 'CHAT_ACTIVE_CONVERSATION';
 export const CHAT_ON_CHANGE_ONLINE_STATE = 'CHAT_ON_CHANGE_ONLINE_STATE';
 export const CHAT_ON_FAIL = 'CHAT_ON_FAIL';
 
+export const PRIVATE = 'PRIVATE';
 export const PUBLIC = 'PUBLIC';
 export const FRIEND = 'FRIEND';
 export const ONLY_ME = 'ONLY_ME';

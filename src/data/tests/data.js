@@ -18,7 +18,6 @@ const buildingData = {
     ],
     type: 'Point',
   },
-  announcements: [],
   description: 'Vingroup Joint Stock Company',
   isPublished: true,
   isDeleted: false,

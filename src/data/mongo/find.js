@@ -68,7 +68,7 @@ const find = state => ({
       paging: {
         total: numberOfRows,
         limit: filters.$limit,
-        skip: filters.$skip,
+        skip: filters.$skip || 0,
         hasNextPage: numberOfRows > filters.$limit * (filters.$skip + 1),
       },
       data,

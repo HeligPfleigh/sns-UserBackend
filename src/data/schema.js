@@ -23,6 +23,7 @@ import {
   BuildingsModel,
   ApartmentsModel,
   FeeModel,
+  AnnouncementsModel,
 } from './models';
 import Service from './mongo/service';
 import AddressServices from './apis/AddressServices';
@@ -46,7 +47,7 @@ import {
   sendNewFeeForApartmentNotification,
 } from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
-import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT, PAID, UNPAID, PARTIALLY_PAID } from '../constants';
+import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, PRIVATE, FRIEND, EVENT, PAID, UNPAID, PARTIALLY_PAID } from '../constants';
 import toObjectId from '../utils/toObjectId';
 
 const { Types: { ObjectId } } = mongoose;
@@ -95,6 +96,7 @@ type Query {
   documents(building: String, limit: Int, page: Int, cursor: String): Documents
   FAQs(building: String, limit: Int, page: Int, cursor: String): FAQs
   fee(_id: String!): Fee
+  announcement(_id: String!): Announcement
 }
 
 input ProfileInput {
@@ -157,13 +159,6 @@ type responsePayload {
   response: ResponseType
 }
 
-input AnnouncementInput {
-  _id: ID
-  date: Date
-  message: String
-  description: String
-}
-
 input CreateEventInput {
   privacy: PrivacyType
   building: String
@@ -189,23 +184,20 @@ input EditEventInput {
   invites: [String]
 }
 
-input CreateNewBuildingAnnouncementInput {
+input CreateNewAnnouncementInput {
+  date: Date
+  message: String
+  description: String
   buildingId: String!
-  announcementInput: AnnouncementInput
-}
-
-type CreateNewBuildingAnnouncementPayload {
-  announcement: BuildingAnnouncement
 }
 
 input UpdateBuildingAnnouncementInput {
   buildingId: String!
   announcementId: String!
-  announcementInput: AnnouncementInput
 }
 
 type UpdateBuildingAnnouncementPayload {
-  announcement: BuildingAnnouncement
+  announcement: Announcement
 }
 
 input DeleteBuildingAnnouncementInput {
@@ -214,7 +206,7 @@ input DeleteBuildingAnnouncementInput {
 }
 
 type DeleteBuildingAnnouncementPayload {
-  announcement: BuildingAnnouncement
+  announcement: Announcement
 }
 
 input CreateDocumentInput {
@@ -400,9 +392,9 @@ type Mutation {
   updateUserProfile(
     input: UpdateUserProfileInput!
   ): UpdateUserProfilePayload
-  createNewBuildingAnnouncement(
-    input: CreateNewBuildingAnnouncementInput!
-  ): CreateNewBuildingAnnouncementPayload
+  createNewAnnouncement(
+    input: CreateNewAnnouncementInput!
+  ): Announcement
   updateBuildingAnnouncement(
     input: UpdateBuildingAnnouncementInput!
   ): UpdateBuildingAnnouncementPayload
@@ -918,6 +910,13 @@ const rootResolvers = {
     getFeeTypes() {
       return getFeeTypes();
     },
+    async announcement(root, { _id }) {
+      const r = await AnnouncementsModel.findOne({ _id });
+      if (!r) {
+        throw new Error('not found the announcement');
+      }
+      return r;
+    },
   },
   Mutation: {
     acceptFriend({ request }, { _id }) {
@@ -1338,14 +1337,12 @@ const rootResolvers = {
         }),
       };
     },
-    async createNewBuildingAnnouncement({ request }, { input }) {
+    async createNewAnnouncement({ request }, { input }) {
       const userId = request.user.id;
       const {
+        message,
+        description,
         buildingId,
-        announcementInput: {
-          message,
-          description,
-        },
       } = input;
       const role = await BuildingMembersModel.findOne({
         building: buildingId,
@@ -1360,15 +1357,13 @@ const rootResolvers = {
         _id: new ObjectId(),
         message,
         description,
+        privacy: PUBLIC,
         date: new Date(),
+        building: buildingId,
+        apartments: [],
       };
-      await BuildingsModel.update(
-        { _id: buildingId },
-        { $push: { announcements: announcement } },
-      );
-      return {
-        announcement,
-      };
+      const r = await AnnouncementsModel.create(announcement);
+      return r;
     },
     async updateBuildingAnnouncement({ request }, { input }) {
       const userId = request.user.id;

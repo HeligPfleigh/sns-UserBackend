@@ -13,6 +13,7 @@ import {
   ApartmentsModel,
   FriendsRelationModel,
   NotificationsModel,
+  AnnouncementsModel,
   // FeeModel,
   // EventModel,
 } from '../models';
@@ -26,6 +27,7 @@ import {
   ACCEPTED,
   MEMBER,
   PENDING,
+  PRIVATE,
   PUBLIC,
   FRIEND,
   ONLY_ME,
@@ -69,6 +71,14 @@ type PageInfoWithSkip implements PageInfo {
   limit: Int
 }
 
+type PageInfoWithCursorAndSkip implements PageInfo {
+  endCursor: String
+  skip: Int
+  hasNextPage: Boolean
+  total: Int
+  limit: Int
+}
+
 type PageInfoWithActivePage implements PageInfo {
   page: Int
   hasNextPage: Boolean
@@ -80,6 +90,7 @@ type Apartment implements Node {
   _id: ID!
   number: Int
   building: Building
+  announcements(cursor: String, limit: Int): BuildingAnnouncementConnection!
   users: [Author]
   owner: Author
   isOwner: Boolean
@@ -382,6 +393,7 @@ type User implements Node {
   emails: Email
   phone: Phone
   apartments: [Apartment]
+  announcements(announcementId: String, cursor: String, skip: Int, limit: Int): BuildingAnnouncementConnection!
   totalFriends: Int
   totalNotification: Int
   isFriend: Boolean
@@ -441,21 +453,14 @@ type Address {
   countryCode: String
 }
 
-type BuildingAnnouncement {
-  _id: ID!
-  date: Date
-  message: String
-  description: String
-}
-
 type BuildingPostsConnection {
   pageInfo: PageInfoWithCursor
   edges: [Post]
 }
 
 type BuildingAnnouncementConnection {
-  pageInfo: PageInfoWithSkip
-  edges: [BuildingAnnouncement]
+  pageInfo: PageInfoWithCursorAndSkip
+  edges: [Announcement]
 }
 
 type UsersAwaitingApprovalConnection {
@@ -471,7 +476,7 @@ type Building implements Node {
   isAdmin: Boolean
   apartments: [Apartment]
   totalApartment: Int
-  announcements(skip: Int, limit: Int): BuildingAnnouncementConnection!
+  announcements(cursor: String, limit: Int): BuildingAnnouncementConnection!
   requests(cursor: String, limit: Int): UsersAwaitingApprovalConnection
   posts(cursor: String, limit: Int): BuildingPostsConnection
   createdAt: Date
@@ -504,6 +509,25 @@ type RequestsToJoinBuilding implements Node {
   status: RequestsToJoinBuildingStatus
   requestInformation: RequestInformation
 }
+
+### Announcement Type
+# Represents a announcement in system.
+enum AnnouncementType {
+  PUBLIC
+  PRIVATE
+}
+
+type Announcement implements Node {
+  _id: ID!
+  date: Date
+  message: String
+  description: String
+  privacy: AnnouncementType!
+  building: Building
+  apartments: [Apartment]
+  createdAt: Date
+  updatedAt: Date
+}
 `];
 
 const PostsService = Service({
@@ -531,6 +555,23 @@ const UsersService = Service({
     max: 10,
   },
   cursor: true,
+});
+
+const AnnouncementsServiceWithCursor = Service({
+  Model: AnnouncementsModel,
+  paginate: {
+    default: 4,
+    max: 10,
+  },
+  cursor: true,
+});
+
+const AnnouncementsServiceWithSkip = Service({
+  Model: AnnouncementsModel,
+  paginate: {
+    default: 4,
+    max: 10,
+  },
 });
 
 // const ApartmentsService = Service({
@@ -666,58 +707,29 @@ export const resolvers = {
         edges: r.data,
       };
     },
-    async announcements(data, { skip = 0, limit = 5 }) {
-      const t = await BuildingsModel.aggregate([
-        {
-          $match: {
-            _id: data._id,
-          },
-        },
-        {
-          $project: {
-            total: {
-              $size: {
-                $ifNull: ['$announcements', []],
-              },
-            },
-          },
-        },
-      ]);
-      const r = await BuildingsModel.aggregate([
-        {
-          $match: {
-            _id: data._id,
-          },
-        },
-        {
-          $project: {
-            announcements: 1,
-          },
-        },
-        {
-          $unwind: '$announcements',
-        },
-        {
+    async announcements(data, { cursor = null, limit = 5 }) {
+      const r = await AnnouncementsService.find({
+        $cursor: cursor,
+        query: {
+          building: data._id,
           $sort: {
-            'announcements.date': -1,
+            createdAt: -1,
           },
-        },
-        {
-          $skip: skip,
-        },
-        {
           $limit: limit,
         },
-      ]);
-      const edges = r.map(i => i.announcements);
+      });
+
+      if (!r) {
+        return {
+          pageInfo: {
+
+          },
+          edges: [],
+        };
+      }
       return {
-        pageInfo: {
-          skip,
-          hasNextPage: t[0].total > skip,
-          total: t[0].total,
-          limit,
-        },
-        edges,
+        pageInfo: r.paging,
+        edges: r.data,
       };
     },
     createdAt(data) {
@@ -730,6 +742,35 @@ export const resolvers = {
   Apartment: {
     building(data) {
       return AddressServices.getBuilding(data.building);
+    },
+    async announcements(data, { cursor = null, limit = 5 }) {
+      const r = await AnnouncementsService.find({
+        $cursor: cursor,
+        query: {
+          $or: [
+            { privacy: { $in: [PUBLIC] } },
+            {
+              apartments: { _id: data._id },
+              privacy: { $in: [PRIVATE] },
+            },
+          ],
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      });
+
+      if (!r) {
+        return {
+          pageInfo: {},
+          edges: [],
+        };
+      }
+      return {
+        pageInfo: r.paging,
+        edges: r.data,
+      };
     },
     users(data) {
       return UsersModel.find({ _id: { $in: data.users } });
@@ -1204,6 +1245,43 @@ export const resolvers = {
         edges: r.data || [],
       };
     },
+    async announcements(data, { cursor, skip, limit = 4 }) {
+      let apartmentsList = await ApartmentsModel.find({ users: data._id }).select('_id');
+      apartmentsList = apartmentsList.map(i => i._id);
+      let r = null;
+      const select = {
+        query: {
+          $or: [
+            { privacy: { $in: [PUBLIC] } },
+            {
+              apartments: { $in: apartmentsList },
+              privacy: { $in: [PRIVATE] },
+            },
+          ],
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      };
+      if (skip !== undefined) {
+        select.query.$skip = skip;
+        r = await AnnouncementsServiceWithSkip.find(select);
+      } else {
+        select.$cursor = cursor;
+        r = await AnnouncementsServiceWithCursor.find(select);
+      }
+      if (!r) {
+        return {
+          pageInfo: {},
+          edges: [],
+        };
+      }
+      return {
+        pageInfo: r.paging,
+        edges: r.data,
+      };
+    },
     building(data) {
       return AddressServices.getBuilding(data.building);
     },
@@ -1247,6 +1325,25 @@ export const resolvers = {
     },
     building(data) {
       return AddressServices.getBuilding(data.building);
+    },
+    createdAt(data) {
+      return new Date(data.createdAt);
+    },
+    updatedAt(data) {
+      return new Date(data.updatedAt);
+    },
+  },
+  Announcement: {
+    building(data) {
+      return AddressServices.getBuilding(data.building);
+    },
+    apartments(data) {
+      // chi admin xem được 
+      return ApartmentsModel.find({
+        _id: {
+          $in: data.apartments,
+        },
+      });
     },
     createdAt(data) {
       return new Date(data.createdAt);
