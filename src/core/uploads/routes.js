@@ -2,14 +2,20 @@ import express from 'express';
 import path from 'path';
 import isNumber from 'lodash/isNumber';
 import forEach from 'lodash/forEach';
+import isDate from 'lodash/isDate';
 import Constant from './constant';
 import ApartmentModel from '../../data/models/ApartmentsModel';
+
 import {
   saveFeeForApartments,
 } from '../../data/apis/FeeServices';
 import {
   FeeTypeModel,
 } from '../../data/models/FeeModel';
+
+const moment = require('moment');
+
+moment.locale('vi');
 
 const xlstojson = require('xls-to-json-lc');
 const xlsxtojson = require('xlsx-to-json-lc');
@@ -95,6 +101,7 @@ function validateData(data, { building, type }, callback) {
     const apartment = String(item['căn hộ']).trim();
     let total = String(item['số tiền']).trim();
     const datetime = String(item['thời gian']).trim().split('/');
+    const deadline = moment(item['hạn nộp'], ['DD/MM/YYYY', 'DD/MM/YY', 'DD MMM YYYY']).toDate();
     let month = datetime[0];
     let year = datetime[1];
 
@@ -114,6 +121,10 @@ function validateData(data, { building, type }, callback) {
       if (!isNumber(year) || !(String(year).trim().length === 4)) {
         errors[key].push('Giá trị năm trong cột thời gian không đúng.');
       }
+    }
+    // dasds
+    if (!isDate(deadline)) {
+      errors[key].push('Sai định dạng ngày tháng');
     }
 
     // validate apartment
@@ -139,7 +150,7 @@ function validateData(data, { building, type }, callback) {
     }
 
     return {
-      paid: item['đã thanh toán'] === 'đã thanh toán',
+      paid: item['đã thanh toán'] === 'Đã Nộp',
       apartment_number: item['căn hộ'],
       total,
       fee: item['loại phí'],
@@ -147,6 +158,7 @@ function validateData(data, { building, type }, callback) {
         month,
         year,
       },
+      deadline,
     };
   });
 
@@ -177,7 +189,7 @@ function validateData(data, { building, type }, callback) {
 router.post('/document', (req, res) => {
   const building = req.query.building;
   const type = req.query.type;
-  const save = req.query.save;
+  const save = req.query.import;
 
   // const feeType = await FeeTypeModel.findOne({ code: type });
 
@@ -219,7 +231,6 @@ router.post('/document', (req, res) => {
           validationErrors = Object.assign({}, validationErrors);
           let error = Object.keys(validationErrors).length > 0;
           let message = 'Không thể đọc được dữ liệu trong tập tin bạn tải lên.';
-
           if (!error && save) {
             try {
               data = await saveFeeForApartments(data, building, type);

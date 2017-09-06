@@ -40,6 +40,7 @@ async function saveFeeForApartments(datas, buildingId, feeType) {
     year: data.time.year,
     from: new Date(data.time.year, data.time.month - 1, 1, 0, 0, 0, 0),
     to: new Date(data.time.year, data.time.month, 0, 23, 59, 59, 999),
+    deadline: data.deadline,
   }));
 
   const feesSaved = [];
@@ -58,6 +59,7 @@ async function saveFeeForApartments(datas, buildingId, feeType) {
       text: `Thông báo nộp tiền ${fee.type.name.toString().toLowerCase()} tháng ${fee.month}/${fee.year}`,
     });
   }));
+  console.log(feesSaved);
   return feesSaved;
 }
 
