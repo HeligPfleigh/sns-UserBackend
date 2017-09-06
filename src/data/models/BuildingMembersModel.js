@@ -39,6 +39,7 @@ const BuildingMembersSchema = new Schema({
     }],
     detail: Schema.Types.Mixed,
   },
+  message: Schema.Types.Mixed,
 });
 
 // https://github.com/drudge/mongoose-timestamp
