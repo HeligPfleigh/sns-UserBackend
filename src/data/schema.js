@@ -93,10 +93,16 @@ type Query {
   resident(_id: String): User
   requestsToJoinBuilding(_id: String): RequestsToJoinBuilding
   checkExistUser(query: String): Boolean
-  documents(building: String, limit: Int, page: Int, cursor: String): Documents
-  FAQs(building: String, limit: Int, page: Int, cursor: String): FAQs
+  documents(building: String, limit: Int, page: Int): Documents
+  FAQs(building: String, limit: Int, page: Int): FAQs
   fee(_id: String!): Fee
+  residentsInApartmentBuilding(building: String, filters: SearchByResidentsInApartmentBuilding, limit: Int, page: Int): ResidentsInApartmentBuilding
   announcement(_id: String!): Announcement
+}
+
+input SearchByResidentsInApartmentBuilding {
+  resident: String
+  apartment: String
 }
 
 input ProfileInput {
@@ -765,6 +771,180 @@ const rootResolvers = {
       }));
 
       return data;
+    },
+    async residentsInApartmentBuilding(root, { building, filters: { resident, apartment }, limit = 8, page = 0 }) {
+      // eslint-disable-next-line
+      let filters = {
+        building: toObjectId(building),
+      };
+
+      // Determine whether apartment already exists.
+      apartment = isString(apartment) && String(apartment).trim();
+      if (apartment.length > 0) {
+        filters = {
+          ...filters,
+          apartment,
+        };
+      }
+
+      const options = [{
+        $match: filters,
+      }, {
+        $group: {
+          _id: {
+            _id: '$_id',
+            building: '$building',
+          },
+          numberOfApartments: { $sum: 1 },
+        },
+      }];
+      const result = await ApartmentsModel.aggregate([
+        {
+          $match: filters,
+        },
+        // {
+        //   $lookup: {
+        //     from: 'users',
+        //     localField: 'owner',
+        //     foreignField: '_id',
+        //     as: 'owner',
+        //   },
+        // },
+
+        // {
+        //   $group: {
+        //     _id: {
+        //       _id: '$_id',
+        //     },
+        //     owner: { $push: '$owner' },
+        //     users: { $push: '$users' },
+        //   },
+        // },
+        {
+          $project: {
+            _id: 1,
+            name: 1,
+            number: 1,
+            building: 1,
+            owners: {
+              $cond: [
+                { $not: ['$owner'] }, [null], ['$owner'],
+              ],
+            },
+            users: {
+              $cond: [
+                { $isArray: '$users' }, '$users', [null],
+              ],
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            name: 1,
+            number: 1,
+            building: 1,
+            residents: {
+              $concatArrays: [
+                '$owners',
+                '$users',
+              ],
+            },
+          },
+        },
+        // {
+        //   $count: 'numberOfApartments',
+        // },
+
+        // {
+        //   $group: {
+        //     _id: {
+        //       user: '$user',
+        //     },
+        //   },
+        // },
+        {
+          $unwind: '$residents',
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'residents',
+            foreignField: '_id',
+            as: 'user',
+          },
+        },
+        {
+          $unwind: '$user',
+        },
+        // {
+        //   $match: {
+        //     $or: [
+        //       {
+        //         'name': {
+        //           $regex: /thanhtt1/gi,
+        //         },
+        //       },
+        //       {
+        //         'number': {
+        //           $regex: /thanhtt1/gi,
+        //         },
+        //       },
+        //       {
+        //         'user.username': {
+        //           $regex: /thanhtt1/gi,
+        //         },
+        //       },
+        //       {
+        //         'user.profile.firstName': {
+        //           $regex: /thanhtt1/gi,
+        //         },
+        //       },
+        //       {
+        //         'user.profile.lastName': {
+        //           $regex: /thanhtt1/gi,
+        //         },
+        //       },
+        //     ],
+        //   },
+        // },
+        // {
+        //   $group: {
+        //     _id: '$residents',
+        //     books: {
+        //       $addToSet: '$$ROOT',
+        //     },
+        //   },
+        // },
+        // {
+        //   $count: 'numberOfResidents',
+        // },
+        {
+          $skip: page * limit,
+        },
+        {
+          $limit: limit,
+        },
+      ]);
+
+
+      result.forEach((doc) => {
+        console.log(doc);
+      });
+
+      // console.log(result);
+      console.log(`length: ${result.length}`);
+      return result;
+
+      // Determine whether resident already exists.
+      resident = isString(resident) && String(resident).trim();
+      if (resident.length > 0) {
+        filters = {
+          ...filters,
+          resident,
+        };
+      }
+      return result;
     },
     apartment(root, { _id }) {
       return AddressServices.getApartment(_id);

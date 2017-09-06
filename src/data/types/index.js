@@ -355,6 +355,11 @@ type FAQs {
   edges: [FAQ]
 }
 
+type ResidentsInApartmentBuilding {
+  pageInfo: PageInfoWithActivePage
+  edges: [Resident]
+}
+
 type Events {
   pageInfo: PageInfoWithCursor
   edges: [Event]
