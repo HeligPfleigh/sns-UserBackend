@@ -393,7 +393,7 @@ type User implements Node {
   emails: Email
   phone: Phone
   apartments: [Apartment]
-  announcements(cursor: String, skip: Int, limit: Int): BuildingAnnouncementConnection!
+  announcements(announcementId: String, cursor: String, skip: Int, limit: Int): BuildingAnnouncementConnection!
   totalFriends: Int
   totalNotification: Int
   isFriend: Boolean

@@ -894,17 +894,11 @@ const rootResolvers = {
       return getFeeTypes();
     },
     async announcement(root, { _id }) {
-      const announcementId = _id;
-      const r = await BuildingsModel.findOne(
-        { 'announcements._id': announcementId },
-        { announcements: {
-          $elemMatch: {
-            _id: announcementId,
-          },
-        } },
-      );
-      const announcement = r.announcements[0];
-      return announcement;
+      const r = await AnnouncementsModel.findOne({ _id });
+      if (!r) {
+        throw new Error('not found the announcement');
+      }
+      return r;
     },
   },
   Mutation: {
