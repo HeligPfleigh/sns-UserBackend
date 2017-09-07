@@ -974,10 +974,10 @@ const rootResolvers = {
       ]);
       queryStats = queryStats.shift();
 
-      const hasNextPage = (queryStats.numberOfApartments - $skip) > limit;
+      const remainingData = (queryStats.numberOfApartments - $skip);
 
       let queryTable = [];
-      if (hasNextPage) {
+      if (remainingData > 0) {
         queryTable = await ApartmentsModel.aggregate([
           ...aggregate,
           {
@@ -988,17 +988,16 @@ const rootResolvers = {
           },
         ]);
       }
+
       return {
         pageInfo: {
           limit,
           page,
-          hasNextPage,
+          hasNextPage: remainingData > limit,
           total: queryStats.numberOfApartments,
         },
         edges: queryTable,
-        stats: {
-          ...queryStats,
-        },
+        stats: queryStats,
       };
     },
     apartment(root, { _id }) {
