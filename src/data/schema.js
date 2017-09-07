@@ -45,9 +45,10 @@ import {
   rejectedUserBelongsToBuildingNotification,
   sendSharingPostNotification,
   sendNewFeeForApartmentNotification,
+  sendNewAnnouncementNotification,
 } from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
-import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, PRIVATE, FRIEND, EVENT, PAID, UNPAID, PARTIALLY_PAID } from '../constants';
+import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT, PAID, UNPAID, PARTIALLY_PAID } from '../constants';
 import toObjectId from '../utils/toObjectId';
 
 const { Types: { ObjectId } } = mongoose;
@@ -194,6 +195,8 @@ input CreateNewAnnouncementInput {
   date: Date
   message: String
   description: String
+  privacy: AnnouncementType!
+  apartments: [String]
   buildingId: String!
 }
 
@@ -1420,8 +1423,11 @@ const rootResolvers = {
       const {
         message,
         description,
+        privacy,
+        apartments,
         buildingId,
       } = input;
+      const apts = apartments.map(toObjectId);
       const role = await BuildingMembersModel.findOne({
         building: buildingId,
         user: userId,
@@ -1435,12 +1441,33 @@ const rootResolvers = {
         _id: new ObjectId(),
         message,
         description,
-        privacy: PUBLIC,
+        privacy,
         date: new Date(),
         building: buildingId,
-        apartments: [],
+        apartments: apts,
       };
       const r = await AnnouncementsModel.create(announcement);
+      let us = await ApartmentsModel.aggregate([
+        {
+          $match: {
+            _id: {
+              $in: apts,
+            },
+          },
+        },
+        {
+          $unwind: '$users',
+        },
+        {
+          $project: {
+            users: 1,
+          },
+        },
+      ]);
+      us = us.map(i => i.users);
+      if (apts.length > 0) {
+        sendNewAnnouncementNotification(us, r.id);
+      }
       return r;
     },
     async updateBuildingAnnouncement({ request }, { input }) {
