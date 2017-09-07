@@ -188,6 +188,8 @@ input CreateNewAnnouncementInput {
   date: Date
   message: String
   description: String
+  privacy: AnnouncementType!
+  apartments: [String]
   buildingId: String!
 }
 
@@ -1342,6 +1344,8 @@ const rootResolvers = {
       const {
         message,
         description,
+        privacy,
+        apartments,
         buildingId,
       } = input;
       const role = await BuildingMembersModel.findOne({
@@ -1357,10 +1361,10 @@ const rootResolvers = {
         _id: new ObjectId(),
         message,
         description,
-        privacy: PUBLIC,
+        privacy,
         date: new Date(),
         building: buildingId,
-        apartments: [],
+        apartments,
       };
       const r = await AnnouncementsModel.create(announcement);
       return r;
