@@ -777,83 +777,92 @@ const rootResolvers = {
     },
     async residentsInApartmentBuilding(root, { building, filters: { resident, apartment }, limit = 20, page = 1 }) {
       const $skip = Math.abs(page - 1) * limit;
+      const aggregate = [];
 
-      // Default conditions
-      const aggregate = [
-        {
-          $match: {
-            building: toObjectId(building),
-          },
+      // Query by building
+      aggregate.push({
+        $match: {
+          building: toObjectId(building),
         },
-        {
-          $project: {
-            _id: 1,
-            name: 1,
-            number: 1,
-            building: 1,
-            createdAt: 1,
-            owners: {
-              $cond: [
-                { $not: ['$owner'] }, [], ['$owner'],
-              ],
-            },
-            users: {
-              $cond: [
-                { $isArray: '$users' }, '$users', [],
-              ],
-            },
-          },
-        },
-        {
-          $project: {
-            _id: 1,
-            name: 1,
-            number: 1,
-            building: 1,
-            createdAt: 1,
-            residents: {
-              $concatArrays: [
-                '$owners',
-                '$users',
-              ],
-            },
-          },
-        },
-        {
-          $unwind: {
-            path: '$residents',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: 'users',
-            localField: 'residents',
-            foreignField: '_id',
-            as: 'residents',
-          },
-        },
-        {
-          $unwind: {
-            path: '$residents',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-      ];
+      });
 
-      // Filter conditions
-      const matchOr = [];
+      // Defined all fields that you need
+      aggregate.push({
+        $project: {
+          _id: 1,
+          name: 1,
+          number: 1,
+          building: 1,
+          createdAt: 1,
+          owners: {
+            $cond: [
+              { $not: ['$owner'] }, [], ['$owner'],
+            ],
+          },
+          users: {
+            $cond: [
+              { $isArray: '$users' }, '$users', [],
+            ],
+          },
+        },
+      });
+
+      // Create new field with merge two array-field
+      aggregate.push({
+        $project: {
+          _id: 1,
+          name: 1,
+          number: 1,
+          building: 1,
+          createdAt: 1,
+          residents: {
+            $concatArrays: [
+              '$owners',
+              '$users',
+            ],
+          },
+        },
+      });
+
+      // Deconstructs $residents field to create new data and always keep the document including $residents is empty
+      aggregate.push({
+        $unwind: {
+          path: '$residents',
+          preserveNullAndEmptyArrays: true,
+        },
+      });
+
+      // Join with collection named users for check existing user
+      aggregate.push({
+        $lookup: {
+          from: 'users',
+          localField: 'residents',
+          foreignField: '_id',
+          as: 'residents',
+        },
+      });
+
+      // Deconstructs $residents field to create new data and always keep the document including $residents is empty
+      aggregate.push({
+        $unwind: {
+          path: '$residents',
+          preserveNullAndEmptyArrays: true,
+        },
+      });
 
       // Determine whether apartment filtering already exists.
+      const apartmentMatchesOr = [];
       apartment = isString(apartment) ? String(apartment).trim() : '';
       if (apartment.length > 0) {
-        matchOr.push({
+        // With apartment name
+        apartmentMatchesOr.push({
           name: {
             $regex: apartment,
             $options: 'si',
           },
         });
-        matchOr.push({
+        // With apartment number
+        apartmentMatchesOr.push({
           number: {
             $regex: apartment,
             $options: 'si',
@@ -862,27 +871,32 @@ const rootResolvers = {
       }
 
       // Determine whether resident filtering already exists.
+      const residentMatchesOr = [];
       resident = isString(resident) ? String(resident).trim() : '';
       if (resident.length > 0) {
-        matchOr.push({
+        // With username
+        residentMatchesOr.push({
           'residents.username': {
             $regex: resident,
             $options: 'si',
           },
         });
-        matchOr.push({
+        // With first name
+        residentMatchesOr.push({
           'residents.profile.firstName': {
             $regex: resident,
             $options: 'si',
           },
         });
-        matchOr.push({
+        // With last name
+        residentMatchesOr.push({
           'residents.profile.lastName': {
             $regex: resident,
             $options: 'si',
           },
         });
-        matchOr.push({
+        // With searching data
+        residentMatchesOr.push({
           'residents.search': {
             $regex: resident,
             $options: 'si',
@@ -890,15 +904,29 @@ const rootResolvers = {
         });
       }
 
-      if (matchOr.length > 0) {
+      // Create filter
+      const $match = [];
+      if (apartmentMatchesOr.length > 0) {
+        $match.push({
+          $or: apartmentMatchesOr,
+        });
+      }
+
+      if (residentMatchesOr.length > 0) {
+        $match.push({
+          $or: residentMatchesOr,
+        });
+      }
+
+      if ($match.length > 0) {
         aggregate.push({
           $match: {
-            $or: matchOr,
+            $and: $match,
           },
         });
       }
 
-      // More conditions
+      // Group all residents by apartment
       aggregate.push(
         {
           $group: {
@@ -922,12 +950,14 @@ const rootResolvers = {
         },
       );
 
+      // Sorting
       aggregate.push({
         $sort: {
           createdAt: 1,
         },
       });
 
+      // Get number of apartments and number of residents
       let queryStats = await ApartmentsModel.aggregate([
         ...aggregate,
         {
@@ -972,10 +1002,14 @@ const rootResolvers = {
           },
         },
       ]);
+
+      // Get first record of query above
       queryStats = queryStats.shift();
 
+      // Get remaining data
       const remainingData = (queryStats.numberOfApartments - $skip);
 
+      // If remaining data is empty, ignore query below
       let queryTable = [];
       if (remainingData > 0) {
         queryTable = await ApartmentsModel.aggregate([
@@ -989,6 +1023,7 @@ const rootResolvers = {
         ]);
       }
 
+      // Response
       return {
         pageInfo: {
           limit,
