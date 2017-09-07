@@ -359,7 +359,21 @@ type FAQs {
 
 type ResidentsInApartmentBuilding {
   pageInfo: PageInfoWithActivePage
-  edges: [Resident]
+  edges: [ResidentsInApartmentBuildingDocument]
+  stats: ResidentsInApartmentBuildingStats
+}
+
+type ResidentsInApartmentBuildingDocument implements Node {
+  _id: ID!
+  name: String
+  number: String
+  building: String
+  residents: [User]
+}
+
+type ResidentsInApartmentBuildingStats {
+  numberOfApartments: Int
+  numberOfResidents: Int
 }
 
 type Events {
@@ -1290,22 +1304,22 @@ export const resolvers = {
       return AddressServices.getBuilding(data.building);
     },
   },
-  DocumentPayload: {
-    building(data) {
-      return AddressServices.getBuilding(data.building);
-    },
-    author(data) {
-      return UsersModel.findOne({ _id: data.author });
-    },
-  },
-  FAQPayload: {
-    building(data) {
-      return AddressServices.getBuilding(data.building);
-    },
-    author(data) {
-      return UsersModel.findOne({ _id: data.author });
-    },
-  },
+  // DocumentPayload: {
+  //   building(data) {
+  //     return AddressServices.getBuilding(data.building);
+  //   },
+  //   author(data) {
+  //     return UsersModel.findOne({ _id: data.author });
+  //   },
+  // },
+  // FAQPayload: {
+  //   building(data) {
+  //     return AddressServices.getBuilding(data.building);
+  //   },
+  //   author(data) {
+  //     return UsersModel.findOne({ _id: data.author });
+  //   },
+  // },
   RequestsToJoinBuilding: {
     building(data) {
       return AddressServices.getBuilding(data.building);
