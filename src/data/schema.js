@@ -772,68 +772,29 @@ const rootResolvers = {
 
       return data;
     },
-    async residentsInApartmentBuilding(root, { building, filters: { resident, apartment }, limit = 8, page = 0 }) {
-      // eslint-disable-next-line
-      let filters = {
-        building: toObjectId(building),
-      };
-
-      // Determine whether apartment already exists.
-      apartment = isString(apartment) && String(apartment).trim();
-      if (apartment.length > 0) {
-        filters = {
-          ...filters,
-          apartment,
-        };
-      }
-
-      const options = [{
-        $match: filters,
-      }, {
-        $group: {
-          _id: {
-            _id: '$_id',
-            building: '$building',
-          },
-          numberOfApartments: { $sum: 1 },
-        },
-      }];
-      const result = await ApartmentsModel.aggregate([
+    async residentsInApartmentBuilding(root, { building, filters: { resident, apartment }, limit = 3, page = 0 }) {
+      // Default conditions
+      const aggregate = [
         {
-          $match: filters,
+          $match: {
+            building: toObjectId(building),
+          },
         },
-        // {
-        //   $lookup: {
-        //     from: 'users',
-        //     localField: 'owner',
-        //     foreignField: '_id',
-        //     as: 'owner',
-        //   },
-        // },
-
-        // {
-        //   $group: {
-        //     _id: {
-        //       _id: '$_id',
-        //     },
-        //     owner: { $push: '$owner' },
-        //     users: { $push: '$users' },
-        //   },
-        // },
         {
           $project: {
             _id: 1,
             name: 1,
             number: 1,
             building: 1,
+            createdAt: 1,
             owners: {
               $cond: [
-                { $not: ['$owner'] }, [null], ['$owner'],
+                { $not: ['$owner'] }, [], ['$owner'],
               ],
             },
             users: {
               $cond: [
-                { $isArray: '$users' }, '$users', [null],
+                { $isArray: '$users' }, '$users', [],
               ],
             },
           },
@@ -844,6 +805,7 @@ const rootResolvers = {
             name: 1,
             number: 1,
             building: 1,
+            createdAt: 1,
             residents: {
               $concatArrays: [
                 '$owners',
@@ -852,73 +814,158 @@ const rootResolvers = {
             },
           },
         },
-        // {
-        //   $count: 'numberOfApartments',
-        // },
-
-        // {
-        //   $group: {
-        //     _id: {
-        //       user: '$user',
-        //     },
-        //   },
-        // },
         {
-          $unwind: '$residents',
+          $unwind: {
+            path: '$residents',
+            preserveNullAndEmptyArrays: true,
+          },
         },
         {
           $lookup: {
             from: 'users',
             localField: 'residents',
             foreignField: '_id',
-            as: 'user',
+            as: 'residents',
           },
         },
         {
-          $unwind: '$user',
+          $unwind: {
+            path: '$residents',
+            preserveNullAndEmptyArrays: true,
+          },
         },
-        // {
-        //   $match: {
-        //     $or: [
-        //       {
-        //         'name': {
-        //           $regex: /thanhtt1/gi,
-        //         },
-        //       },
-        //       {
-        //         'number': {
-        //           $regex: /thanhtt1/gi,
-        //         },
-        //       },
-        //       {
-        //         'user.username': {
-        //           $regex: /thanhtt1/gi,
-        //         },
-        //       },
-        //       {
-        //         'user.profile.firstName': {
-        //           $regex: /thanhtt1/gi,
-        //         },
-        //       },
-        //       {
-        //         'user.profile.lastName': {
-        //           $regex: /thanhtt1/gi,
-        //         },
-        //       },
-        //     ],
-        //   },
-        // },
-        // {
-        //   $group: {
-        //     _id: '$residents',
-        //     books: {
-        //       $addToSet: '$$ROOT',
-        //     },
-        //   },
-        // },
-        // {
-        //   $count: 'numberOfResidents',
-        // },
+      ];
+
+      // Filter conditions
+      const matchOr = [];
+
+      // Determine whether apartment filtering already exists.
+      apartment = isString(apartment) ? String(apartment).trim() : '';
+      if (apartment.length > 0) {
+        matchOr.push({
+          name: {
+            $regex: apartment,
+            $options: 'si',
+          },
+        });
+        matchOr.push({
+          number: {
+            $regex: apartment,
+            $options: 'si',
+          },
+        });
+      }
+
+      // Determine whether resident filtering already exists.
+      resident = isString(resident) ? String(resident).trim() : '';
+      if (resident.length > 0) {
+        matchOr.push({
+          'residents.username': {
+            $regex: resident,
+            $options: 'si',
+          },
+        });
+        matchOr.push({
+          'residents.profile.firstName': {
+            $regex: resident,
+            $options: 'si',
+          },
+        });
+        matchOr.push({
+          'residents.profile.lastName': {
+            $regex: resident,
+            $options: 'si',
+          },
+        });
+        matchOr.push({
+          'residents.search': {
+            $regex: resident,
+            $options: 'si',
+          },
+        });
+      }
+
+      if (matchOr.length > 0) {
+        aggregate.push({
+          $match: {
+            $or: matchOr,
+          },
+        });
+      }
+
+      // More conditions
+      aggregate.push(
+        {
+          $group: {
+            _id: '$_id',
+            name: {
+              $first: '$name',
+            },
+            number: {
+              $first: '$number',
+            },
+            building: {
+              $first: '$building',
+            },
+            createdAt: {
+              $first: '$createdAt',
+            },
+            residents: {
+              $addToSet: '$residents',
+            },
+          },
+        },
+      );
+
+      aggregate.push({
+        $sort: {
+          createdAt: 1,
+        },
+      });
+
+      const queryStats = await ApartmentsModel.aggregate([
+        ...aggregate,
+        {
+          $group: {
+            _id: null,
+            residents: {
+              $addToSet: '$residents',
+            },
+            numberOfApartments: {
+              $sum: 1,
+            },
+          },
+        },
+        {
+          $unwind: '$residents',
+        },
+        {
+          $unwind: '$residents',
+        },
+        {
+          $group: {
+            _id: null,
+            residents: {
+              $addToSet: '$residents',
+            },
+            numberOfApartments: {
+              $first: '$numberOfApartments',
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            numberOfResidents: {
+              $sum: {
+                $size: '$residents',
+              },
+            },
+            numberOfApartments: {
+              $first: '$numberOfApartments',
+            },
+          },
+        },
         {
           $skip: page * limit,
         },
@@ -927,24 +974,29 @@ const rootResolvers = {
         },
       ]);
 
+      const queryTable = await ApartmentsModel.aggregate([
+        ...aggregate,
+        {
+          $skip: page * limit,
+        },
+        {
 
-      result.forEach((doc) => {
+          $limit: limit,
+        },
+      ]);
+
+      queryStats.forEach((doc) => {
         console.log(doc);
       });
 
-      // console.log(result);
-      console.log(`length: ${result.length}`);
-      return result;
+      console.log(`queryStats: ${queryStats.length}`);
 
-      // Determine whether resident already exists.
-      resident = isString(resident) && String(resident).trim();
-      if (resident.length > 0) {
-        filters = {
-          ...filters,
-          resident,
-        };
-      }
-      return result;
+      queryTable.forEach((doc) => {
+        console.log(doc);
+      });
+
+      console.log(`queryTable: ${queryTable.length}`);
+      return queryStats;
     },
     apartment(root, { _id }) {
       return AddressServices.getApartment(_id);
