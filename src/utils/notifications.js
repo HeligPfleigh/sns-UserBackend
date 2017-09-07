@@ -19,6 +19,7 @@ import {
   SHARING_POST,
   INTEREST_EVENT,
   NEW_FEE_APARTMENT,
+  NEW_ANNOUNCEMENT,
 } from '../constants';
 
 const getUserFollow = async (postId, userId, status) => {
@@ -235,6 +236,19 @@ async function sendNewFeeForApartmentNotification(data) {
     });
   }
 }
+async function sendNewAnnouncementNotification(users, announcementID) {
+  const notifications = users.map(user => ({
+    user,
+    type: NEW_ANNOUNCEMENT,
+    data: {
+      announcement: announcementID,
+    },
+  }));
+  if (notifications.length > 0) {
+    await NotificationsModel.collection.insert(notifications);
+  }
+}
+
 
 export {
   sendLikeNotification,
@@ -250,4 +264,5 @@ export {
   sendSharingPostNotification,
   sendInterestEventNotification,
   sendNewFeeForApartmentNotification,
+  sendNewAnnouncementNotification,
 };
