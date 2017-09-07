@@ -113,6 +113,7 @@ enum NotificationType {
   SHARING_POST
   INTEREST_EVENT
   NEW_FEE_APARTMENT
+  NEW_ANNOUNCEMENT
 }
 
 enum PrivacyType {
@@ -159,6 +160,7 @@ type DataNotification {
   year: Int
   month: Int
   apartment: String
+  announcement: String
 }
 
 type Notification implements Node {
