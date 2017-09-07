@@ -1,5 +1,6 @@
 import path from 'path';
 import url from 'url';
+import isEmpty from 'lodash/isEmpty';
 import reduce from 'lodash/reduce';
 import clone from 'lodash/clone';
 import kebabCase from 'lodash/kebabCase';
@@ -283,6 +284,7 @@ type Me implements Node, Resident {
   emails: Email
   profile: Profile
   chatId: String
+  isAdmin: Boolean
   posts: [Post]
   friends: [Friend]
   building: Building
@@ -837,6 +839,19 @@ export const resolvers = {
     },
   },
   Me: {
+    async isAdmin(user) {
+      const hasRoleAdmin = await BuildingMembersModel.findOne({
+        user: user._id,
+        type: ADMIN,
+        status: ACCEPTED,
+      });
+
+      if (!isEmpty(hasRoleAdmin)) {
+        return true;
+      }
+
+      return false;
+    },
     fullName(data) {
       const { profile } = data;
       return `${(profile && profile.firstName) || 'no'} ${(profile && profile.lastName) || 'name'}`;
