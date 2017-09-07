@@ -525,7 +525,7 @@ const rootResolvers = {
         }),
       };
     },
-    async documents(_, { building, limit = 20, page = 0 }) {
+    async documents(_, { building, limit = 20, page = 1 }) {
       const r = await DocumentsService.service({ limit }).findBySkip({
         query: {
           building,
@@ -533,7 +533,7 @@ const rootResolvers = {
           $sort: {
             createdAt: -1,
           },
-          $skip: page * limit,
+          $skip: Math.abs(page - 1) * limit,
           $limit: limit,
         },
       });
@@ -775,7 +775,9 @@ const rootResolvers = {
 
       return data;
     },
-    async residentsInApartmentBuilding(root, { building, filters: { resident, apartment }, limit = 3, page = 0 }) {
+    async residentsInApartmentBuilding(root, { building, filters: { resident, apartment }, limit = 20, page = 1 }) {
+      const $skip = Math.abs(page - 1) * limit;
+
       // Default conditions
       const aggregate = [
         {
@@ -926,7 +928,7 @@ const rootResolvers = {
         },
       });
 
-      const queryStats = await ApartmentsModel.aggregate([
+      let queryStats = await ApartmentsModel.aggregate([
         ...aggregate,
         {
           $group: {
@@ -969,37 +971,35 @@ const rootResolvers = {
             },
           },
         },
-        {
-          $skip: page * limit,
-        },
-        {
-          $limit: limit,
-        },
       ]);
+      queryStats = queryStats.shift();
 
-      const queryTable = await ApartmentsModel.aggregate([
-        ...aggregate,
-        {
-          $skip: page * limit,
+      const hasNextPage = (queryStats.numberOfApartments - $skip) > limit;
+
+      let queryTable = [];
+      if (hasNextPage) {
+        queryTable = await ApartmentsModel.aggregate([
+          ...aggregate,
+          {
+            $skip,
+          },
+          {
+            $limit: limit,
+          },
+        ]);
+      }
+      return {
+        pageInfo: {
+          limit,
+          page,
+          hasNextPage,
+          total: queryStats.numberOfApartments,
         },
-        {
-
-          $limit: limit,
+        edges: queryTable,
+        stats: {
+          ...queryStats,
         },
-      ]);
-
-      queryStats.forEach((doc) => {
-        console.log(doc);
-      });
-
-      console.log(`queryStats: ${queryStats.length}`);
-
-      queryTable.forEach((doc) => {
-        console.log(doc);
-      });
-
-      console.log(`queryTable: ${queryTable.length}`);
-      return queryStats;
+      };
     },
     apartment(root, { _id }) {
       return AddressServices.getApartment(_id);
