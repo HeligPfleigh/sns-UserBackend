@@ -477,7 +477,7 @@ type Building implements Node {
   isAdmin: Boolean
   apartments: [Apartment]
   totalApartment: Int
-  announcements(cursor: String, limit: Int): BuildingAnnouncementConnection!
+  announcements(skip: Int, limit: Int): BuildingAnnouncementConnection!
   requests(cursor: String, limit: Int): UsersAwaitingApprovalConnection
   posts(cursor: String, limit: Int): BuildingPostsConnection
   createdAt: Date
@@ -708,14 +708,14 @@ export const resolvers = {
         edges: r.data,
       };
     },
-    async announcements(data, { cursor = null, limit = 5 }) {
-      const r = await AnnouncementsService.find({
-        $cursor: cursor,
+    async announcements(data, { skip, limit = 5 }) {
+      const r = await AnnouncementsServiceWithSkip.find({
         query: {
           building: data._id,
           $sort: {
             createdAt: -1,
           },
+          $skip: skip,
           $limit: limit,
         },
       });
