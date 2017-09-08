@@ -794,6 +794,7 @@ const rootResolvers = {
           number: 1,
           building: 1,
           createdAt: 1,
+          owner: 1,
           owners: {
             $cond: [
               { $not: ['$owner'] }, [], ['$owner'],
@@ -815,6 +816,7 @@ const rootResolvers = {
           number: 1,
           building: 1,
           createdAt: 1,
+          owner: 1,
           residents: {
             $concatArrays: [
               '$owners',
@@ -940,6 +942,9 @@ const rootResolvers = {
             building: {
               $first: '$building',
             },
+            owner: {
+              $first: '$owner',
+            },
             createdAt: {
               $first: '$createdAt',
             },
@@ -1003,24 +1008,35 @@ const rootResolvers = {
         },
       ]);
 
-      // Get first record of query above
-      queryStats = queryStats.shift();
-
-      // Get remaining data
-      const remainingData = (queryStats.numberOfApartments - $skip);
-
-      // If remaining data is empty, ignore query below
       let queryTable = [];
-      if (remainingData > 0) {
-        queryTable = await ApartmentsModel.aggregate([
-          ...aggregate,
-          {
-            $skip,
-          },
-          {
-            $limit: limit,
-          },
-        ]);
+      let hasNextPage = false;
+      let total = 0;
+      if (queryStats.length > 0) {
+        // Get first record of query above
+        queryStats = queryStats.shift();
+
+        // Get remaining data
+        const remainingData = (queryStats.numberOfApartments - $skip);
+        hasNextPage = remainingData > limit;
+        total = queryStats.numberOfApartments;
+
+        // If remaining data is empty, ignore query below
+        if (remainingData > 0) {
+          queryTable = await ApartmentsModel.aggregate([
+            ...aggregate,
+            {
+              $skip,
+            },
+            {
+              $limit: limit,
+            },
+          ]);
+        }
+      } else {
+        queryStats = {
+          numberOfApartments: 0,
+          numberOfResidents: 0,
+        };
       }
 
       // Response
@@ -1028,8 +1044,8 @@ const rootResolvers = {
         pageInfo: {
           limit,
           page,
-          hasNextPage: remainingData > limit,
-          total: queryStats.numberOfApartments,
+          hasNextPage,
+          total,
         },
         edges: queryTable,
         stats: queryStats,

@@ -368,6 +368,7 @@ type ResidentsInApartmentBuildingDocument implements Node {
   name: String
   number: String
   building: String
+  owner: String
   residents: [User]
 }
 
