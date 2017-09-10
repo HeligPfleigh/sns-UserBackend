@@ -708,10 +708,20 @@ export const resolvers = {
         edges: r.data,
       };
     },
-    async announcements(data, { skip, limit = 5 }) {
+    async announcements(data, { skip, limit = 5 }, { user }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: data._id,
+        user: user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to access announcements of building .');
+      }
       const r = await AnnouncementsServiceWithSkip.find({
         query: {
           building: data._id,
+          isDeleted: { $exists: false },
           $sort: {
             createdAt: -1,
           },
@@ -745,7 +755,7 @@ export const resolvers = {
       return AddressServices.getBuilding(data.building);
     },
     async announcements(data, { cursor = null, limit = 5 }) {
-      const r = await AnnouncementsService.find({
+      const r = await AnnouncementsServiceWithCursor.find({
         $cursor: cursor,
         query: {
           $or: [
@@ -1265,6 +1275,7 @@ export const resolvers = {
       let r = null;
       const select = {
         query: {
+          isDeleted: { $exists: false },
           $or: [
             { privacy: { $in: [PUBLIC] } },
             {

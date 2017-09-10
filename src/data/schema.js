@@ -428,6 +428,11 @@ type Mutation {
   reminderToPayFee(
     input: ReminderToPayFeeInput!
   ): Fee
+
+  deleteAnnouncement(
+    _id: String!
+    buildingId: String!
+  ): Announcement
 }
 
 schema {
@@ -1703,6 +1708,38 @@ const rootResolvers = {
       });
 
       return feeDoc;
+    },
+    async deleteAnnouncement({ request }, { _id, buildingId }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: buildingId,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to delete announcement.');
+      }
+
+      const announcementDoc = await AnnouncementsModel.findOne({ _id });
+      if (!announcementDoc) {
+        throw new Error('The announcement does not exists.');
+      }
+      await AnnouncementsModel.update(
+        {
+          _id,
+        },
+        {
+          $set: {
+            isDeleted: true,
+          },
+        },
+      );
+      await NotificationsModel.remove({
+        data: {
+          announcement: _id,
+        },
+      });
+      return announcementDoc;
     },
   },
 };
