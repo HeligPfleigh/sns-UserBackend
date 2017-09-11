@@ -101,17 +101,36 @@ app.use('/document', express.static(`${__dirname}/public/documents`));
 app.use('/public', express.static(`${__dirname}/public`));
 app.use('/buildings', BuildingRouter);
 app.get('/download/:filename', (req, res) => {
+  const fullPath = (filepath, options = {}) => {
+    const root = options.root;
+    return (root) ? path.join(root, filepath) : filepath;
+  };
+  const fileExists = (filepath, options = {}) => {
+    try {
+      return fs.statSync(fullPath(filepath, options)).isFile();
+    } catch (e) {
+      return false;
+    }
+  };
+
   const filename = req.params.filename;
   const ext = path.extname(filename);
   const basename = path.basename(filename);
   const attachment = req.query.attachment || basename;
   const mimetype = mime.lookup(filename);
-  const filestream = fs.createReadStream(`${__dirname}/public/uploads/${filename}`);
+  const filePath = `${__dirname}/public/uploads/${filename}`;
+  if (fileExists(filePath)) {
+    const filestream = fs.createReadStream(`${__dirname}/public/uploads/${filename}`);
 
-  res.setHeader('Content-disposition', `attachment; filename=${attachment}.${ext}`);
-  res.setHeader('Content-type', mimetype);
+    res.setHeader('Content-disposition', `attachment; filename=${attachment}.${ext}`);
+    res.setHeader('Content-type', mimetype);
 
-  filestream.pipe(res);
+    filestream.pipe(res);
+  } else {
+    const message = 'File does not exists.';
+    res.status(404);
+    res.json({ message });
+  }
 });
 
 //
