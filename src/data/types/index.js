@@ -361,17 +361,22 @@ type FAQs {
 
 type ResidentsInApartmentBuilding {
   pageInfo: PageInfoWithActivePage
-  edges: [ResidentsInApartmentBuildingDocument]
+  edges: [ResidentsInApartmentBuildingData]
   stats: ResidentsInApartmentBuildingStats
 }
 
-type ResidentsInApartmentBuildingDocument implements Node {
+type ResidentsInApartmentBuildingData implements Node {
   _id: ID!
   name: String
   number: String
   building: String
   owner: String
   residents: [User]
+}
+
+type ExportResidentsInApartmentBuildingPayload {
+  _id: String!
+  file: String
 }
 
 type ResidentsInApartmentBuildingStats {
@@ -1017,6 +1022,13 @@ export const resolvers = {
         return null;
       }
       return data;
+    },
+  },
+  ExportResidentsInApartmentBuildingPayload: {
+    file(data) {
+      const parsed = url.parse(data.file);
+      const basename = path.basename(parsed.pathname);
+      return data && `${parsed.protocol}//${parsed.host}/download/${basename}?attachment=${kebabCase(data.name || basename)}`;
     },
   },
   Document: {

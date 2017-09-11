@@ -72,8 +72,6 @@ const FeeSchema = new Schema({
 FeeSchema.plugin(timestamp);
 const FeeModel = mongoose.model('Fee', FeeSchema);
 
-export default FeeModel;
-
 export {
   FeeTypeModel,
   FeeModel,
