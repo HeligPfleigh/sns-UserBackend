@@ -1,9 +1,13 @@
 import {
   BuildingsModel,
   ApartmentsModel,
+  BuildingMembersModel,
 } from '../models';
 import Mailer from '../../core/mailer';
 import config from '../../config';
+import {
+  ADMIN,
+} from '../../constants/index';
 
 // const PAGE_SIZE = 5;
 
@@ -30,6 +34,15 @@ async function getBuildingWithApartments(page, q) {
     });
   }));
   return buildingsResult;
+}
+
+async function getBOMOfBuilding(buildingId) {
+  const buildingMembers = await BuildingMembersModel.find({
+    building: buildingId,
+    type: ADMIN,
+  }).populate('user');
+
+  return buildingMembers.map(member => member.user);
 }
 
 async function notifywhenAcceptedForUserBelongsToBuilding(email, data) {
@@ -63,4 +76,5 @@ export default {
   getBuildingWithApartments,
   notifywhenAcceptedForUserBelongsToBuilding,
   notifywhenRejectedForUserBelongsToBuilding,
+  getBOMOfBuilding,
 };
