@@ -57,7 +57,7 @@ import {
   sendNewAnnouncementNotification,
 } from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
-import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, FRIEND, EVENT, PAID, UNPAID, PARTIALLY_PAID } from '../constants';
+import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, PRIVATE, FRIEND, EVENT, PAID, UNPAID, PARTIALLY_PAID } from '../constants';
 import toObjectId from '../utils/toObjectId';
 
 const { Types: { ObjectId } } = mongoose;
@@ -93,6 +93,8 @@ type Query {
   me: Me
   getFeeTypes: [FeeType]
   apartment(_id: String): Apartment
+  apartmentsOfBuilding(buildingId: String!): [Apartment]
+  apartmentsOfUserByBuilding(buildingId: String!): [Apartment]
   building(_id: String): Building
   buildings(query: String, limit: Int): [Building]
   notification(_id: String): Notification
@@ -162,6 +164,14 @@ input ReminderToPayFeeInput {
   _id: String!
   apartment: String!
   building: String!
+}
+
+input EditAnnouncementInput {
+  _id: String!
+  message: String!
+  description: String
+  privacy: AnnouncementType!
+  apartments: [String!]
 }
 
 type UpdateFeeDetailPayload {
@@ -464,6 +474,10 @@ type Mutation {
   deleteAnnouncement(
     _id: String!
     buildingId: String!
+  ): Announcement
+
+  editAnnouncement(
+    input: EditAnnouncementInput!
   ): Announcement
 }
 
@@ -867,6 +881,13 @@ const rootResolvers = {
     },
     apartment(root, { _id }) {
       return AddressServices.getApartment(_id);
+    },
+    apartmentsOfBuilding(root, { buildingId }) {
+      return AddressServices.getApartmentsOfBuilding(buildingId);
+    },
+    apartmentsOfUserByBuilding({ request }, { buildingId }) {
+      const userId = request.user.id;
+      return AddressServices.getApartmentsOfBuilding(userId, buildingId);
     },
     building(root, { _id }) {
       return AddressServices.getBuilding(_id);
@@ -2173,6 +2194,77 @@ const rootResolvers = {
           announcement: _id,
         },
       });
+      return announcementDoc;
+    },
+    async editAnnouncement({ request }, { input }) {
+      const {
+        _id,
+        message,
+        description,
+        privacy,
+        apartments,
+      } = input;
+      let announcementDoc = await AnnouncementsModel.findOne({ _id });
+      if (!announcementDoc) {
+        throw new Error('The announcement does not exists.');
+      }
+
+      const apts = apartments.map(toObjectId);
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: announcementDoc.building,
+        user: request.user.id,
+        type: ADMIN,
+      });
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to edit announcement.');
+      }
+
+      await AnnouncementsModel.update(
+        { _id },
+        {
+          $set: {
+            message,
+            description,
+            privacy,
+            apartments: apts,
+          },
+        },
+      );
+
+      const notificationDoc = await NotificationsModel.find({
+        data: {
+          announcement: _id,
+        },
+      });
+      if (notificationDoc.length > 0) {
+        await NotificationsModel.remove({
+          data: {
+            announcement: _id,
+          },
+        });
+      }
+      if (privacy === PRIVATE && apts.length > 0) {
+        let us = await ApartmentsModel.aggregate([
+          {
+            $match: {
+              _id: {
+                $in: apts,
+              },
+            },
+          },
+          {
+            $unwind: '$users',
+          },
+          {
+            $project: {
+              users: 1,
+            },
+          },
+        ]);
+        us = us.map(i => i.users);
+        sendNewAnnouncementNotification(us, _id);
+      }
+      announcementDoc = await AnnouncementsModel.findOne({ _id });
       return announcementDoc;
     },
   },

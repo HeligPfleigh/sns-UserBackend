@@ -1394,8 +1394,7 @@ export const resolvers = {
     building(data) {
       return AddressServices.getBuilding(data.building);
     },
-    apartments(data) {
-      // chi admin xem được 
+    async apartments(data) {
       return ApartmentsModel.find({
         _id: {
           $in: data.apartments,
