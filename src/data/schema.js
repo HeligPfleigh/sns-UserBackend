@@ -97,7 +97,8 @@ type Query {
   documents(building: String, limit: Int, page: Int, cursor: String): Documents
   FAQs(building: String, limit: Int, page: Int, cursor: String): FAQs
   fee(_id: String!): Fee
-  announcement(_id: String!): Announcement
+  announcement(_id: String!): Announcement,
+  getBOMList(buildingId: String!): [User]
 }
 
 input ProfileInput {
@@ -524,6 +525,12 @@ const rootResolvers = {
         }),
       };
     },
+
+    getBOMList(_, { buildingId }) {
+      const rs = BuildingServices.getBOMOfBuilding(buildingId);
+      return rs;
+    },
+
     async documents(_, { building, limit = 20, page = 0 }) {
       const r = await DocumentsService.service({ limit }).findBySkip({
         query: {
