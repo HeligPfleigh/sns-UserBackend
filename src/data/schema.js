@@ -84,6 +84,8 @@ type Query {
   me: Me
   getFeeTypes: [FeeType]
   apartment(_id: String): Apartment
+  apartmentsOfBuilding(buildingId: String!): [Apartment]
+  apartmentsOfUserByBuilding(buildingId: String!): [Apartment]
   building(_id: String): Building
   buildings(query: String, limit: Int): [Building]
   notification(_id: String): Notification
@@ -795,6 +797,13 @@ const rootResolvers = {
     },
     apartment(root, { _id }) {
       return AddressServices.getApartment(_id);
+    },
+    apartmentsOfBuilding(root, { buildingId }) {
+      return AddressServices.getApartmentsOfBuilding(buildingId);
+    },
+    apartmentsOfUserByBuilding({ request }, { buildingId }) {
+      const userId = request.user.id;
+      return AddressServices.getApartmentsOfBuilding(userId, buildingId);
     },
     building(root, { _id }) {
       return AddressServices.getBuilding(_id);
