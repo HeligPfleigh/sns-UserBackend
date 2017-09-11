@@ -24,7 +24,6 @@ const AnnouncementSchema = new Schema({
     type: [{
       type: ObjectId,
       ref: 'Apartment',
-      unique: true,
       index: true,
     }],
     default: [],
