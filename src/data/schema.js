@@ -98,7 +98,8 @@ type Query {
   FAQs(building: String, limit: Int, page: Int): FAQs
   fee(_id: String!): Fee
   residentsInApartmentBuilding(building: String, filters: SearchByResidentsInApartmentBuilding, limit: Int, page: Int): ResidentsInApartmentBuilding
-  announcement(_id: String!): Announcement
+  announcement(_id: String!): Announcement,
+  getBOMList(buildingId: String!): [User]
 }
 
 input SearchByResidentsInApartmentBuilding {
@@ -434,6 +435,11 @@ type Mutation {
   reminderToPayFee(
     input: ReminderToPayFeeInput!
   ): Fee
+
+  deleteAnnouncement(
+    _id: String!
+    buildingId: String!
+  ): Announcement
 }
 
 schema {
@@ -525,7 +531,11 @@ const rootResolvers = {
         }),
       };
     },
-    async documents(_, { building, limit = 20, page = 1 }) {
+    getBOMList(_, { buildingId }) {
+      const rs = BuildingServices.getBOMOfBuilding(buildingId);
+      return rs;
+    },
+    async documents(_, { building, limit = 20, page = 0 }) {
       const r = await DocumentsService.service({ limit }).findBySkip({
         query: {
           building,
@@ -1985,6 +1995,38 @@ const rootResolvers = {
       });
 
       return feeDoc;
+    },
+    async deleteAnnouncement({ request }, { _id, buildingId }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: buildingId,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to delete announcement.');
+      }
+
+      const announcementDoc = await AnnouncementsModel.findOne({ _id });
+      if (!announcementDoc) {
+        throw new Error('The announcement does not exists.');
+      }
+      await AnnouncementsModel.update(
+        {
+          _id,
+        },
+        {
+          $set: {
+            isDeleted: true,
+          },
+        },
+      );
+      await NotificationsModel.remove({
+        data: {
+          announcement: _id,
+        },
+      });
+      return announcementDoc;
     },
   },
 };

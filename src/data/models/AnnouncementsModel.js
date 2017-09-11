@@ -29,6 +29,10 @@ const AnnouncementSchema = new Schema({
     }],
     default: [],
   },
+  isDeleted: {
+    type: Boolean,
+    index: true,
+  },
 });
 
 

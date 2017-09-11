@@ -8,7 +8,10 @@ import * as admin from 'firebase-admin';
 import * as firebase from 'firebase';
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
+import isEmpty from 'lodash/isEmpty';
+
 import config from '../config';
+import { ADMIN, ACCEPTED } from '../constants';
 import { getLongTermToken } from './account/createAccountWithFB';
 import {
   UsersModel,
@@ -125,6 +128,17 @@ passport.use(new LocalStrategy({
     }
 
     const buildingsApprove = await BuildingMembersModel.find({ user: user._id });
+    const hasRoleAdmin = await BuildingMembersModel.findOne({
+      user: user._id,
+      type: ADMIN,
+      status: ACCEPTED,
+    });
+
+    let isAdmin = false;
+    if (!isEmpty(hasRoleAdmin)) {
+      isAdmin = true;
+    }
+
     let chatToken = null;
     const { emails, password, chatId } = user;
 
@@ -144,6 +158,7 @@ passport.use(new LocalStrategy({
       chatId: user && user.chatId,
       buildings: buildingsApprove || [],
       isActive: user.isActive || 0,
+      isAdmin,
     });
   };
 
@@ -201,6 +216,17 @@ passport.use(new FacebookTokenStrategy({
 
         const buildingsApprove = await BuildingMembersModel.find({ user: user._id });
 
+        const hasRoleAdmin = await BuildingMembersModel.findOne({
+          user: user._id,
+          type: ADMIN,
+          status: ACCEPTED,
+        });
+
+        let isAdmin = false;
+        if (!isEmpty(hasRoleAdmin)) {
+          isAdmin = true;
+        }
+
         done(null, {
           id: user._id,
           profile: user.profile,
@@ -211,6 +237,7 @@ passport.use(new FacebookTokenStrategy({
           chatId: user && user.chatId,
           buildings: buildingsApprove || [],
           isActive: user.isActive || 0,
+          isAdmin,
         });
       }
     } catch (e) {

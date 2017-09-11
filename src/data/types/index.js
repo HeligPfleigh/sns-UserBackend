@@ -1,5 +1,6 @@
 import path from 'path';
 import url from 'url';
+import isEmpty from 'lodash/isEmpty';
 import reduce from 'lodash/reduce';
 import clone from 'lodash/clone';
 import kebabCase from 'lodash/kebabCase';
@@ -283,6 +284,7 @@ type Me implements Node, Resident {
   emails: Email
   profile: Profile
   chatId: String
+  isAdmin: Boolean
   posts: [Post]
   friends: [Friend]
   building: Building
@@ -495,7 +497,7 @@ type Building implements Node {
   isAdmin: Boolean
   apartments: [Apartment]
   totalApartment: Int
-  announcements(cursor: String, limit: Int): BuildingAnnouncementConnection!
+  announcements(skip: Int, limit: Int): BuildingAnnouncementConnection!
   requests(cursor: String, limit: Int): UsersAwaitingApprovalConnection
   posts(cursor: String, limit: Int): BuildingPostsConnection
   createdAt: Date
@@ -726,14 +728,24 @@ export const resolvers = {
         edges: r.data,
       };
     },
-    async announcements(data, { cursor = null, limit = 5 }) {
-      const r = await AnnouncementsService.find({
-        $cursor: cursor,
+    async announcements(data, { skip, limit = 5 }, { user }) {
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: data._id,
+        user: user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to access announcements of building .');
+      }
+      const r = await AnnouncementsServiceWithSkip.find({
         query: {
           building: data._id,
+          isDeleted: { $exists: false },
           $sort: {
             createdAt: -1,
           },
+          $skip: skip,
           $limit: limit,
         },
       });
@@ -763,7 +775,7 @@ export const resolvers = {
       return AddressServices.getBuilding(data.building);
     },
     async announcements(data, { cursor = null, limit = 5 }) {
-      const r = await AnnouncementsService.find({
+      const r = await AnnouncementsServiceWithCursor.find({
         $cursor: cursor,
         query: {
           $or: [
@@ -857,6 +869,19 @@ export const resolvers = {
     },
   },
   Me: {
+    async isAdmin(user) {
+      const hasRoleAdmin = await BuildingMembersModel.findOne({
+        user: user._id,
+        type: ADMIN,
+        status: ACCEPTED,
+      });
+
+      if (!isEmpty(hasRoleAdmin)) {
+        return true;
+      }
+
+      return false;
+    },
     fullName(data) {
       const { profile } = data;
       return `${(profile && profile.firstName) || 'no'} ${(profile && profile.lastName) || 'name'}`;
@@ -1270,6 +1295,7 @@ export const resolvers = {
       let r = null;
       const select = {
         query: {
+          isDeleted: { $exists: false },
           $or: [
             { privacy: { $in: [PUBLIC] } },
             {
