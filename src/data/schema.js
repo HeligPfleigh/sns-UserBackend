@@ -396,9 +396,6 @@ type Mutation {
   createNewEvent(
     input: CreateEventInput!
   ): Event
-  createNewEventOnBuilding(
-    input: CreateEventInput!
-  ): Event
   editEvent(
     input: EditEventInput!
   ): Event
@@ -1064,17 +1061,12 @@ const rootResolvers = {
       });
       return r;
     },
-    createNewEvent({ request }, { input }) {
-      const { privacy, photos, name, location, start, end, message, invites } = input;
-      return EventService.createEvent(privacy, request.user.id, photos, name, location, start, end, message, invites);
+    async createNewEvent({ request: { user } }, { input }) {
+      const { building, privacy, photos, name, location, start, end, message, invites } = input;
+      return EventService.createEvent({ building, privacy, author: user.id, photos, name, location, start, end, message, invites });
     },
     async interestEvent({ request }, { eventId }) {
       return EventService.interestEvent(request.user.id, eventId);
-    },
-
-    createNewEventOnBuilding({ request }, { input }) {
-      const { privacy, photos, name, building, location, start, end, message, invites } = input;
-      return EventService.createEventOnBuilding(privacy, request.user.id, photos, building, name, location, start, end, message, invites);
     },
     async inviteResidentsJoinEvent({ request }, { eventId, residentsId }) {
       const event = await PostsModel.findOne({
