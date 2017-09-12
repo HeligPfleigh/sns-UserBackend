@@ -6,7 +6,6 @@ const { Schema } = mongoose;
 const { Types: { ObjectId } } = Schema;
 
 const AnnouncementSchema = new Schema({
-  _id: ObjectId,
   date: Date,
   message: String,
   description: String,

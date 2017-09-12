@@ -5,7 +5,7 @@ import {
 } from '../../../test/helper';
 import { PUBLIC, FRIEND, ONLY_ME } from '../../constants';
 import schema from '../schema';
-import { UsersModel, FriendsRelationModel, PostsModel } from '../models';
+import { UsersModel, FriendsRelationModel } from '../models';
 
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());

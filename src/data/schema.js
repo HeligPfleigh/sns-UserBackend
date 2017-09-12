@@ -440,7 +440,6 @@ type Mutation {
 
   deleteAnnouncement(
     _id: String!
-    buildingId: String!
   ): Announcement
 
   editAnnouncement(
@@ -1728,21 +1727,21 @@ const rootResolvers = {
 
       return feeDoc;
     },
-    async deleteAnnouncement({ request }, { _id, buildingId }) {
+    async deleteAnnouncement({ request }, { _id }) {
+      const announcementDoc = await AnnouncementsModel.findOne({ _id });
+      if (!announcementDoc) {
+        throw new Error('Not found the announcement');
+      }
+
       const isAdmin = await BuildingMembersModel.findOne({
-        building: buildingId,
+        building: announcementDoc.building,
         user: request.user.id,
         type: ADMIN,
       });
-
       if (!isAdmin) {
         throw new Error('you don\'t have permission to delete announcement.');
       }
 
-      const announcementDoc = await AnnouncementsModel.findOne({ _id });
-      if (!announcementDoc) {
-        throw new Error('The announcement does not exists.');
-      }
       await AnnouncementsModel.update(
         {
           _id,
@@ -1770,7 +1769,7 @@ const rootResolvers = {
       } = input;
       let announcementDoc = await AnnouncementsModel.findOne({ _id });
       if (!announcementDoc) {
-        throw new Error('The announcement does not exists.');
+        throw new Error('Not found the announcement');
       }
 
       const apts = apartments.map(toObjectId);
