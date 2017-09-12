@@ -1228,13 +1228,13 @@ export const resolvers = {
         },
         $limit: limit,
       };
-      if (data._id === user.id) {
+      if (data._id == user.id) {
         select.privacy = [PUBLIC, FRIEND, ONLY_ME];
       }
       if (r) {
         select.privacy = [PUBLIC, FRIEND];
       }
-      if (data._id !== user.id && !r) {
+      if (data._id != user.id && !r) {
         select.privacy = [PUBLIC];
       }
       const p = await PostsService.find({
