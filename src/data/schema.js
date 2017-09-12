@@ -4,15 +4,23 @@ import isUndefined from 'lodash/isUndefined';
 import isObject from 'lodash/isObject';
 import isString from 'lodash/isString';
 import merge from 'lodash/merge';
+import isNumber from 'lodash/isNumber';
+import isBoolean from 'lodash/isBoolean';
+import isDate from 'lodash/isDate';
+import isNull from 'lodash/isNull';
 import map from 'lodash/map';
 import includes from 'lodash/includes';
 import without from 'lodash/without';
+import isFunction from 'lodash/isFunction';
+import forEach from 'lodash/forEach';
 import mongoose from 'mongoose';
 import { generate as keyRandom } from 'shortid';
 import {
   // buildSchemaFromTypeDefinitions,
   makeExecutableSchema,
 } from 'graphql-tools';
+import XLSX from 'xlsx';
+import moment from 'moment';
 import {
   PostsModel,
   FriendsRelationModel as FriendsModel,
@@ -26,6 +34,7 @@ import {
   AnnouncementsModel,
 } from './models';
 import Service from './mongo/service';
+import ApartmentServices from './apis/ApartmentServices';
 import AddressServices from './apis/AddressServices';
 import BuildingServices from './apis/BuildingServices';
 import NotificationsService from './apis/NotificationsService';
@@ -96,11 +105,17 @@ type Query {
   resident(_id: String): User
   requestsToJoinBuilding(_id: String): RequestsToJoinBuilding
   checkExistUser(query: String): Boolean
-  documents(building: String, limit: Int, page: Int, cursor: String): Documents
-  FAQs(building: String, limit: Int, page: Int, cursor: String): FAQs
+  documents(building: String!, limit: Int, page: Int): Documents
+  FAQs(building: String!, limit: Int, page: Int): FAQs
   fee(_id: String!): Fee
+  residentsInApartmentBuilding(building: String!, filters: SearchByResidentsInApartmentBuilding, limit: Int, page: Int): ResidentsInApartmentBuilding
   announcement(_id: String!): Announcement,
   getBOMList(buildingId: String!): [User]
+}
+
+input SearchByResidentsInApartmentBuilding {
+  resident: String
+  apartment: String
 }
 
 input ProfileInput {
@@ -294,6 +309,16 @@ type UploadSingleFileResponse {
   file: UploadFileResponse!
 }
 
+input DeleteResidentInApartmentBuildingInput {
+  resident: String!
+  apartment: String!
+  building: String!
+}
+
+input ExportResidentsInApartmentBuildingInput {
+  building: String!
+}
+
 type UploadMultiFileResponse {
   files: [UploadFileResponse]!
 }
@@ -439,7 +464,13 @@ type Mutation {
   reminderToPayFee(
     input: ReminderToPayFeeInput!
   ): Fee
-
+  deleteResidentInApartmentBuilding(
+    input: DeleteResidentInApartmentBuildingInput!
+  ): User
+  exportResidentsInApartmentBuilding(
+    building: String!, 
+    filters: SearchByResidentsInApartmentBuilding
+  ): ExportResidentsInApartmentBuildingPayload
   deleteAnnouncement(
     _id: String!
   ): Announcement
@@ -538,13 +569,11 @@ const rootResolvers = {
         }),
       };
     },
-
     getBOMList(_, { buildingId }) {
       const rs = BuildingServices.getBOMOfBuilding(buildingId);
       return rs;
     },
-
-    async documents(_, { building, limit = 20, page = 0 }) {
+    async documents(_, { building, limit = 20, page = 1 }) {
       const r = await DocumentsService.service({ limit }).findBySkip({
         query: {
           building,
@@ -552,10 +581,11 @@ const rootResolvers = {
           $sort: {
             createdAt: -1,
           },
-          $skip: page * limit,
+          $skip: Math.abs(page - 1) * limit,
           $limit: limit,
         },
       });
+
       return {
         pageInfo: {
           ...r.paging,
@@ -793,6 +823,60 @@ const rootResolvers = {
       }));
 
       return data;
+    },
+    async residentsInApartmentBuilding({ request }, { building, filters: { resident, apartment }, limit = 20, page = 1 }) {
+      // Determine whether user has granted to perform this action.
+      const isAdmin = await BuildingMembersModel.findOne({
+        building,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to update fee detail.');
+      }
+
+      const $skip = Math.abs(page - 1) * limit;
+      const { aggregate, queryStats, hasData } = await ApartmentServices.residentsInApartmentBuildingQuery({
+        building,
+        resident,
+        apartment,
+      });
+
+      let queryTable = [];
+      let hasNextPage = false;
+      let total = 0;
+      if (hasData) {
+        // Get remaining data
+        const remainingData = (queryStats.numberOfApartments - $skip);
+        hasNextPage = remainingData > limit;
+        total = queryStats.numberOfApartments;
+
+        // If remaining data is empty, ignore query below
+        if (remainingData > 0) {
+          queryTable = await ApartmentsModel.aggregate([
+            ...aggregate,
+            {
+              $skip,
+            },
+            {
+              $limit: limit,
+            },
+          ]);
+        }
+      }
+
+      // Response
+      return {
+        pageInfo: {
+          limit,
+          page,
+          hasNextPage,
+          total,
+        },
+        edges: queryTable,
+        stats: queryStats,
+      };
     },
     apartment(root, { _id }) {
       return AddressServices.getApartment(_id);
@@ -1688,6 +1772,349 @@ const rootResolvers = {
           _id: feeId,
         }),
       };
+    },
+    async exportResidentsInApartmentBuilding({ request }, { building, filters: { resident, apartment } }) {
+      // Determine whether user has granted to perform this action.
+      const isAdmin = await BuildingMembersModel.findOne({
+        building,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to update fee detail.');
+      }
+
+      // Determine whether the building already exists.
+      const buildingDoc = await BuildingsModel.findOne({
+        _id: building,
+      });
+      if (!buildingDoc) {
+        throw new Error('The building does not exists.');
+      }
+
+      const { aggregate, queryStats, hasData } = await ApartmentServices.residentsInApartmentBuildingQuery({
+        building,
+        resident,
+        apartment,
+      });
+
+      const fileName = `public/uploads/ExportResidentsInApartmentBuilding.${moment().unix()}.xlsx`;
+      const url = `${request.secure ? 'https' : 'http'}://${request.headers.host}/${fileName}`;
+
+      const createExcelFile = (params) => {
+        const { columns, data, name, merges, heading } = params;
+        const dataset = [];
+        const config = {
+          cols: [],
+        };
+
+        const datenum = (v, date1904) => {
+          if (date1904) v += 1462;
+          const epoch = Date.parse(v);
+          return (epoch - new Date(Date.UTC(1899, 11, 30))) / (24 * 60 * 60 * 1000);
+        };
+
+        if (Array.isArray(heading)) {
+          forEach(heading, (item) => {
+            dataset.push(item);
+          });
+        }
+
+        const header = [];
+        forEach(columns, (item) => {
+          header.push(item.displayName);
+
+          if (item.width) {
+            if (Number.isInteger(item.width)) {
+              config.cols.push({
+                wpx: item.width,
+              });
+            } else if (Number.isInteger(parseInt(item.width, 10))) {
+              config.cols.push({
+                wch: item.width,
+              });
+            } else {
+              throw new Error('Provide column width as a number');
+            }
+          } else {
+            config.cols.push({});
+          }
+        });
+
+        if (header.length > 0) {
+          dataset.push(header);
+        }
+
+        forEach(data, (record) => {
+          const items = [];
+          forEach(columns, (item, key) => {
+            let cellValue = record[key];
+            if (item.cellFormat && isFunction(item.cellFormat)) {
+              cellValue = item.cellFormat(cellValue, record);
+            } else if (item.cellStyle && isFunction(item.cellStyle)) {
+              cellValue = {
+                value: cellValue,
+                style: item.cellStyle(cellValue, record),
+              };
+            } else if (item.cellStyle) {
+              cellValue = {
+                value: cellValue,
+                style: item.cellStyle,
+              };
+            }
+            items.push(cellValue);
+          });
+
+          if (items.length > 0) {
+            dataset.push(items);
+          }
+        });
+
+        const wb = {
+          SheetNames: [],
+          Sheets: {},
+        };
+        const ws = {};
+        const range = {
+          s: {
+            c: 10000000,
+            r: 10000000,
+          },
+          e: {
+            c: 0,
+            r: 0,
+          },
+        };
+
+        wb.SheetNames.push(name);
+
+        for (let R = 0; R !== (dataset.length); ++R) {
+          for (let C = 0; C !== dataset[R].length; ++C) {
+            if (range.s.r > R) {
+              range.s.r = R;
+            }
+
+            if (range.s.c > C) {
+              range.s.c = C;
+            }
+
+            if (range.e.r < R) {
+              range.e.r = R;
+            }
+
+            if (range.e.c < C) {
+              range.e.c = C;
+            }
+
+            let cell;
+            if (dataset[R][C] && isObject(dataset[R][C]) && dataset[R][C].style && !isDate(dataset[R][C])) {
+              cell = {
+                v: dataset[R][C].value,
+                s: dataset[R][C].style,
+              };
+            } else {
+              cell = {
+                v: dataset[R][C],
+              };
+            }
+
+            if (isNull(cell.v)) {
+              /* eslint-disable */
+              continue;
+            }
+
+            const cellRef = XLSX.utils.encode_cell({
+              c: C,
+              r: R,
+            });
+            if (isNumber(cell.v)) {
+              cell.t = 'n';
+            } else if (isBoolean(cell.v)) {
+              cell.t = 'b';
+            } else if (isDate(cell.v)) {
+              cell.t = 'n';
+              cell.z = XLSX.SSF._table[14];
+              cell.v = datenum(cell.v);
+            } else {
+              cell.t = 's';
+            }
+
+            ws[cellRef] = cell;
+          }
+        }
+
+        if (merges) {
+          if (!ws['!merges']) ws['!merges'] = [];
+          merges.forEach((item) => {
+            ws['!merges'].push({
+              s: {
+                r: item.start.row - 1,
+                c: item.start.column - 1,
+              },
+              e: {
+                r: item.end.row - 1,
+                c: item.end.column - 1,
+              },
+            });
+          });
+        }
+
+        if (range.s.c < 10000000) {
+          ws['!ref'] = XLSX.utils.encode_range(range);
+        }
+
+        wb.Sheets[name] = ws;
+        if (config.cols) {
+          wb.Sheets[name]['!cols'] = config.cols;
+        }
+
+        return XLSX.writeFile(wb, `${__dirname}/${fileName}`);
+      };
+
+      if (hasData) {
+        const heading = [
+          [
+            'Tòa nhà',
+            buildingDoc.name,
+          ],
+          [
+            'Địa chỉ',
+            `${buildingDoc.address.basisPoint}, ${buildingDoc.address.street}, ${buildingDoc.address.ward}, ${buildingDoc.address.district}, ${buildingDoc.address.province}, ${buildingDoc.address.country}`,
+          ],
+          [
+            'Tổng số căn hộ',
+            queryStats.numberOfApartments,
+          ],
+          [
+            'Tống số cư dân',
+            queryStats.numberOfResidents,
+          ]
+        ];
+
+        const columns = {
+          apartmentName: {
+            displayName: 'Căn hộ',
+            width: 120,
+          },
+          residentName: {
+            displayName: 'Cư dân',
+            width: 200,
+          },
+          residentRole: {
+            displayName: 'Vai trò',
+            width: 120,
+          },
+        };
+
+        const merges = [
+          {
+            start: {
+              row: 1,
+              column: 2,
+            },
+            end: {
+              row: 1,
+              column: 3,
+            },
+          },
+          {
+            start: {
+              row: 2,
+              column: 2,
+            },
+            end: {
+              row: 2,
+              column: 3,
+            },
+          },
+        ];
+
+        const data = [];
+        heading.push.call(heading, [], [
+          ' ',
+          'Danh sách cư dân trong các căn hộ'
+        ], []);
+
+        const queryTable = await ApartmentsModel.aggregate(aggregate);
+        queryTable.forEach(row => {
+          const numberOfResidents = Array.isArray(row.residents) ? row.residents.length : 0;
+          data.push({
+            apartmentName: row.name,
+            // residentName: `Tổng số cư dân ${numberOfResidents}`
+          });
+
+          if (numberOfResidents > 0) {
+            row.residents.forEach(resident => {
+              data.push({
+                residentName: [resident.profile.firstName, resident.profile.lastName].join(' '),
+                residentRole: resident._id === row.owner ? 'Chủ hộ' : 'Người thuê nhà',
+              });
+            });
+          }
+        });
+
+        try {
+          createExcelFile({
+            name: `Cư dân`,
+            heading,
+            merges,
+            columns,
+            data,
+          });
+        } catch (e) {
+          throw new Error('Có lỗi trong quá trình tạo tập tin.');
+        }
+      }
+
+      return {
+        file: url,
+      };
+    },
+    async deleteResidentInApartmentBuilding({ request }, { input: { resident, apartment, building } }) {
+      // Determine whether user has granted to perform this action.
+      const isAdmin = await BuildingMembersModel.findOne({
+        building,
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to update fee detail.');
+      }
+
+      // Determine whether the fee already exists.
+      const userDoc = await UsersModel.findOne({
+        _id: resident,
+      });
+
+      if (!userDoc) {
+        throw new Error('The user does not exists.');
+      }
+
+      // Determine whether the apartment already exists.
+      const apartmentDoc = await ApartmentsModel.findOne({
+        _id: apartment,
+      });
+      if (!apartmentDoc) {
+        throw new Error('The apartment does not exists.');
+      }
+
+      // Determine whether the building already exists.
+      const buildingDoc = await BuildingsModel.findOne({
+        _id: building,
+      });
+      if (!buildingDoc) {
+        throw new Error('The building does not exists.');
+      }
+
+      await ApartmentsModel.findByIdAndUpdate(apartment, {
+        $pull: {
+          users: resident,
+        },
+      });
+
+      return userDoc;
     },
     async reminderToPayFee({ request }, { input: { _id, apartment, building } }) {
       // Determine whether user has granted to perform this action.

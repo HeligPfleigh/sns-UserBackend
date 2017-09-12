@@ -359,6 +359,31 @@ type FAQs {
   edges: [FAQ]
 }
 
+type ResidentsInApartmentBuilding {
+  pageInfo: PageInfoWithActivePage
+  edges: [ResidentsInApartmentBuildingData]
+  stats: ResidentsInApartmentBuildingStats
+}
+
+type ResidentsInApartmentBuildingData implements Node {
+  _id: ID!
+  name: String
+  number: String
+  building: String
+  owner: String
+  residents: [User]
+}
+
+type ExportResidentsInApartmentBuildingPayload {
+  _id: String!
+  file: String
+}
+
+type ResidentsInApartmentBuildingStats {
+  numberOfApartments: Int
+  numberOfResidents: Int
+}
+
 type Events {
   pageInfo: PageInfoWithCursor
   edges: [Event]
@@ -999,6 +1024,13 @@ export const resolvers = {
       return data;
     },
   },
+  ExportResidentsInApartmentBuildingPayload: {
+    file(data) {
+      const parsed = url.parse(data.file);
+      const basename = path.basename(parsed.pathname);
+      return data && `${parsed.protocol}//${parsed.host}/download/${basename}?attachment=${kebabCase(data.name || basename)}`;
+    },
+  },
   Document: {
     author(data) {
       return UsersModel.findOne({ _id: data.author });
@@ -1311,22 +1343,22 @@ export const resolvers = {
       return AddressServices.getBuilding(data.building);
     },
   },
-  DocumentPayload: {
-    building(data) {
-      return AddressServices.getBuilding(data.building);
-    },
-    author(data) {
-      return UsersModel.findOne({ _id: data.author });
-    },
-  },
-  FAQPayload: {
-    building(data) {
-      return AddressServices.getBuilding(data.building);
-    },
-    author(data) {
-      return UsersModel.findOne({ _id: data.author });
-    },
-  },
+  // DocumentPayload: {
+  //   building(data) {
+  //     return AddressServices.getBuilding(data.building);
+  //   },
+  //   author(data) {
+  //     return UsersModel.findOne({ _id: data.author });
+  //   },
+  // },
+  // FAQPayload: {
+  //   building(data) {
+  //     return AddressServices.getBuilding(data.building);
+  //   },
+  //   author(data) {
+  //     return UsersModel.findOne({ _id: data.author });
+  //   },
+  // },
   RequestsToJoinBuilding: {
     building(data) {
       return AddressServices.getBuilding(data.building);
