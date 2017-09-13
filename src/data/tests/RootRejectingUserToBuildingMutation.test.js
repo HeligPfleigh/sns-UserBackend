@@ -4,8 +4,8 @@ import {
   getContext,
 } from '../../../test/helper';
 import schema from '../schema';
-import { UsersModel, BuildingMembersModel } from '../models';
-
+import { UsersModel, BuildingMembersModel, BuildingsModel } from '../models';
+import { buildingData as bd } from './data';
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
@@ -22,6 +22,10 @@ const apartmentIdA = '57c9c1bf2d4581000484b189';
 const apartmentIdB = '58f9c1bf2d4581000484b123';
 const apartmentIdD = '59a9c1bf2d4581000484b323';
 // const announcementId = '23da279f0ff5af8c8be59c36';
+
+const buildingData = Object.assign({}, bd, {
+  _id: buildingId,
+});
 
 const userDataA = {
   _id: userIdA,
@@ -124,12 +128,16 @@ describe('RootRejectingUserToBuildingMutation', () => {
     await buildingMembersB.save();
     const buildingMembersD = new BuildingMembersModel(buildingMembersDataD);
     await buildingMembersD.save();
+
+    const building = new BuildingsModel(buildingData);
+    await building.save();
   });
 
   test('should reject user to building ', async () => {
     const input = {
       input: '{' +
         'requestsToJoinBuildingId: "' + buildingMembersIdB + '",' +
+        'message: "Message",' +
       '},',
     };
     // language=GraphQL
@@ -167,6 +175,7 @@ describe('RootRejectingUserToBuildingMutation', () => {
     const input = {
       input: '{' +
         'requestsToJoinBuildingId: "' + buildingMembersIdC + '",' +
+        'message: "Message",' +
       '},',
     };
     // language=GraphQL
@@ -198,6 +207,7 @@ describe('RootRejectingUserToBuildingMutation', () => {
     const input = {
       input: '{' +
         'requestsToJoinBuildingId: "' + buildingMembersIdB + '",' +
+        'message: "Message",' +
       '},',
     };
     // language=GraphQL
@@ -229,6 +239,7 @@ describe('RootRejectingUserToBuildingMutation', () => {
     const input = {
       input: '{' +
         'requestsToJoinBuildingId: "' + buildingMembersIdD + '",' +
+        'message: "Message",' +
       '},',
     };
     // language=GraphQL
@@ -266,5 +277,6 @@ describe('RootRejectingUserToBuildingMutation', () => {
     // clear data
     await UsersModel.remove({});
     await BuildingMembersModel.remove({});
+    await BuildingsModel.remove({});
   });
 });
