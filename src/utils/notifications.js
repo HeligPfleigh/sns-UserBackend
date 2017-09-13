@@ -20,6 +20,7 @@ import {
   INTEREST_EVENT,
   NEW_FEE_APARTMENT,
   NEW_ANNOUNCEMENT,
+  REMIND_FEE,
 } from '../constants';
 
 const getUserFollow = async (postId, userId, status) => {
@@ -236,6 +237,18 @@ async function sendNewFeeForApartmentNotification(data) {
     });
   }
 }
+
+async function sendRemindFeeNotification(data) {
+  const apartment = await ApartmentsModel.findOne({ _id: data.apartment });
+
+  await NotificationsModel.create({
+    user: apartment.owner,
+    seen: false,
+    type: REMIND_FEE,
+    data,
+  });
+}
+
 async function sendNewAnnouncementNotification(users, announcementID) {
   const notifications = users.map(user => ({
     user,
@@ -266,4 +279,5 @@ export {
   sendInterestEventNotification,
   sendNewFeeForApartmentNotification,
   sendNewAnnouncementNotification,
+  sendRemindFeeNotification,
 };

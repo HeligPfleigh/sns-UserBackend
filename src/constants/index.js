@@ -37,6 +37,7 @@ export const SHARING_POST = 'SHARING_POST';
 export const INTEREST_EVENT = 'INTEREST_EVENT';
 export const NEW_FEE_APARTMENT = 'NEW_FEE_APARTMENT';
 export const NEW_ANNOUNCEMENT = 'NEW_ANNOUNCEMENT';
+export const REMIND_FEE = 'REMIND_FEE';
 export const NOTIFY_TYPES = [
   LIKES,
   COMMENTS,
@@ -54,6 +55,7 @@ export const NOTIFY_TYPES = [
   INTEREST_EVENT,
   NEW_FEE_APARTMENT,
   NEW_ANNOUNCEMENT,
+  REMIND_FEE,
 ];
 
 export const PAID = 'PAID';
