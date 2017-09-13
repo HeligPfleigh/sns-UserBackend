@@ -647,19 +647,19 @@ const rootResolvers = {
         };
       }
 
-      if (isUndefined(filters.month)) {
-        const { month, year } = await FeeModel.findOne({
-        }).sort({
-          month: -1,
-          year: -1,
-        }).select('month year');
+      // if (isUndefined(filters.month)) {
+      //   const { month, year } = await FeeModel.findOne({
+      //   }).sort({
+      //     month: -1,
+      //     year: -1,
+      //   }).select('month year');
 
-        filters = {
-          ...filters,
-          month,
-          year,
-        };
-      }
+      //   filters = {
+      //     ...filters,
+      //     month,
+      //     year,
+      //   };
+      // }
 
       // add filter data by fee type
       if (feeType && feeType !== 0) {
