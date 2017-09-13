@@ -67,6 +67,7 @@ const FeeSchema = new Schema({
     required: true,
   },
   deadline: Date,
+  last_remind: Date,
 });
 
 FeeSchema.plugin(timestamp);

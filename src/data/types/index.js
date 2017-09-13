@@ -115,6 +115,7 @@ enum NotificationType {
   INTEREST_EVENT
   NEW_FEE_APARTMENT
   NEW_ANNOUNCEMENT
+  REMIND_FEE
 }
 
 enum PrivacyType {
@@ -460,6 +461,7 @@ type Fee implements Node {
   status: String
   createdAt: Date
   updatedAt: Date
+  lastRemind: Date
 }
 
 type FeesResult {
@@ -1388,6 +1390,12 @@ export const resolvers = {
     },
     updatedAt(data) {
       return new Date(data.updatedAt);
+    },
+    lastRemind(data) {
+      if (data.last_remind) {
+        return new Date(data.last_remind);
+      }
+      return null;
     },
   },
   Announcement: {

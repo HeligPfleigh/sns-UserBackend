@@ -53,8 +53,8 @@ import {
   acceptedUserBelongsToBuildingNotification,
   rejectedUserBelongsToBuildingNotification,
   sendSharingPostNotification,
-  sendNewFeeForApartmentNotification,
   sendNewAnnouncementNotification,
+  sendRemindFeeNotification,
 } from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
 import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, PRIVATE, FRIEND, ONLY_ME, EVENT, PAID, UNPAID, PARTIALLY_PAID } from '../constants';
@@ -2134,10 +2134,16 @@ const rootResolvers = {
       }
 
       // Determine whether the fee already exists.
-      const feeDoc = await FeeModel.findOne({
+      // if it exits change last_remind to now
+      const today = new Date();
+      const feeDoc = await FeeModel.findOneAndUpdate({
         _id,
         apartment,
         building,
+      }, {
+        $set : {last_remind: today},
+      }, {
+        new: true
       });
       if (!feeDoc) {
         throw new Error('The fee does not exists.');
@@ -2159,11 +2165,11 @@ const rootResolvers = {
         throw new Error('The building does not exists.');
       }
 
-      sendNewFeeForApartmentNotification({
+      sendRemindFeeNotification({
         apartment: feeDoc.apartment,
         month: feeDoc.month,
         year: feeDoc.year,
-        text: `Thông báo nộp tiền ${feeDoc.type.name.toString().toLowerCase()} tháng ${feeDoc.month}/${feeDoc.year}`,
+        text: `Lời nhắc nộp tiền ${feeDoc.type.name.toString().toLowerCase()} tháng ${feeDoc.month}/${feeDoc.year}`,
       });
 
       return feeDoc;
