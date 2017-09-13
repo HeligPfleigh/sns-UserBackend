@@ -35,6 +35,9 @@ const announcementData = {
 
 describe('RootDeleteAnnouncementMutation', () => {
   beforeEach(async () => {
+    await BuildingsModel.remove({});
+    await AnnouncementsModel.remove({});
+
     const building = new BuildingsModel(buildingData);
     await building.save();
     const announcement = new AnnouncementsModel(announcementData);

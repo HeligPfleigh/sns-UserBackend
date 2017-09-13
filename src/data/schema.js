@@ -57,7 +57,7 @@ import {
   sendNewAnnouncementNotification,
 } from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
-import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, PRIVATE, FRIEND, EVENT, PAID, UNPAID, PARTIALLY_PAID } from '../constants';
+import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, PRIVATE, FRIEND, ONLY_ME, EVENT, PAID, UNPAID, PARTIALLY_PAID } from '../constants';
 import toObjectId from '../utils/toObjectId';
 
 const { Types: { ObjectId } } = mongoose;
@@ -552,6 +552,11 @@ const rootResolvers = {
             {
               building: me.building,
               privacy: { $in: [PUBLIC] },
+            },
+            {
+              author: { $in: friendListByIds },
+              user: userId,
+              privacy: { $in: [ONLY_ME] },
             },
           ],
           isDeleted: { $exists: false },

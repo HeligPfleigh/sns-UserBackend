@@ -243,6 +243,7 @@ async function sendNewAnnouncementNotification(users, announcementID) {
     data: {
       announcement: announcementID,
     },
+    createdAt: new Date(),
   }));
   if (notifications.length > 0) {
     await NotificationsModel.collection.insert(notifications);
