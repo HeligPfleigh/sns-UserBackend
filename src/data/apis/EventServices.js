@@ -1,5 +1,6 @@
 import {
   PostsModel,
+  BuildingMembersModel,
 } from '../models';
 
 import {
@@ -117,7 +118,12 @@ async function editEvent(_id, {
   end,
   message,
   invites,
+  building,
 }) {
+  // @TODO: You should be re-factory this feature when system contains feature add friend between different building
+  if (building) {
+    // console.log(building);
+  }
   const r = await PostsModel.findOneAndUpdate(
     {
       _id,
@@ -132,6 +138,7 @@ async function editEvent(_id, {
         end,
         message,
         invites,
+        building,
       },
     },
     {

@@ -1,14 +1,18 @@
 import isString from 'lodash/isString';
 import ApartmentsModel from '../models/ApartmentsModel';
 import { FeeModel } from '../models/FeeModel';
-import toObjectId from '../../utils/toObjectId';
+import toObjectId, { ObjectIdValid } from '../../utils/toObjectId';
 
 async function getFeeOfApartment(filter) {
   const fees = await FeeModel.find(filter);
   return fees;
 }
 
-async function residentsInApartmentBuildingQuery({ building, apartment, resident }) {
+async function residentsInBuildingGroupByApartmentQuery({ building, apartment, resident }) {
+  if (!ObjectIdValid(building)) {
+    throw new Error('The building id is invalid.');
+  }
+
   const aggregate = [];
 
   // Query by building
@@ -258,5 +262,5 @@ async function residentsInApartmentBuildingQuery({ building, apartment, resident
 
 export default {
   getFeeOfApartment,
-  residentsInApartmentBuildingQuery,
+  residentsInBuildingGroupByApartmentQuery,
 };
