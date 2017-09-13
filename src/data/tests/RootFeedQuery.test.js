@@ -5,7 +5,7 @@ import {
 } from '../../../test/helper';
 import { PostsModel, UsersModel, FriendsRelationModel } from '../models';
 import schema from '../schema';
-import { PUBLIC, ONLY_ME } from '../../constants';
+import { PUBLIC, ONLY_ME, ACCEPTED } from '../../constants';
 
 // beforeEach(async () => await setupTest());
 beforeAll(async () => await setupTest());
@@ -99,7 +99,7 @@ const friendsRelationData = {
   user: userIdA,
   friend: userIdC,
   isSubscribe: true,
-  status: 'ACCEPTED',
+  status: ACCEPTED,
   __v: 0,
 };
 
@@ -110,6 +110,7 @@ const postData = {
   likes: ['58f9d2132d4581000484b1a0'],
   photos: [],
   type: 'STATUS',
+  privacy: PUBLIC,
   __v: 0,
 };
 
@@ -142,6 +143,12 @@ describe('RootFeedQuery', () => {
           postData.privacy = ONLY_ME;
         } else {
           postData.privacy = PUBLIC;
+        }
+        if (i === 6) {
+          // post on userA's wall by user C with privacy ONLY_ME
+          postData.user = userIdA;
+          postData.author = userIdC;
+          postData.privacy = ONLY_ME;
         }
       } else if (i <= 15 && i > 10) {
         // post on userB's wall by user B
@@ -176,7 +183,7 @@ describe('RootFeedQuery', () => {
     // }
   });
 
-  test('should get feed', async () => {
+  test('should get feeds', async () => {
     let query = `
       {
         feeds (limit: 8) {
@@ -284,7 +291,7 @@ describe('RootFeedQuery', () => {
     const context = getContext({});
     let result = await graphql(schema, query, rootValue, context);
     let messages = result.data.feeds.edges.map(m => m.message);
-    expect(result.data.feeds.pageInfo.total).toEqual(11);
+    expect(result.data.feeds.pageInfo.total).toEqual(10);
     expect(result.data.feeds.pageInfo.limit).toEqual(8);
     expect(result.data.feeds.pageInfo.hasNextPage).toEqual(true);
     expect(result.data.feeds.edges.length).toEqual(8);
@@ -294,9 +301,9 @@ describe('RootFeedQuery', () => {
       'message3',
       'message4',
       'message5',
-      'message6',
       'message8',
       'message9',
+      'message10',
     ]);
 
     query = `
@@ -318,7 +325,6 @@ describe('RootFeedQuery', () => {
     result = await graphql(schema, query, rootValue, context);
     messages = result.data.feeds.edges.map(m => m.message);
     expect(messages).toEqual([
-      'message10',
       'message14',
       'message16',
     ]);
