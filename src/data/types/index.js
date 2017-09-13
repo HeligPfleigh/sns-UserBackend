@@ -3,6 +3,7 @@ import url from 'url';
 import isEmpty from 'lodash/isEmpty';
 import reduce from 'lodash/reduce';
 import clone from 'lodash/clone';
+import without from 'lodash/without';
 import kebabCase from 'lodash/kebabCase';
 import DateScalarType from './DateScalarType';
 import {
@@ -501,6 +502,7 @@ type Building implements Node {
   name: String
   display: String
   address: Address
+  addressString: String
   isAdmin: Boolean
   apartments: [Apartment]
   totalApartment: Int
@@ -623,6 +625,28 @@ export const resolvers = {
     display(building) {
       const address = building.address.toObject();
       return `${building.name}-${address.ward}, ${address.district}, ${address.province}`;
+    },
+    addressString: (building) => {
+      const {
+        address: {
+          country,
+          province,
+          district,
+          ward,
+          street,
+          basisPoint,
+        },
+      } = building;
+      const pathString = (
+        without(
+          [basisPoint, street, ward, district, province, country],
+          '',
+          null,
+          undefined,
+        )
+      ).join(', ');
+
+      return pathString;
     },
     apartments(building) {
       return ApartmentsModel.find({ building: building._id });
