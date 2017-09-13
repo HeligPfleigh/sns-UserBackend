@@ -361,13 +361,24 @@ type FAQs {
   edges: [FAQ]
 }
 
-type ResidentsInApartmentBuilding {
+type ResidentsInBuildingPayload {
   pageInfo: PageInfoWithActivePage
-  edges: [ResidentsInApartmentBuildingData]
-  stats: ResidentsInApartmentBuildingStats
+  edges: [ResidentsInBuildingData]
 }
 
-type ResidentsInApartmentBuildingData implements Node {
+type ResidentsInBuildingData {
+  apartment: String
+  building: String
+  user: User
+}
+
+type ResidentsInBuildingGroupByApartmentPayload {
+  pageInfo: PageInfoWithActivePage
+  edges: [ResidentsInBuildingGroupByApartmentData]
+  stats: ResidentsInBuildingGroupByApartmentStats
+}
+
+type ResidentsInBuildingGroupByApartmentData implements Node {
   _id: ID!
   name: String
   number: String
@@ -376,12 +387,12 @@ type ResidentsInApartmentBuildingData implements Node {
   residents: [User]
 }
 
-type ExportResidentsInApartmentBuildingPayload {
+type ExportResidentsInBuildingGroupByApartmentPayload {
   _id: String!
   file: String
 }
 
-type ResidentsInApartmentBuildingStats {
+type ResidentsInBuildingGroupByApartmentStats {
   numberOfApartments: Int
   numberOfResidents: Int
 }
@@ -1050,7 +1061,7 @@ export const resolvers = {
       return data;
     },
   },
-  ExportResidentsInApartmentBuildingPayload: {
+  ExportResidentsInBuildingGroupByApartmentPayload: {
     file(data) {
       const parsed = url.parse(data.file);
       const basename = path.basename(parsed.pathname);
