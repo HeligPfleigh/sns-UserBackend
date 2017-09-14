@@ -94,6 +94,26 @@ passport.deserializeUser((id, done) => {
   });
 });
 
+const getAllUserBuildings = async ({ user: { _id } }) => {
+  const approvedBuildings = await BuildingMembersModel.aggregate([
+    {
+      $match: {
+        user: _id,
+        status: ACCEPTED,
+      },
+    },
+  ]);
+
+  const data = [];
+  approvedBuildings.forEach((member) => {
+    data.push({
+      _id: member.building,
+    });
+  });
+
+  return data;
+};
+
 /**
  * Sign in with Local.
  */
@@ -127,7 +147,10 @@ passport.use(new LocalStrategy({
       });
     }
 
-    const buildingsApprove = await BuildingMembersModel.find({ user: user._id });
+    const buildingsApprove = await getAllUserBuildings({
+      user,
+    });
+
     const hasRoleAdmin = await BuildingMembersModel.findOne({
       user: user._id,
       type: ADMIN,
@@ -214,7 +237,9 @@ passport.use(new FacebookTokenStrategy({
 
         createChatUserIfNotExits(user);
 
-        const buildingsApprove = await BuildingMembersModel.find({ user: user._id });
+        const buildingsApprove = await getAllUserBuildings({
+          user,
+        });
 
         const hasRoleAdmin = await BuildingMembersModel.findOne({
           user: user._id,

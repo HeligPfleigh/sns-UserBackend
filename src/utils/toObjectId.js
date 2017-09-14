@@ -13,3 +13,15 @@ const toObjectId = (idStr) => {
 };
 
 export default toObjectId;
+
+const ObjectIdValid = (_id) => {
+  try {
+    return ObjectId(_id);
+  } catch (e) {
+    return false;
+  }
+};
+
+export {
+  ObjectIdValid,
+};

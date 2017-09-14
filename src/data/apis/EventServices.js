@@ -1,5 +1,6 @@
 import {
   PostsModel,
+  BuildingMembersModel,
 } from '../models';
 
 import {
@@ -9,7 +10,7 @@ import {
 } from '../../utils/notifications';
 import { EVENT, EVENT_INVITE, JOIN_EVENT, CAN_JOIN_EVENT, CANT_JOIN_EVENT } from '../../constants';
 
-async function createEvent(privacy, author, photos, name, location, start, end, message, invites) {
+async function createEvent({ privacy, author, photos, name, location, start, end, message, invites, building }) {
   const event = await PostsModel.create({
     type: EVENT,
     privacy,
@@ -21,23 +22,7 @@ async function createEvent(privacy, author, photos, name, location, start, end, 
     end,
     message,
     invites,
-  });
-  return event;
-}
-
-async function createEventOnBuilding(privacy, author, photos, building, name, location, start, end, message, invites) {
-  const event = await PostsModel.create({
-    type: EVENT,
-    privacy,
-    author,
-    photos,
     building,
-    name,
-    location,
-    start,
-    end,
-    message,
-    invites,
   });
   return event;
 }
@@ -133,7 +118,12 @@ async function editEvent(_id, {
   end,
   message,
   invites,
+  building,
 }) {
+  // @TODO: You should be re-factory this feature when system contains feature add friend between different building
+  if (building) {
+    // console.log(building);
+  }
   const r = await PostsModel.findOneAndUpdate(
     {
       _id,
@@ -148,6 +138,7 @@ async function editEvent(_id, {
         end,
         message,
         invites,
+        building,
       },
     },
     {
@@ -161,7 +152,6 @@ async function editEvent(_id, {
 
 export default {
   createEvent,
-  createEventOnBuilding,
   getEvent,
   invitesResidentJoinEvent,
   joinEvent,

@@ -108,12 +108,13 @@ type Query {
   documents(building: String!, limit: Int, page: Int): Documents
   FAQs(building: String!, limit: Int, page: Int): FAQs
   fee(_id: String!): Fee
-  residentsInApartmentBuilding(building: String!, filters: SearchByResidentsInApartmentBuilding, limit: Int, page: Int): ResidentsInApartmentBuilding
+  residentsInBuilding(building: String!, limit: Int, page: Int): ResidentsInBuildingPayload
+  residentsInBuildingGroupByApartment(building: String!, filters: SearchByResidentsInBuildingGroupByApartment, limit: Int, page: Int): ResidentsInBuildingGroupByApartmentPayload
   announcement(_id: String!): Announcement,
   getBOMList(buildingId: String!): [User]
 }
 
-input SearchByResidentsInApartmentBuilding {
+input SearchByResidentsInBuildingGroupByApartment {
   resident: String
   apartment: String
 }
@@ -309,13 +310,13 @@ type UploadSingleFileResponse {
   file: UploadFileResponse!
 }
 
-input DeleteResidentInApartmentBuildingInput {
+input DeleteResidentInBuildingInput {
   resident: String!
   apartment: String!
   building: String!
 }
 
-input ExportResidentsInApartmentBuildingInput {
+input ExportResidentsInBuildingGroupByApartmentInput {
   building: String!
 }
 
@@ -396,9 +397,6 @@ type Mutation {
   createNewEvent(
     input: CreateEventInput!
   ): Event
-  createNewEventOnBuilding(
-    input: CreateEventInput!
-  ): Event
   editEvent(
     input: EditEventInput!
   ): Event
@@ -464,13 +462,13 @@ type Mutation {
   reminderToPayFee(
     input: ReminderToPayFeeInput!
   ): Fee
-  deleteResidentInApartmentBuilding(
-    input: DeleteResidentInApartmentBuildingInput!
+  deleteResidentInBuilding(
+    input: DeleteResidentInBuildingInput!
   ): User
-  exportResidentsInApartmentBuilding(
+  exportResidentsInBuildingGroupByApartment(
     building: String!, 
-    filters: SearchByResidentsInApartmentBuilding
-  ): ExportResidentsInApartmentBuildingPayload
+    filters: SearchByResidentsInBuildingGroupByApartment
+  ): ExportResidentsInBuildingGroupByApartmentPayload
   deleteAnnouncement(
     _id: String!
   ): Announcement
@@ -829,20 +827,90 @@ const rootResolvers = {
 
       return data;
     },
-    async residentsInApartmentBuilding({ request }, { building, filters: { resident, apartment }, limit = 20, page = 1 }) {
+    async residentsInBuilding({ request }, { building, limit = 20, page = 1 }) {
       // Determine whether user has granted to perform this action.
       const isAdmin = await BuildingMembersModel.findOne({
-        building,
+        building: toObjectId(building),
         user: request.user.id,
         type: ADMIN,
       });
 
       if (!isAdmin) {
-        throw new Error('you don\'t have permission to update fee detail.');
+        throw new Error('you don\'t have permission to get all residents in this building.');
       }
 
       const $skip = Math.abs(page - 1) * limit;
-      const { aggregate, queryStats, hasData } = await ApartmentServices.residentsInApartmentBuildingQuery({
+      const { aggregate, queryStats, hasData } = await ApartmentServices.residentsInBuildingGroupByApartmentQuery({
+        building,
+        resident: null,
+        apartment: null,
+      });
+
+      let queryTable = [];
+      let hasNextPage = false;
+      let total = 0;
+      if (hasData) {
+        // Get remaining data
+        const remainingData = (queryStats.numberOfResidents - $skip);
+        hasNextPage = remainingData > limit;
+        total = queryStats.numberOfResidents;
+
+        // If remaining data is empty, ignore query below
+        if (remainingData > 0) {
+          queryTable = await ApartmentsModel.aggregate([
+            ...aggregate,
+            {
+              $unwind: '$residents',
+            },
+            {
+              $group: {
+                _id: '$residents._id',
+                apartment: {
+                  $first: '$_id',
+                },
+                building: {
+                  $first: '$building',
+                },
+                user: {
+                  $first: '$residents',
+                },
+              },
+            },
+            {
+              $skip,
+            },
+            {
+              $limit: limit,
+            },
+          ]);
+        }
+      }
+
+      // Response
+      return {
+        pageInfo: {
+          limit,
+          page,
+          hasNextPage,
+          total,
+        },
+        edges: queryTable,
+      };
+    },
+    async residentsInBuildingGroupByApartment({ request }, { building, filters: { resident, apartment }, limit = 20, page = 1 }) {
+      // Determine whether user has granted to perform this action.
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: toObjectId(building),
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to get all residents in this building.');
+      }
+
+      const $skip = Math.abs(page - 1) * limit;
+      const { aggregate, queryStats, hasData } = await ApartmentServices.residentsInBuildingGroupByApartmentQuery({
         building,
         resident,
         apartment,
@@ -1064,17 +1132,12 @@ const rootResolvers = {
       });
       return r;
     },
-    createNewEvent({ request }, { input }) {
-      const { privacy, photos, name, location, start, end, message, invites } = input;
-      return EventService.createEvent(privacy, request.user.id, photos, name, location, start, end, message, invites);
+    async createNewEvent({ request: { user } }, { input }) {
+      const { building, privacy, photos, name, location, start, end, message, invites } = input;
+      return EventService.createEvent({ building, privacy, author: user.id, photos, name, location, start, end, message, invites });
     },
     async interestEvent({ request }, { eventId }) {
       return EventService.interestEvent(request.user.id, eventId);
-    },
-
-    createNewEventOnBuilding({ request }, { input }) {
-      const { privacy, photos, name, building, location, start, end, message, invites } = input;
-      return EventService.createEventOnBuilding(privacy, request.user.id, photos, building, name, location, start, end, message, invites);
     },
     async inviteResidentsJoinEvent({ request }, { eventId, residentsId }) {
       const event = await PostsModel.findOne({
@@ -1778,16 +1841,16 @@ const rootResolvers = {
         }),
       };
     },
-    async exportResidentsInApartmentBuilding({ request }, { building, filters: { resident, apartment } }) {
+    async exportResidentsInBuildingGroupByApartment({ request }, { building, filters: { resident, apartment } }) {
       // Determine whether user has granted to perform this action.
       const isAdmin = await BuildingMembersModel.findOne({
-        building,
+        building: toObjectId(building),
         user: request.user.id,
         type: ADMIN,
       });
 
       if (!isAdmin) {
-        throw new Error('you don\'t have permission to update fee detail.');
+        throw new Error('you don\'t have permission to all residents in this building.');
       }
 
       // Determine whether the building already exists.
@@ -1798,13 +1861,13 @@ const rootResolvers = {
         throw new Error('The building does not exists.');
       }
 
-      const { aggregate, queryStats, hasData } = await ApartmentServices.residentsInApartmentBuildingQuery({
+      const { aggregate, queryStats, hasData } = await ApartmentServices.residentsInBuildingGroupByApartmentQuery({
         building,
         resident,
         apartment,
       });
 
-      const fileName = `public/uploads/ExportResidentsInApartmentBuilding.${moment().unix()}.xlsx`;
+      const fileName = `public/uploads/ExportResidentsInBuildingGroupByApartment.${moment().unix()}.xlsx`;
       const url = `${request.secure ? 'https' : 'http'}://${request.headers.host}/${fileName}`;
 
       const createExcelFile = (params) => {
@@ -2076,7 +2139,7 @@ const rootResolvers = {
         file: url,
       };
     },
-    async deleteResidentInApartmentBuilding({ request }, { input: { resident, apartment, building } }) {
+    async deleteResidentInBuilding({ request }, { input: { resident, apartment, building } }) {
       // Determine whether user has granted to perform this action.
       const isAdmin = await BuildingMembersModel.findOne({
         building,
@@ -2085,7 +2148,7 @@ const rootResolvers = {
       });
 
       if (!isAdmin) {
-        throw new Error('you don\'t have permission to update fee detail.');
+        throw new Error('you don\'t have permission to delete this resident.');
       }
 
       // Determine whether the fee already exists.
