@@ -18,6 +18,7 @@ import {
   REJECTED_JOIN_BUILDING,
   SHARING_POST,
   INTEREST_EVENT,
+  DISINTEREST_EVENT,
   NEW_FEE_APARTMENT,
   NEW_ANNOUNCEMENT,
   REMIND_FEE,
@@ -215,6 +216,27 @@ async function sendInterestEventNotification(author, userJoin, eventId) {
   }
 }
 
+async function sendDisInterestEventNotification(author, userJoin, eventId) {
+  const options = {
+    user: author,
+    subject: eventId,
+    seen: false,
+    type: DISINTEREST_EVENT,
+  };
+
+  const notify = await NotificationsModel.findOne(options);
+
+  if (!notify) {
+    await NotificationsModel.create({
+      ...options,
+      actors: [userJoin],
+    });
+  } else if (!_.some(notify.actors, item => item.equals(userJoin))) {
+    notify.actors.unshift(userJoin);
+    await notify.save();
+  }
+}
+
 async function sendNewFeeForApartmentNotification(data) {
   const apartment = await ApartmentsModel.findOne({ _id: data.apartment });
 
@@ -277,6 +299,7 @@ export {
   rejectedUserBelongsToBuildingNotification,
   sendSharingPostNotification,
   sendInterestEventNotification,
+  sendDisInterestEventNotification,
   sendNewFeeForApartmentNotification,
   sendNewAnnouncementNotification,
   sendRemindFeeNotification,

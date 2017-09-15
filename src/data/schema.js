@@ -407,6 +407,9 @@ type Mutation {
   interestEvent(
     eventId: String!
   ): Event
+  disInterestEvent(
+    eventId: String!
+  ): Event
   joinEvent(
     eventId: String!
   ): Event
@@ -1138,6 +1141,9 @@ const rootResolvers = {
     },
     async interestEvent({ request }, { eventId }) {
       return EventService.interestEvent(request.user.id, eventId);
+    },
+    async disInterestEvent({ request }, { eventId }) {
+      return EventService.disInterestEvent(request.user.id, eventId);
     },
     async inviteResidentsJoinEvent({ request }, { eventId, residentsId }) {
       const event = await PostsModel.findOne({
