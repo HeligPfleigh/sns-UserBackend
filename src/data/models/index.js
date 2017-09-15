@@ -12,6 +12,7 @@ import BuildingsModel from './BuildingsModel';
 import ApartmentsModel from './ApartmentsModel';
 import { FeeModel, FeeTypeModel } from './FeeModel';
 import AnnouncementsModel from './AnnouncementsModel';
+import BuildingSettingsModel from './BuildingSettingsModel';
 
 export {
   UsersModel,
@@ -27,4 +28,5 @@ export {
   FeeModel,
   FeeTypeModel,
   AnnouncementsModel,
+  BuildingSettingsModel,
 };

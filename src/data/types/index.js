@@ -78,6 +78,16 @@ type PageInfoWithCursorAndSkip implements PageInfo {
   limit: Int
 }
 
+type BuildingSettingPayload {
+  fee: BuildingFeeSettingPayload
+}
+
+type BuildingFeeSettingPayload {
+  recommendedDatePayFee: Int
+  automatedDateReminder: Int
+  timeLimitationBetween2FeeNotifications: Int
+}
+
 type PageInfoWithActivePage implements PageInfo {
   page: Int
   hasNextPage: Boolean
@@ -626,6 +636,37 @@ const AnnouncementsServiceWithSkip = Service({
 
 export const resolvers = {
   Date: DateScalarType,
+  BuildingSettingPayload: {
+    fee(data) {
+      return data.fee;
+    },
+  },
+  BuildingFeeSettingPayload: {
+    recommendedDatePayFee({ recommendedDatePayFee }) {
+      try {
+        recommendedDatePayFee = parseInt(recommendedDatePayFee, 10);
+      } catch (e) {
+      }
+
+      return isNaN(recommendedDatePayFee) ? null : recommendedDatePayFee;
+    },
+    automatedDateReminder({ automatedDateReminder }) {
+      try {
+        automatedDateReminder = parseInt(automatedDateReminder, 10);
+      } catch (e) {
+      }
+
+      return isNaN(automatedDateReminder) ? null : automatedDateReminder;
+    },
+    timeLimitationBetween2FeeNotifications({ timeLimitationBetween2FeeNotifications }) {
+      try {
+        timeLimitationBetween2FeeNotifications = parseInt(timeLimitationBetween2FeeNotifications, 10);
+      } catch (e) {
+      }
+
+      return isNaN(timeLimitationBetween2FeeNotifications) ? null : timeLimitationBetween2FeeNotifications;
+    },
+  },
   Profile: {
     fullName(profile) {
       return `${(profile && profile.firstName) || 'no'} ${(profile && profile.lastName) || 'name'}`;
