@@ -174,7 +174,7 @@ passport.use(new LocalStrategy({
     return done(null, {
       id: user._id || '',
       profile: user.profile || {},
-      email: (user.emails && user.emails.address) || '',
+      email: user.emails || {},
       roles: user.roles || [],
       chatToken: (chatToken && chatToken.token) || '',
       chatExp: moment().add(1, 'hours').unix(),
@@ -255,7 +255,7 @@ passport.use(new FacebookTokenStrategy({
         done(null, {
           id: user._id,
           profile: user.profile,
-          email: (user.emails && user.emails.address) || '',
+          email: user.emails || {},
           roles: user.roles,
           chatToken: chatToken && chatToken.token,
           chatExp: moment().add(1, 'hours').unix(),
