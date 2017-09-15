@@ -2203,17 +2203,17 @@ const rootResolvers = {
         _id,
         apartment,
         building,
-      }, {
-        new: true
       });
+      console.log(feeDoc);
       
       if (!feeDoc) {
         throw new Error('The fee does not exists.');
       }
-      
-      if(feeDoc.last_remind && (today.getTime() - new Date(feeDoc).getTime()) / 86400000 < 3){
+      console.log(new Date(feeDoc).getTime());
+      if(feeDoc.last_remind && (today.getTime() - new Date(feeDoc.last_remind).getTime()) / 86400000 < 3){
         throw new Error('Bạn đã remind cách đây 3 ngày trước');
       }
+      
 
       feeDoc = await FeeModel.findOneAndUpdate({
         _id,
@@ -2224,6 +2224,7 @@ const rootResolvers = {
       }, {
         new: true
       });
+      console.log(feeDoc);
 
       // Determine whether the apartment already exists.
       const apartmentDoc = await ApartmentsModel.findOne({
