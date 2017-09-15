@@ -13,6 +13,7 @@ import includes from 'lodash/includes';
 import without from 'lodash/without';
 import isFunction from 'lodash/isFunction';
 import forEach from 'lodash/forEach';
+import uniqWith from 'lodash/uniqWith';
 import mongoose from 'mongoose';
 import { generate as keyRandom } from 'shortid';
 import {
@@ -1664,15 +1665,6 @@ const rootResolvers = {
         };
       }
 
-      // NOTE: what happens if we lost connection to db
-      await BuildingMembersModel.update({
-        _id: requestsToJoinBuildingId,
-      }, {
-        $set: {
-          status: ACCEPTED,
-        },
-      });
-
       // update users joined apartments
       const { requestInformation: { apartments } } = record;
       if (isEmpty(apartments)) {
@@ -1680,9 +1672,27 @@ const rootResolvers = {
       }
 
       await (apartments || []).map(async (apartmentId) => {
-        await ApartmentsModel.findByIdAndUpdate(apartmentId, {
-          $addToSet: { users: record.user },
-        });
+        const doc = await ApartmentsModel.findById(apartmentId);
+        if (doc) {
+          // if the first user register into apartment
+          doc.owner = doc.owner || record.user;
+
+          // and push new user into array value users field
+          (doc.users || []).push(record.user);
+          doc.users = uniqWith((doc.users || []), isEqual);
+
+          // Save update object
+          await doc.save();
+        }
+      });
+
+      // NOTE: what happens if we lost connection to db
+      await BuildingMembersModel.update({
+        _id: requestsToJoinBuildingId,
+      }, {
+        $set: {
+          status: ACCEPTED,
+        },
       });
 
       // set user active
