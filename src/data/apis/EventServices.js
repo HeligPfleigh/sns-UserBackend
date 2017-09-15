@@ -7,6 +7,7 @@ import {
   sendEventInviteNotification,
   sendJoinEventNotification,
   sendInterestEventNotification,
+  sendDisInterestEventNotification,
 } from '../../utils/notifications';
 import { EVENT, EVENT_INVITE, JOIN_EVENT, CAN_JOIN_EVENT, CANT_JOIN_EVENT } from '../../constants';
 
@@ -109,6 +110,20 @@ async function interestEvent(userId, eventId) {
   return event;
 }
 
+async function disInterestEvent(userId, eventId) {
+  const event = await PostsModel.findOneAndUpdate({
+    _id: eventId,
+  }, {
+    $pull: {
+      interests: userId,
+    },
+  }, {
+    new: true,
+  });
+  sendDisInterestEventNotification(event.author, userId, eventId);
+  return event;
+}
+
 async function editEvent(_id, {
   privacy,
   photos,
@@ -158,5 +173,6 @@ export default {
   canJoinEvent,
   cantJoinEvent,
   interestEvent,
+  disInterestEvent,
   editEvent,
 };
