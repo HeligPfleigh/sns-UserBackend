@@ -2204,12 +2204,10 @@ const rootResolvers = {
         apartment,
         building,
       });
-      console.log(feeDoc);
       
       if (!feeDoc) {
         throw new Error('The fee does not exists.');
       }
-      console.log(new Date(feeDoc).getTime());
       if(feeDoc.last_remind && (today.getTime() - new Date(feeDoc.last_remind).getTime()) / 86400000 < 3){
         throw new Error('Bạn đã remind cách đây 3 ngày trước');
       }
