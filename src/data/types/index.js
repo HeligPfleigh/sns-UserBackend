@@ -1338,7 +1338,7 @@ export const resolvers = {
         edges: r.data || [],
       };
     },
-    async announcements(data, { cursor, skip, limit = 4 }) {
+    async announcements(data, { announcementId, cursor, skip, limit = 4 }) {
       let apartmentsList = await ApartmentsModel.find({ users: data._id }).select('_id');
       apartmentsList = apartmentsList.map(i => i._id);
       let r = null;
@@ -1363,6 +1363,12 @@ export const resolvers = {
         r = await AnnouncementsServiceWithSkip.find(select);
       } else {
         select.$cursor = cursor;
+        if (announcementId) {
+          select.query.$and = [
+            { _id: { $nin: [announcementId] } },
+          ];
+          r = await AnnouncementsServiceWithCursor.find(select);
+        }
         r = await AnnouncementsServiceWithCursor.find(select);
       }
       if (!r) {
