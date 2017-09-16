@@ -1343,6 +1343,20 @@ export const resolvers = {
       let apartmentsList = await ApartmentsModel.find({ users: data._id }).select('_id');
       apartmentsList = apartmentsList.map(i => i._id);
       let r = null;
+      const selectOfBom = {
+        $cursor: cursor,
+        query: {
+          building: data.building,
+          isDeleted: { $exists: false },
+          $and: [
+            { _id: { $nin: [announcementId] } },
+          ],
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      };
       const select = {
         query: {
           isDeleted: { $exists: false },
@@ -1359,7 +1373,17 @@ export const resolvers = {
           $limit: limit,
         },
       };
-      if (skip !== undefined) {
+
+      const isAdmin = await BuildingMembersModel.findOne({
+        user: data.id,
+        building: data.building,
+        status: ACCEPTED,
+        type: ADMIN,
+      });
+
+      if (isAdmin) {
+        r = await AnnouncementsServiceWithCursor.find(selectOfBom);
+      } else if (skip !== undefined) {
         select.query.$skip = skip;
         r = await AnnouncementsServiceWithSkip.find(select);
       } else {
