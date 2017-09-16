@@ -4,6 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import reduce from 'lodash/reduce';
 import clone from 'lodash/clone';
 import without from 'lodash/without';
+import isEqual from 'lodash/isEqual';
 import kebabCase from 'lodash/kebabCase';
 import DateScalarType from './DateScalarType';
 import {
@@ -957,7 +958,14 @@ export const resolvers = {
       return AddressServices.getBuildings(data._id);
     },
     apartments(data) {
-      return ApartmentsModel.find({ owner: data._id });
+      return ApartmentsModel.find({
+        $or: [
+          { owner: data._id },
+          { users:
+            { $in: [data._id] },
+          },
+        ],
+      });
     },
     async friends(user) {
       let friendListByIds = await FriendsRelationModel.find({
@@ -1266,13 +1274,13 @@ export const resolvers = {
         },
         $limit: limit,
       };
-      if (data._id == user.id) {
+      if (isEqual(data._id, user.id)) {
         select.privacy = [PUBLIC, FRIEND, ONLY_ME];
       }
       if (r) {
         select.privacy = [PUBLIC, FRIEND];
       }
-      if (data._id != user.id && !r) {
+      if (!isEqual(data._id, user.id) && !r) {
         select.privacy = [PUBLIC];
       }
       const p = await PostsService.find({
