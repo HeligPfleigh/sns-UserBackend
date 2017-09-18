@@ -1639,7 +1639,8 @@ const rootResolvers = {
       }
 
       // Determine whether building already exists yet.
-      if (!(await BuildingsModel.findOne({ _id: record.building }))) {
+      const buildingDoc = await BuildingsModel.findOne({ _id: record.building });
+      if (!buildingDoc) {
         throw new Error('Building not found.');
       }
 
@@ -1696,6 +1697,8 @@ const rootResolvers = {
       });
 
       // set user active
+      // if (userDocument.emails.verified) {
+      // }
       await UsersModel.findByIdAndUpdate(record.user, { isActive: 1 });
 
       // Send email and notification to user status ACCEPTED
@@ -1742,7 +1745,8 @@ const rootResolvers = {
       }
 
       // Determine whether building already exists yet.
-      if (!(await BuildingsModel.findOne({ _id: record.building }))) {
+      const buildingDoc = await BuildingsModel.findOne({ _id: record.building });
+      if (!buildingDoc) {
         throw new Error('Building not found.');
       }
 
@@ -1779,7 +1783,7 @@ const rootResolvers = {
           });
 
           // set user active
-          // await UsersModel.findByIdAndUpdate(record.user, { isActive: 1 });
+          await UsersModel.findByIdAndUpdate(record.user, { isActive: 1 });
         }
       }
 
@@ -1809,9 +1813,16 @@ const rootResolvers = {
         BOMs.push(userDocument._id);
         await rejectedUserBelongsToBuildingNotification(userDocument._id, BOMs);
       }
+
       // Sending email
       if (isObject(userDocument.emails) && isString(userDocument.emails.address)) {
-        await BuildingServices.notifywhenRejectedForUserBelongsToBuilding(userDocument.emails.address, userDocument);
+        await BuildingServices.notifywhenRejectedForUserBelongsToBuilding(
+          userDocument.emails.address, {
+            ...userDocument.toObject(),
+            message,
+            building: buildingDoc.toObject(),
+          },
+        );
       }
 
       return {
