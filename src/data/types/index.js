@@ -746,9 +746,14 @@ export const resolvers = {
       });
     },
     async requests(data, { cursor = null, limit = 10 }) {
+      const userIds = await UsersModel.find({
+        'emails.verified': true,
+      }).lean().distinct('_id');
+
       const r = await BuildingMembersService.find({
         $cursor: cursor,
         query: {
+          user: { $in: userIds },
           building: data._id,
           type: MEMBER,
           status: PENDING,
