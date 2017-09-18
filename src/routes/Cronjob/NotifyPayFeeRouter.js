@@ -60,7 +60,7 @@ export default () => async (req, res) => {
 
         const feeDeadline = moment(setting.feeNotifications.deadline);
         const now = moment();
-        if (now > feeDeadline.clone().add(automatedReminderAfterHowDays, 'days')) {
+        if (feeDeadline.isValid() && now > feeDeadline.clone().add(automatedReminderAfterHowDays, 'days')) {
           // Find all unfinished apartments paid fee
           FeeModel.find({
             building,
@@ -69,21 +69,27 @@ export default () => async (req, res) => {
               $gte: feeDeadline.clone().utc().startOf('day'),
               $lte: feeDeadline.clone().utc().endOf('day'),
             },
-            $or: [
-              {
-                latestReminder: {
-                  $exists: false,
-                },
-              },
-              {
-                latestReminder: {
-                  $lte: now.clone().subtract(timeLimitationBetween2FeeNotifications, 'days'),
-                },
-              },
-            ],
           }, (err, fees) => {
             if (err) {
               logger.log('error', err);
+              return;
+            }
+
+            // When all apartments have done paid fee
+            if (fees.length === 0) {
+              BuildingSettingsService.Model.update(
+                {
+                  building: building._id,
+                }, {
+                  $pull: {
+                    feeNotifications: {
+                      deadline: setting.feeNotifications.deadline,
+                      code: setting.feeNotifications.code,
+                    },
+                  },
+                },
+                () => undefined,
+              );
               return;
             }
 
