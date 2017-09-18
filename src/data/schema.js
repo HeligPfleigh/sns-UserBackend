@@ -13,6 +13,7 @@ import includes from 'lodash/includes';
 import without from 'lodash/without';
 import isFunction from 'lodash/isFunction';
 import forEach from 'lodash/forEach';
+import uniqWith from 'lodash/uniqWith';
 import mongoose from 'mongoose';
 import { generate as keyRandom } from 'shortid';
 import {
@@ -417,6 +418,9 @@ type Mutation {
     residentsId: [String]!
   ): Event
   interestEvent(
+    eventId: String!
+  ): Event
+  disInterestEvent(
     eventId: String!
   ): Event
   joinEvent(
@@ -1179,6 +1183,9 @@ const rootResolvers = {
     async interestEvent({ request }, { eventId }) {
       return EventService.interestEvent(request.user.id, eventId);
     },
+    async disInterestEvent({ request }, { eventId }) {
+      return EventService.disInterestEvent(request.user.id, eventId);
+    },
     async inviteResidentsJoinEvent({ request }, { eventId, residentsId }) {
       const event = await PostsModel.findOne({
         _id: eventId,
@@ -1698,15 +1705,6 @@ const rootResolvers = {
         };
       }
 
-      // NOTE: what happens if we lost connection to db
-      await BuildingMembersModel.update({
-        _id: requestsToJoinBuildingId,
-      }, {
-        $set: {
-          status: ACCEPTED,
-        },
-      });
-
       // update users joined apartments
       const { requestInformation: { apartments } } = record;
       if (isEmpty(apartments)) {
@@ -1714,9 +1712,27 @@ const rootResolvers = {
       }
 
       await (apartments || []).map(async (apartmentId) => {
-        await ApartmentsModel.findByIdAndUpdate(apartmentId, {
-          $addToSet: { users: record.user },
-        });
+        const doc = await ApartmentsModel.findById(apartmentId);
+        if (doc) {
+          // if the first user register into apartment
+          doc.owner = doc.owner || record.user;
+
+          // and push new user into array value users field
+          (doc.users || []).push(record.user);
+          doc.users = uniqWith((doc.users || []), isEqual);
+
+          // Save update object
+          await doc.save();
+        }
+      });
+
+      // NOTE: what happens if we lost connection to db
+      await BuildingMembersModel.update({
+        _id: requestsToJoinBuildingId,
+      }, {
+        $set: {
+          status: ACCEPTED,
+        },
       });
 
       // set user active
@@ -2239,7 +2255,21 @@ const rootResolvers = {
       // Determine whether the fee already exists.
       // if it exits change last_remind to now
       const today = new Date();
-      const feeDoc = await FeeModel.findOneAndUpdate({
+      let feeDoc = await FeeModel.findOne({
+        _id,
+        apartment,
+        building,
+      });
+      
+      if (!feeDoc) {
+        throw new Error('The fee does not exists.');
+      }
+      if(feeDoc.last_remind && (today.getTime() - new Date(feeDoc.last_remind).getTime()) / 86400000 < 3){
+        throw new Error('Bạn đã remind cách đây 3 ngày trước');
+      }
+      
+
+      feeDoc = await FeeModel.findOneAndUpdate({
         _id,
         apartment,
         building,
@@ -2248,9 +2278,7 @@ const rootResolvers = {
       }, {
         new: true
       });
-      if (!feeDoc) {
-        throw new Error('The fee does not exists.');
-      }
+      console.log(feeDoc);
 
       // Determine whether the apartment already exists.
       const apartmentDoc = await ApartmentsModel.findOne({

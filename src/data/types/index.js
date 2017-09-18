@@ -4,6 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import reduce from 'lodash/reduce';
 import clone from 'lodash/clone';
 import without from 'lodash/without';
+import isEqual from 'lodash/isEqual';
 import kebabCase from 'lodash/kebabCase';
 import DateScalarType from './DateScalarType';
 import {
@@ -124,6 +125,7 @@ enum NotificationType {
   REJECTED_JOIN_BUILDING
   SHARING_POST
   INTEREST_EVENT
+  DISINTEREST_EVENT
   NEW_FEE_APARTMENT
   NEW_ANNOUNCEMENT
   REMIND_FEE
@@ -997,7 +999,14 @@ export const resolvers = {
       return AddressServices.getBuildings(data._id);
     },
     apartments(data) {
-      return ApartmentsModel.find({ owner: data._id });
+      return ApartmentsModel.find({
+        $or: [
+          { owner: data._id },
+          { users:
+            { $in: [data._id] },
+          },
+        ],
+      });
     },
     async friends(user) {
       let friendListByIds = await FriendsRelationModel.find({
@@ -1306,13 +1315,13 @@ export const resolvers = {
         },
         $limit: limit,
       };
-      if (data._id == user.id) {
+      if (isEqual(data._id, user.id)) {
         select.privacy = [PUBLIC, FRIEND, ONLY_ME];
       }
       if (r) {
         select.privacy = [PUBLIC, FRIEND];
       }
-      if (data._id != user.id && !r) {
+      if (!isEqual(data._id, user.id) && !r) {
         select.privacy = [PUBLIC];
       }
       const p = await PostsService.find({
@@ -1383,6 +1392,20 @@ export const resolvers = {
       let apartmentsList = await ApartmentsModel.find({ users: data._id }).select('_id');
       apartmentsList = apartmentsList.map(i => i._id);
       let r = null;
+      const selectOfBom = {
+        $cursor: cursor,
+        query: {
+          building: data.building,
+          isDeleted: { $exists: false },
+          $and: [
+            { _id: { $nin: [announcementId] } },
+          ],
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      };
       const select = {
         query: {
           isDeleted: { $exists: false },
@@ -1399,7 +1422,17 @@ export const resolvers = {
           $limit: limit,
         },
       };
-      if (skip !== undefined) {
+
+      const isAdmin = await BuildingMembersModel.findOne({
+        user: data.id,
+        building: data.building,
+        status: ACCEPTED,
+        type: ADMIN,
+      });
+
+      if (isAdmin) {
+        r = await AnnouncementsServiceWithCursor.find(selectOfBom);
+      } else if (skip !== undefined) {
         select.query.$skip = skip;
         r = await AnnouncementsServiceWithSkip.find(select);
       } else {
