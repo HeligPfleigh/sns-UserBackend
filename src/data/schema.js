@@ -332,8 +332,7 @@ input BuildingSettingsInput {
 }
 
 input BuildingFeeSettingInput {
-  recommendedDatePayFee: Int
-  automatedDateReminder: Int
+  automatedReminderAfterHowDays: Int
   timeLimitationBetween2FeeNotifications: Int
 }
 
@@ -2253,8 +2252,8 @@ const rootResolvers = {
       }
 
       // Determine whether the fee already exists.
-      // if it exits change last_remind to now
-      const today = new Date();
+      // if it exits change latestReminder to now
+      const now = moment();
       let feeDoc = await FeeModel.findOne({
         _id,
         apartment,
@@ -2264,21 +2263,6 @@ const rootResolvers = {
       if (!feeDoc) {
         throw new Error('The fee does not exists.');
       }
-      if(feeDoc.last_remind && (today.getTime() - new Date(feeDoc.last_remind).getTime()) / 86400000 < 3){
-        throw new Error('Bạn đã remind cách đây 3 ngày trước');
-      }
-      
-
-      feeDoc = await FeeModel.findOneAndUpdate({
-        _id,
-        apartment,
-        building,
-      }, {
-        $set : {last_remind: today},
-      }, {
-        new: true
-      });
-      console.log(feeDoc);
 
       // Determine whether the apartment already exists.
       const apartmentDoc = await ApartmentsModel.findOne({
@@ -2292,9 +2276,34 @@ const rootResolvers = {
       const buildingDoc = await BuildingsModel.findOne({
         _id: building,
       });
+
       if (!buildingDoc) {
         throw new Error('The building does not exists.');
       }
+
+      const buildingSettings = await BuildingSettingsService.Model.findOne({
+        building,
+      }).select('fee');
+
+      if (buildingSettings.fee && feeDoc.latestReminder) {
+        const { automatedReminderAfterHowDays } = buildingSettings.fee;
+        const latestReminder = moment(feeDoc.latestReminder);
+        if (automatedReminderAfterHowDays && now.clone().subtract(automatedReminderAfterHowDays, 'days') <= latestReminder){
+          throw new Error(`Lời nhắc nhở đã gửi tới căn hộ ${apartmentDoc.name} cách đây ${latestReminder.fromNow()}.`);
+        }
+      }
+
+      feeDoc = await FeeModel.findOneAndUpdate({
+        _id,
+        apartment,
+        building,
+      }, {
+        $set : {
+          latestReminder: now.clone().endOf('day').toISOString(),
+        },
+      }, {
+        new: true
+      });
 
       sendRemindFeeNotification({
         apartment: feeDoc.apartment,

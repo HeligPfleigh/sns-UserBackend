@@ -5,12 +5,7 @@ const { Schema } = mongoose;
 const { Types: { ObjectId } } = Schema;
 
 const FeeSettingsSchema = new Schema({
-  recommendedDatePayFee: {
-    type: Number,
-    default: 0,
-    required: true,
-  },
-  automatedDateReminder: {
+  automatedReminderAfterHowDays: {
     type: Number,
     default: 0,
     required: true,
@@ -18,6 +13,19 @@ const FeeSettingsSchema = new Schema({
   timeLimitationBetween2FeeNotifications: {
     type: Number,
     default: 0,
+    required: true,
+  },
+}, { _id: false });
+
+const FeeNotificationsSchema = new Schema({
+  code: {
+    type: Number,
+    default: 0,
+    required: true,
+  },
+  deadline: {
+    type: Date,
+    default: Date.now,
     required: true,
   },
 }, { _id: false });
@@ -30,6 +38,11 @@ const BuildingSettingsSchema = new Schema({
   },
   fee: {
     type: FeeSettingsSchema,
+    required: true,
+    default: [],
+  },
+  feeNotifications: {
+    type: [FeeNotificationsSchema],
     required: true,
     default: [],
   },

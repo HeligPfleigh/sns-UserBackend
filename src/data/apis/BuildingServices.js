@@ -72,6 +72,7 @@ async function notifywhenRejectedForUserBelongsToBuilding(email, data) {
 }
 
 export default {
+  Model: BuildingsModel,
   searchBuildings,
   getBuildingWithApartments,
   notifywhenAcceptedForUserBelongsToBuilding,
