@@ -57,6 +57,7 @@ import {
   sendSharingPostNotification,
   sendNewAnnouncementNotification,
   sendRemindFeeNotification,
+  sendCancelledEventNotification,
 } from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
 import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, PRIVATE, FRIEND, ONLY_ME, EVENT, PAID, UNPAID, PARTIALLY_PAID } from '../constants';
@@ -487,7 +488,6 @@ type Mutation {
   deleteAnnouncement(
     _id: String!
   ): Announcement
-
   editAnnouncement(
     input: EditAnnouncementInput!
   ): Announcement
@@ -495,6 +495,9 @@ type Mutation {
     building: String!,
     input: BuildingSettingsInput!
   ): BuildingSettingPayload
+  cancelEvent(
+    eventId: String!
+  ): Event
 }
 
 schema {
@@ -2462,6 +2465,29 @@ const rootResolvers = {
       }
       announcementDoc = await AnnouncementsModel.findOne({ _id });
       return announcementDoc;
+    },
+    async cancelEvent({ request }, { eventId }) {
+      let p = await PostsModel.findOne({
+        _id: eventId,
+        author: request.user.id,
+        start: {
+          $gt: new Date(),
+        },
+      });
+      if (!p) {
+        throw new Error('not found the post');
+      }
+      await PostsModel.update({
+        _id: eventId,
+        author: request.user.id,
+      }, {
+        $set: {
+          isCancelled: true,
+        },
+      });
+      sendCancelledEventNotification(p.joins, p._id, request.user.id);
+      p = await PostsModel.findOne({ _id: eventId });
+      return p;
     },
   },
 };
