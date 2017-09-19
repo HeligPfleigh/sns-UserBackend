@@ -45,18 +45,19 @@ import * as DocumentsService from './apis/DocumentsService';
 import * as FAQsService from './apis/FAQsService';
 import CommentService from './apis/CommentService';
 import EventService from './apis/EventServices';
+import BuildingSettingsService from './apis/BuildingSettingsService';
 import {
   // saveFeeForApartments,
   getFeeTypes,
 } from './apis/FeeServices';
 import {
   sendDeletedEventNotification,
-  sendCancelledEventNotification,
   acceptedUserBelongsToBuildingNotification,
   rejectedUserBelongsToBuildingNotification,
   sendSharingPostNotification,
   sendNewAnnouncementNotification,
   sendRemindFeeNotification,
+  sendCancelledEventNotification,
 } from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
 import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, PRIVATE, FRIEND, ONLY_ME, EVENT, PAID, UNPAID, PARTIALLY_PAID } from '../constants';
@@ -114,6 +115,7 @@ type Query {
   residentsInBuildingGroupByApartment(building: String!, filters: SearchByResidentsInBuildingGroupByApartment, limit: Int, page: Int): ResidentsInBuildingGroupByApartmentPayload
   announcement(_id: String!): Announcement,
   getBOMList(buildingId: String!): [User]
+  getBuildingSettings(building: String!): BuildingSettingPayload
 }
 
 input SearchByResidentsInBuildingGroupByApartment {
@@ -326,6 +328,15 @@ type UploadMultiFileResponse {
   files: [UploadFileResponse]!
 }
 
+input BuildingSettingsInput {
+  fee: BuildingFeeSettingInput
+}
+
+input BuildingFeeSettingInput {
+  automatedReminderAfterHowDays: Int
+  timeLimitationBetween2FeeNotifications: Int
+}
+
 type Mutation {
   uploadSingleFile(
     file: Upload!
@@ -477,11 +488,13 @@ type Mutation {
   deleteAnnouncement(
     _id: String!
   ): Announcement
-
   editAnnouncement(
     input: EditAnnouncementInput!
   ): Announcement
-
+  saveBuildingSettings(
+    building: String!,
+    input: BuildingSettingsInput!
+  ): BuildingSettingPayload
   cancelEvent(
     eventId: String!
   ): Event
@@ -582,8 +595,32 @@ const rootResolvers = {
       };
     },
     getBOMList(_, { buildingId }) {
-      const rs = BuildingServices.getBOMOfBuilding(buildingId);
-      return rs;
+      return BuildingServices.getBOMOfBuilding(buildingId);
+    },
+    async getBuildingSettings({ request }, { building }) {
+      // Determine whether user has granted to perform this action.
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: toObjectId(building),
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to get settings in this building.');
+      }
+
+      // check if announcement and building exist
+      const buildingDoc = await BuildingsModel.findOne(
+        {
+          _id: building,
+        },
+      );
+      if (!buildingDoc) {
+        throw Error('The building does not exists.');
+      }
+
+      const buildingSettings = await BuildingSettingsService.Model.findOne({ building });
+      return buildingSettings;
     },
     async documents(_, { building, limit = 20, page = 1 }) {
       const r = await DocumentsService.service({ limit }).findBySkip({
@@ -2229,8 +2266,8 @@ const rootResolvers = {
       }
 
       // Determine whether the fee already exists.
-      // if it exits change last_remind to now
-      const today = new Date();
+      // if it exits change latestReminder to now
+      const now = moment();
       let feeDoc = await FeeModel.findOne({
         _id,
         apartment,
@@ -2240,21 +2277,6 @@ const rootResolvers = {
       if (!feeDoc) {
         throw new Error('The fee does not exists.');
       }
-      if(feeDoc.last_remind && (today.getTime() - new Date(feeDoc.last_remind).getTime()) / 86400000 < 3){
-        throw new Error('Bạn đã remind cách đây 3 ngày trước');
-      }
-      
-
-      feeDoc = await FeeModel.findOneAndUpdate({
-        _id,
-        apartment,
-        building,
-      }, {
-        $set : {last_remind: today},
-      }, {
-        new: true
-      });
-      console.log(feeDoc);
 
       // Determine whether the apartment already exists.
       const apartmentDoc = await ApartmentsModel.findOne({
@@ -2268,9 +2290,34 @@ const rootResolvers = {
       const buildingDoc = await BuildingsModel.findOne({
         _id: building,
       });
+
       if (!buildingDoc) {
         throw new Error('The building does not exists.');
       }
+
+      const buildingSettings = await BuildingSettingsService.Model.findOne({
+        building,
+      }).select('fee');
+
+      if (buildingSettings.fee && feeDoc.latestReminder) {
+        const { automatedReminderAfterHowDays } = buildingSettings.fee;
+        const latestReminder = moment(feeDoc.latestReminder);
+        if (automatedReminderAfterHowDays && now.clone().subtract(automatedReminderAfterHowDays, 'days') <= latestReminder){
+          throw new Error(`Lời nhắc nhở đã gửi tới căn hộ ${apartmentDoc.name} cách đây ${latestReminder.fromNow()}.`);
+        }
+      }
+
+      feeDoc = await FeeModel.findOneAndUpdate({
+        _id,
+        apartment,
+        building,
+      }, {
+        $set : {
+          latestReminder: now.clone().endOf('day').toISOString(),
+        },
+      }, {
+        new: true
+      });
 
       sendRemindFeeNotification({
         apartment: feeDoc.apartment,
@@ -2312,6 +2359,41 @@ const rootResolvers = {
         },
       });
       return announcementDoc;
+    },
+    async saveBuildingSettings({ request }, { building, input }) {
+      // Determine whether user has granted to perform this action.
+      const isAdmin = await BuildingMembersModel.findOne({
+        building: toObjectId(building),
+        user: request.user.id,
+        type: ADMIN,
+      });
+
+      if (!isAdmin) {
+        throw new Error('you don\'t have permission to get settings in this building.');
+      }
+
+      // check if announcement and building exist
+      const buildingDoc = await BuildingsModel.findOne(
+        {
+          _id: building,
+        },
+      );
+      if (!buildingDoc) {
+        throw Error('The building does not exists.');
+      }
+
+      const buildingSettings = await BuildingSettingsService.Model.findOneAndUpdate({
+        building,
+      }, {
+        $set: {
+          ...input,
+        },
+      }, { 
+        upsert: true,
+        returnNewDocument : true,
+      });
+
+      return buildingSettings;
     },
     async editAnnouncement({ request }, { input }) {
       const {

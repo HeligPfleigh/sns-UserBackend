@@ -26,6 +26,7 @@ import UploadRouter, { apolloUploadExpress } from './core/uploads';
 import MailRouter from './routes/MailRoutes';
 import BuildingRouter from './routes/BuildingRoutes';
 import AuthenticateRouter from './routes/AuthenticateRoutes';
+import CronjobRouter from './routes/CronjobRouter';
 
 const { port, auth, databaseUrl } = config;
 
@@ -95,7 +96,7 @@ if (__DEV__) {
 app.use('/auth', AuthenticateRouter);
 app.use('/mailer', MailRouter);
 app.use('/upload', UploadRouter);
-
+app.use('/cronjob', CronjobRouter);
 app.use('/images', express.static(`${__dirname}/public/uploads`));
 app.use('/document', express.static(`${__dirname}/public/documents`));
 app.use('/public', express.static(`${__dirname}/public`));

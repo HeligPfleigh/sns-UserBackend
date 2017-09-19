@@ -5,6 +5,7 @@ import forEach from 'lodash/forEach';
 import isDate from 'lodash/isDate';
 import Constant from './constant';
 import ApartmentModel from '../../data/models/ApartmentsModel';
+import BuildingSettingsService from '../../data/apis/BuildingSettingsService';
 
 import {
   saveFeeForApartments,
@@ -94,6 +95,7 @@ function validateData(data, { building, type }, callback) {
 
   const errors = {};
   const apartments = [];
+  const deadlines = [];
   const resultValidated = data.map((item, idx) => {
     const key = (idx + 2).toString();
     errors[key] = [];
@@ -122,9 +124,13 @@ function validateData(data, { building, type }, callback) {
         errors[key].push('Giá trị năm trong cột thời gian không đúng.');
       }
     }
-    // dasds
+    // validate deadline
     if (!isDate(deadline)) {
       errors[key].push('Sai định dạng ngày tháng');
+    } else if (deadlines.indexOf(deadline) === -1) {
+      // Store deadline into building settings.
+      // From this setting, the app will automatically remind unfinished apartments to paid fee.
+      deadlines.push(deadline);
     }
 
     // validate apartment
@@ -150,7 +156,7 @@ function validateData(data, { building, type }, callback) {
     }
 
     return {
-      paid: item['đã thanh toán'] === 'Đã Nộp',
+      paid: ['đã nộp', 'đã thanh toán', 'paid'].indexOf(item['đã thanh toán'].toLowerCase()) > -1,
       apartment_number: item['căn hộ'],
       total,
       fee: item['loại phí'],
@@ -176,12 +182,14 @@ function validateData(data, { building, type }, callback) {
           errors[key].push(`Căn hộ ${item.number} không có trong tòa nhà.`);
         }
       });
+
       forEach(errors, (value, key) => {
         if (!value || value.length === 0) {
           delete errors[key];
         }
       });
-      callback(errors, resultValidated);
+
+      callback(errors, resultValidated, deadlines);
     }
   });
 }
@@ -227,7 +235,7 @@ router.post('/document', (req, res) => {
           return res.json({ error: true, message: 'Không thể đọc được dữ liệu trong tập tin bạn tải lên.' });
         }
 
-        return validateData(result, { building, type }, async (validationErrors, data) => {
+        return validateData(result, { building, type }, async (validationErrors, data, deadlines) => {
           validationErrors = Object.assign({}, validationErrors);
           let error = Object.keys(validationErrors).length > 0;
           let message = 'Không thể đọc được dữ liệu trong tập tin bạn tải lên.';
@@ -235,6 +243,22 @@ router.post('/document', (req, res) => {
             try {
               data = await saveFeeForApartments(data, building, type);
               message = 'Bạn đã cập nhật phí cho tòa nhà thành công.';
+              if (Array.isArray(deadlines)) {
+                deadlines.forEach((deadline) => {
+                  BuildingSettingsService.Model.findOneAndUpdate({
+                    building,
+                  }, {
+                    $addToSet: {
+                      feeNotifications: {
+                        code: type,
+                        deadline,
+                      },
+                    },
+                  }, {
+                    upsert: true,
+                  });
+                });
+              }
             } catch (e) {
               error = true;
               message = 'Có lỗi xảy ra trong quá trình cập nhật phí cho tòa nhà.';

@@ -6,6 +6,7 @@ import clone from 'lodash/clone';
 import without from 'lodash/without';
 import isEqual from 'lodash/isEqual';
 import kebabCase from 'lodash/kebabCase';
+import moment from 'moment';
 import DateScalarType from './DateScalarType';
 import {
   PostsModel,
@@ -21,6 +22,7 @@ import {
   // EventModel,
 } from '../models';
 import AddressServices from '../apis/AddressServices';
+import BuildingSettingsService from '../apis/BuildingSettingsService';
 import {
   onlyMe,
 } from '../../utils/authorization';
@@ -77,6 +79,15 @@ type PageInfoWithCursorAndSkip implements PageInfo {
   hasNextPage: Boolean
   total: Int
   limit: Int
+}
+
+type BuildingSettingPayload {
+  fee: BuildingFeeSettingPayload
+}
+
+type BuildingFeeSettingPayload {
+  automatedReminderAfterHowDays: Int
+  timeLimitationBetween2FeeNotifications: Int
 }
 
 type PageInfoWithActivePage implements PageInfo {
@@ -477,7 +488,7 @@ type Fee implements Node {
   status: String
   createdAt: Date
   updatedAt: Date
-  lastRemind: Date
+  disableReminderToPayFee: Boolean
 }
 
 type FeesResult {
@@ -630,6 +641,29 @@ const AnnouncementsServiceWithSkip = Service({
 
 export const resolvers = {
   Date: DateScalarType,
+  BuildingSettingPayload: {
+    fee(data) {
+      return data.fee;
+    },
+  },
+  BuildingFeeSettingPayload: {
+    automatedReminderAfterHowDays({ automatedReminderAfterHowDays }) {
+      try {
+        automatedReminderAfterHowDays = parseInt(automatedReminderAfterHowDays, 10);
+      } catch (e) {
+      }
+
+      return isNaN(automatedReminderAfterHowDays) ? null : automatedReminderAfterHowDays;
+    },
+    timeLimitationBetween2FeeNotifications({ timeLimitationBetween2FeeNotifications }) {
+      try {
+        timeLimitationBetween2FeeNotifications = parseInt(timeLimitationBetween2FeeNotifications, 10);
+      } catch (e) {
+      }
+
+      return isNaN(timeLimitationBetween2FeeNotifications) ? null : timeLimitationBetween2FeeNotifications;
+    },
+  },
   Profile: {
     fullName(profile) {
       return `${(profile && profile.firstName) || 'no'} ${(profile && profile.lastName) || 'name'}`;
@@ -1472,12 +1506,28 @@ export const resolvers = {
     updatedAt(data) {
       return new Date(data.updatedAt);
     },
-    lastRemind(data) {
-      if (data.last_remind) {
-        return new Date(data.last_remind);
+    async disableReminderToPayFee(data) {
+      try {
+        if (data.latestReminder) {
+          const settings = await BuildingSettingsService.Model.findOne({
+            building: data.building,
+          }).select('fee');
+
+          if (settings.fee.timeLimitationBetween2FeeNotifications) {
+            const now = moment();
+            const latestReminder = moment(data.latestReminder);
+            if (latestReminder.invalid()) {
+              throw new Error('Giá trị của trường latestReminder không hợp lệ.');
+            }
+            return now >= latestReminder.add(settings.fee.timeLimitationBetween2FeeNotifications, 'days');
+          }
+        }
+        return false;
+      } catch (e) {
+        return true;
       }
-      return null;
     },
+
   },
   Announcement: {
     building(data) {

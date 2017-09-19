@@ -59,7 +59,6 @@ async function saveFeeForApartments(datas, buildingId, feeType) {
       text: `Thông báo nộp tiền ${fee.type.name.toString().toLowerCase()} tháng ${fee.month}/${fee.year}`,
     });
   }));
-  console.log(feesSaved);
   return feesSaved;
 }
 
