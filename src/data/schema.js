@@ -51,6 +51,7 @@ import {
 } from './apis/FeeServices';
 import {
   sendDeletedEventNotification,
+  sendCancelledEventNotification,
   acceptedUserBelongsToBuildingNotification,
   rejectedUserBelongsToBuildingNotification,
   sendSharingPostNotification,
@@ -480,6 +481,10 @@ type Mutation {
   editAnnouncement(
     input: EditAnnouncementInput!
   ): Announcement
+
+  cancelEvent(
+    eventId: String!
+  ): Event
 }
 
 schema {
@@ -2378,6 +2383,29 @@ const rootResolvers = {
       }
       announcementDoc = await AnnouncementsModel.findOne({ _id });
       return announcementDoc;
+    },
+    async cancelEvent({ request }, { eventId }) {
+      let p = await PostsModel.findOne({
+        _id: eventId,
+        author: request.user.id,
+        start: {
+          $gt: new Date(),
+        },
+      });
+      if (!p) {
+        throw new Error('not found the post');
+      }
+      await PostsModel.update({
+        _id: eventId,
+        author: request.user.id,
+      }, {
+        $set: {
+          isCancelled: true,
+        },
+      });
+      sendCancelledEventNotification(p.joins, p._id, request.user.id);
+      p = await PostsModel.findOne({ _id: eventId });
+      return p;
     },
   },
 };
