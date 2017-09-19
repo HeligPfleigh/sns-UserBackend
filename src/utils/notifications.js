@@ -14,6 +14,7 @@ import {
   FRIEND_REQUEST,
   EVENT_INVITE,
   EVENT_DELETED,
+  EVENT_CANCELLED,
   ACCEPTED_JOIN_BUILDING,
   REJECTED_JOIN_BUILDING,
   SHARING_POST,
@@ -137,6 +138,29 @@ async function sendDeletedEventNotification(usersid, eventId, actor) {
       subject: eventId,
       seen: false,
       type: EVENT_DELETED,
+    };
+
+    const notify = await NotificationsModel.findOne(options);
+
+    if (!notify) {
+      await NotificationsModel.create({
+        ...options,
+        actors: [actor],
+      });
+    } else if (!_.some(notify.actors, item => item.equals(actor))) {
+      notify.actors.unshift(actor);
+      await notify.save();
+    }
+  });
+}
+
+async function sendCancelledEventNotification(usersid, eventId, actor) {
+  usersid.forEach(async (id) => {
+    const options = {
+      user: id,
+      subject: eventId,
+      seen: false,
+      type: EVENT_CANCELLED,
     };
 
     const notify = await NotificationsModel.findOne(options);
@@ -295,6 +319,7 @@ export {
   sendEventInviteNotification,
   sendJoinEventNotification,
   sendDeletedEventNotification,
+  sendCancelledEventNotification,
   acceptedUserBelongsToBuildingNotification,
   rejectedUserBelongsToBuildingNotification,
   sendSharingPostNotification,

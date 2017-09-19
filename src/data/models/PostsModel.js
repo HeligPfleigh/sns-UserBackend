@@ -26,6 +26,10 @@ const PostSchema = new Schema({
     type: Boolean,
     index: true,
   },
+  isCancelled: {
+    type: Boolean,
+    index: true,
+  },
   user: {
     type: ObjectId,
     ref: 'User',

@@ -24,6 +24,7 @@ async function createEvent({ privacy, author, photos, name, location, start, end
     message,
     invites,
     building,
+    isCancelled: false,
   });
   return event;
 }
