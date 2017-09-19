@@ -2245,11 +2245,19 @@ const rootResolvers = {
         throw new Error('The building does not exists.');
       }
 
-      await ApartmentsModel.findByIdAndUpdate(apartment, {
+      const conditions = {
         $pull: {
           users: resident,
         },
-      });
+      };
+
+      if (apartmentDoc.owner.toString() === resident) {
+        conditions.$unset = {
+          owner: 1,
+        };
+      }
+
+      await ApartmentsModel.findByIdAndUpdate(apartment, conditions);
 
       return userDoc;
     },
