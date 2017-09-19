@@ -122,6 +122,7 @@ enum NotificationType {
   CAN_JOIN_EVENT
   CANT_JOIN_EVENT
   EVENT_DELETED
+  EVENT_CANCELLED
   ACCEPTED_JOIN_BUILDING
   REJECTED_JOIN_BUILDING
   SHARING_POST
@@ -169,6 +170,7 @@ type Event implements Node {
   updatedAt: Date
   isAuthor: Boolean
   isInterest: Boolean
+  isCancelled: Boolean
 }
 
 type DataNotification {
