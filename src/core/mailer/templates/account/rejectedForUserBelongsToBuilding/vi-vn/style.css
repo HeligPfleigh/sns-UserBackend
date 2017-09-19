@@ -23,6 +23,14 @@
   margin-bottom: 10px;
 }
 
+.content > div.message {
+  border: 1px solid silver;
+  border-radius: 4px;
+  padding: 0px 10px;
+  font: italic 18px Serif;
+  background-color: bisque;
+}
+
 .content a, .content a:hover {
   text-decoration: none;
   color: dodgerblue;

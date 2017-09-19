@@ -1,3 +1,5 @@
+import { convertFromRaw } from 'draft-js';
+import { stateToHTML } from 'draft-js-export-html';
 import {
   BuildingsModel,
   ApartmentsModel,
@@ -59,6 +61,12 @@ async function notifywhenAcceptedForUserBelongsToBuilding(email, data) {
 }
 
 async function notifywhenRejectedForUserBelongsToBuilding(email, data) {
+  /*
+   * Convert message Draft content to Html content
+   */
+
+  data.message = stateToHTML(convertFromRaw(JSON.parse(data.message)));
+
   await Mailer.sendMail({
     to: email,
     subject: 'SNS-SERVICE: Từ chối đăng ký làm thành viên tòa nhà',
