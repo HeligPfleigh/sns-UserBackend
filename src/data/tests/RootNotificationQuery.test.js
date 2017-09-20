@@ -14,7 +14,7 @@ const userId = '58f9c2502d4581000484b20a';
 const notificationId = '591022a0bb2a180011212ce4';
 const userData = {
   _id: userId,
-  emails: {
+  email: {
     address: 'muakhoc90@gmail.com',
     verified: true,
   },

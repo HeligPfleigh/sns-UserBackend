@@ -29,7 +29,7 @@ const postIdH = '58f9d6b62d4581789834b1a3';
 
 const userDataA = {
   _id: userIdA,
-  emails: {
+  email: {
     address: 'muakhoc90@gmail.com',
     verified: true,
   },
@@ -54,7 +54,7 @@ const userDataA = {
 
 const userDataB = {
   _id: userIdB,
-  emails: {
+  email: {
     address: 'particle4dev@gmail.com',
     verified: true,
   },
@@ -81,7 +81,7 @@ const userDataB = {
 
 const userDataC = {
   _id: userIdC,
-  emails: {
+  email: {
     address: 'thanhtt@gmail.com',
     verified: true,
   },

@@ -18,7 +18,7 @@ const postIdB = '59af965cd7c4034c7fe296ba';
 const buildingId = '58da279f0ff5af8c8be59c36';
 const userData = {
   _id: userId,
-  emails: {
+  email: {
     address: 'muakhoc90@gmail.com',
     verified: true,
   },
@@ -43,7 +43,7 @@ const userData = {
 
 const userDataB = {
   _id: userIdB,
-  emails: {
+  email: {
     address: 'particle4dev@gmail.com',
     verified: true,
   },

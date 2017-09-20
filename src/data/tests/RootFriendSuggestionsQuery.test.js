@@ -28,7 +28,7 @@ const buildingData = Object.assign({}, bd, {
 
 const userDataA = {
   _id: userIdA,
-  emails: {
+  email: {
     address: 'muakhoc90@gmail.com',
     verified: true,
   },
@@ -48,13 +48,13 @@ const userDataA = {
   },
   chatId: 'cLq7UcjYopQ5tLGmiR9nnHaKzIR2',
   roles: ['user'],
-  isActive: 1,
+  status: 1,
   __v: 0,
 };
 
 const userDataB = {
   _id: userIdB,
-  emails: {
+  email: {
     address: 'particle4dev@gmail.com',
     verified: true,
   },
@@ -74,13 +74,13 @@ const userDataB = {
   },
   chatId: '4p4vIMzYwUhiFiqbBMggcbAItX03',
   roles: ['user'],
-  isActive: 1,
+  status: 1,
   __v: 0,
 };
 
 const userDataC = {
   _id: userIdC,
-  emails: {
+  email: {
     address: 'thanhtt@gmail.com',
     verified: true,
   },
@@ -100,7 +100,7 @@ const userDataC = {
   },
   chatId: 'i3yXrXoLUCNthP7BaBr5dnU3fjt2',
   roles: ['user'],
-  isActive: 1,
+  status: 1,
   __v: 0,
 };
 
