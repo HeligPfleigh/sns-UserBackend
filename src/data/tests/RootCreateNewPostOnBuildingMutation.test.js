@@ -19,7 +19,7 @@ const userId = '58f9c1bf2d4581000474b198';
 const messageData = 'message Data';
 const userDataA = {
   _id: userId,
-  emails: {
+  email: {
     address: 'particle4dev@gmail.com',
     verified: true,
   },

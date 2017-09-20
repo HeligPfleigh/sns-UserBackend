@@ -28,7 +28,7 @@ const apartmentData = Object.assign({}, ad, {
 
 const userData = {
   _id: userId,
-  emails: {
+  email: {
     address: 'muakhoc90@gmail.com',
     verified: true,
   },

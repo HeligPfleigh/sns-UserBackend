@@ -25,7 +25,7 @@ const buildingMembersIdD = '76859d8d60f3c7beab57120a';
 
 const userDataA = {
   _id: userIdA,
-  emails: {
+  email: {
     address: 'muakhoc90@gmail.com',
     verified: true,
   },
@@ -50,7 +50,7 @@ const userDataA = {
 
 const userDataB = {
   _id: userIdB,
-  emails: {
+  email: {
     address: 'particle4dev@gmail.com',
     verified: true,
   },
@@ -137,8 +137,8 @@ describe('RootApprovingUserToBuildingMutation', () => {
 
   test('should approve user to building ', async () => {
     const input = {
-      input: '{' +
-        'requestsToJoinBuildingId: "' + buildingMembersIdB + '",' +
+      input: `${'{' +
+        'requestsToJoinBuildingId: "'}${buildingMembersIdB}",` +
       '},',
     };
     // language=GraphQL
@@ -174,8 +174,8 @@ describe('RootApprovingUserToBuildingMutation', () => {
 
   test('should throw error if not found the request ', async () => {
     const input = {
-      input: '{' +
-        'requestsToJoinBuildingId: "' + buildingMembersIdC + '",' +
+      input: `${'{' +
+        'requestsToJoinBuildingId: "'}${buildingMembersIdC}",` +
       '},',
     };
     // language=GraphQL
@@ -205,8 +205,8 @@ describe('RootApprovingUserToBuildingMutation', () => {
 
   test('should throw error if you don\'t have permission to reject request', async () => {
     const input = {
-      input: '{' +
-        'requestsToJoinBuildingId: "' + buildingMembersIdB + '",' +
+      input: `${'{' +
+        'requestsToJoinBuildingId: "'}${buildingMembersIdB}",` +
       '},',
     };
     // language=GraphQL
@@ -236,8 +236,8 @@ describe('RootApprovingUserToBuildingMutation', () => {
 
   test('should return record if user approved ', async () => {
     const input = {
-      input: '{' +
-        'requestsToJoinBuildingId: "' + buildingMembersIdD + '",' +
+      input: `${'{' +
+        'requestsToJoinBuildingId: "'}${buildingMembersIdD}",` +
       '},',
     };
     // language=GraphQL

@@ -45,7 +45,7 @@ router.post('/login', (req, res, next) => {
       });
     }
 
-    if (!isEmpty(user.buildings) && user.isActive !== 0) {
+    if (!isEmpty(user.buildings) && user.status !== 0) {
       const token = generateToken(user);
       res.cookie('id_token', token, { maxAge: 1000 * EXPIRES_IN });
       user.id_token = token;
@@ -62,7 +62,7 @@ router.post('/facebook', (req, res, next) => {
       });
     }
 
-    if (!isEmpty(user.buildings) && user.isActive !== 0) {
+    if (!isEmpty(user.buildings) && user.status !== 0) {
       const token = generateToken(user);
       res.cookie('id_token', token, { maxAge: 1000 * EXPIRES_IN });
       user.id_token = token;

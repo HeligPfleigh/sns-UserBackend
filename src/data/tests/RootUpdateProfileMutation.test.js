@@ -21,7 +21,7 @@ const profile = {
 };
 const userDataA = {
   _id: userId,
-  emails: {
+  email: {
     address: 'particle4dev@gmail.com',
     verified: true,
   },

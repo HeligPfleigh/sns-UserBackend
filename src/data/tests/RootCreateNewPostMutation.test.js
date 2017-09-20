@@ -17,7 +17,7 @@ const messageData = 'message Data';
 const buildingId = '58da279f0ff5af8c8be59c36';
 const userDataA = {
   _id: userId,
-  emails: {
+  email: {
     address: 'particle4dev@gmail.com',
     verified: true,
   },
@@ -44,7 +44,7 @@ const userDataA = {
 
 const userDataB = {
   _id: userIdB,
-  emails: {
+  email: {
     address: 'particle4dev@gmail.com',
     verified: true,
   },

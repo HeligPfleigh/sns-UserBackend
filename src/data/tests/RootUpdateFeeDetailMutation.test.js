@@ -26,7 +26,7 @@ const buildingData = Object.assign({}, bd, {
 
 const userData = {
   _id: userId,
-  emails: {
+  email: {
     address: 'muakhoc90@gmail.com',
     verified: true,
   },
@@ -51,7 +51,7 @@ const userData = {
 
 const userDataB = {
   _id: userIdB,
-  emails: {
+  email: {
     address: 'particle4dev@gmail.com',
     verified: true,
   },
@@ -129,11 +129,11 @@ describe('RootUpdateFeeDetailMutation', () => {
   });
   test('should update fee detail', async () => {
     const input = {
-      input: '{' +
-        'feeId: "' + feeIdA + '",' +
+      input: `${'{' +
+        'feeId: "'}${feeIdA}",` +
         'total: 300000,' +
         'status: "UNPAID",' +
-        'buildingId: "' + buildingId + '",' +
+        `buildingId: "${buildingId}",` +
       '},',
     };
     // language=GraphQL
@@ -170,11 +170,11 @@ describe('RootUpdateFeeDetailMutation', () => {
 
   test('should throw error if not found the fee', async () => {
     const input = {
-      input: '{' +
-        'feeId: "' + feeIdB + '",' +
+      input: `${'{' +
+        'feeId: "'}${feeIdB}",` +
         'total: 300000,' +
         'status: "UNPAID",' +
-        'buildingId: "' + buildingId + '",' +
+        `buildingId: "${buildingId}",` +
       '},',
     };
     // language=GraphQL
@@ -207,11 +207,11 @@ describe('RootUpdateFeeDetailMutation', () => {
 
   test('should throw error if you are not an admin', async () => {
     const input = {
-      input: '{' +
-        'feeId: "' + feeIdA + '",' +
+      input: `${'{' +
+        'feeId: "'}${feeIdA}",` +
         'total: 300000,' +
         'status: "UNPAID",' +
-        'buildingId: "' + buildingId + '",' +
+        `buildingId: "${buildingId}",` +
       '},',
     };
     // language=GraphQL

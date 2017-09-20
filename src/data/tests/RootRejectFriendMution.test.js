@@ -16,7 +16,7 @@ const userIdC = '58f9ca042d4581000474b107';
 const buildingId = '58da279f0ff5af8c8be59c36';
 const userDataA = {
   _id: userIdA,
-  emails: {
+  email: {
     address: 'muakhoc90@gmail.com',
     verified: true,
   },
@@ -41,7 +41,7 @@ const userDataA = {
 
 const userDataB = {
   _id: userIdB,
-  emails: {
+  email: {
     address: 'particle4dev@gmail.com',
     verified: true,
   },
@@ -68,7 +68,7 @@ const userDataB = {
 
 const userDataC = {
   _id: userIdC,
-  emails: {
+  email: {
     address: 'thanhtt@gmail.com',
     verified: true,
   },

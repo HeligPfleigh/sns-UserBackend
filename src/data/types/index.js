@@ -286,7 +286,7 @@ interface Resident {
   profile: Profile
   chatId: String
   phone: Phone
-  emails: Email
+  email: Email
   chatId: String
   posts: [Post]
   building: Building
@@ -298,7 +298,7 @@ type Me implements Node, Resident {
   username: String
   fullName: String
   phone: Phone
-  emails: Email
+  email: Email
   profile: Profile
   chatId: String
   isAdmin: Boolean
@@ -320,7 +320,7 @@ type Friend implements Node, Resident {
   username: String
   fullName: String
   phone: Phone
-  emails: Email
+  email: Email
   profile: Profile
   chatId: String
   posts: [Post]
@@ -348,7 +348,7 @@ type Author implements Node, Resident {
   _id: ID!
   username: String
   phone: Phone
-  emails: Email
+  email: Email
   profile: Profile
   chatId: String
   posts: [Post]
@@ -444,7 +444,7 @@ type User implements Node {
   friendRequests( cursor: String, limit: Int): UserConnection!
   friendSuggestions( cursor: String, limit: Int): UserConnection!
   building: Building
-  emails: Email
+  email: Email
   phone: Phone
   apartments: [Apartment]
   announcements(announcementId: String, cursor: String, skip: Int, limit: Int): BuildingAnnouncementConnection!
@@ -783,7 +783,7 @@ export const resolvers = {
     },
     async requests(data, { cursor = null, limit = 10 }) {
       const userIds = await UsersModel.find({
-        'emails.verified': true,
+        'email.verified': true,
       }).lean().distinct('_id');
 
       const r = await BuildingMembersService.find({
@@ -1051,7 +1051,7 @@ export const resolvers = {
       const users = await UsersModel.find({
         _id: { $nin: ninIds },
         building: user.building,
-        isActive: 1,
+        status: 1,
       }).limit(5).lean();
 
       return users;
@@ -1375,7 +1375,7 @@ export const resolvers = {
         query: {
           _id: { $nin: ninIds.map(toObjectId) },
           building: data.building,
-          isActive: 1,
+          status: 1,
           $sort: {
             createdAt: -1,
           },

@@ -20,7 +20,7 @@ const buildingData = Object.assign({}, bd, {
 
 const userData = {
   _id: userId,
-  emails: {
+  email: {
     address: 'muakhoc90@gmail.com',
     verified: true,
   },

@@ -33,7 +33,7 @@ async function checkExistUser(username) {
     $or: [
       { username },
       { 'phone.number': username },
-      { 'emails.address': username },
+      { 'email.address': username },
     ],
   };
   const user = await UsersModel.findOne(options);
@@ -160,7 +160,7 @@ async function createUser(params) {
     phone: {
       number: phoneNumber,
     },
-    emails: {
+    email: {
       address: emailAddress,
     },
     building,
@@ -195,23 +195,30 @@ async function createUser(params) {
     throw new Error('Phone number is exist');
   }
 
-  if (await UsersModel.findOne({ 'emails.address': emailAddress })) {
+  if (await UsersModel.findOne({ 'email.address': emailAddress })) {
     throw new Error('Email address is exist');
   }
 
-  params.password = bcrypt.hashSync(password, bcrypt.genSaltSync(), null);
+  params.password = {
+    value: '',
+    counter: 0,
+    code: '',
+    updateAt: new Date(),
+  };
+
+  params.password.value = await bcrypt.hashSync(password, bcrypt.genSaltSync(), null);
 
   // Connect user with account firebase
   const chatToken = await getChatToken({ email: emailAddress, password });
   const activeCode = idRandom();
 
   params.profile.picture = params.profile.picture || '/avatar-default.jpg';
+  params.email.code = activeCode;
 
   const { apartments, services, ...userObj } = params;
   const user = {
     ...userObj,
     building,
-    activeCode,
     chatId: chatToken && chatToken.chatId,
     services: services && JSON.parse(services),
   };
@@ -270,12 +277,12 @@ async function activeUser(params) {
     throw new Error('Account is not exist');
   }
 
-  const user = await UsersModel.findOne({ username, activeCode });
+  const user = await UsersModel.findOne({ username, 'email.code': activeCode });
   if (!user || isEmpty(user)) {
     throw new Error('Code active incorrect');
   }
 
-  const updatedAt = moment(user.updatedAt);
+  const updatedAt = moment(user.mail.updatedAt || new Date());
   const duration = moment.duration(moment().diff(updatedAt));
   const hours = duration.asHours();
 
@@ -285,14 +292,15 @@ async function activeUser(params) {
 
   const result = await UsersModel.findOneAndUpdate({ _id: user._id }, {
     $set: {
-      // isActive: 1,
-      activeCode: '',
-      'emails.verified': true,
+      // status: 1,
+      'email.code': '',
+      'email.verified': true,
     },
   });
+
   if (result) {
     const mailObject = {
-      to: result.emails.address,
+      to: result.email.address,
       subject: 'SNS-SERVICE: Kích hoạt tài khoản thành công',
       template: 'activated',
       lang: 'vi-vn',
@@ -308,6 +316,114 @@ async function activeUser(params) {
   return result;
 }
 
+async function forgotPassword(email) {
+  if (isUndefined(email)) {
+    throw new Error('email is undefined');
+  }
+
+  const user = await UsersModel.findOne({ 'email.address': email });
+  if (!user) {
+    throw new Error('Account is not exist');
+  }
+
+  const activeCode = idRandom();
+
+  const result = await UsersModel.findOneAndUpdate({ _id: user._id }, {
+    $set: {
+      // status: 1,
+      'password.code': activeCode,
+      'password.counter': 0,
+      'password.updateAt': new Date(),
+    },
+  });
+
+  if (result) {
+    const mailObject = {
+      to: email,
+      subject: 'SNS-SERVICE: Khôi phục mật khẩu',
+      template: 'forgot_pasword',
+      lang: 'vi-vn',
+      data: {
+        email,
+        activeCode,
+        username: result.username,
+        host: config.client,
+      },
+    };
+
+    await Mailer.sendMail(mailObject);
+  }
+
+  return result;
+}
+
+async function changePassword({ userId, password }) {
+  if (isUndefined(userId)) {
+    throw new Error('userId is undefined');
+  }
+
+  if (isUndefined(password)) {
+    throw new Error('password is undefined');
+  }
+
+  if (!await UsersModel.findOne({ _id: userId })) {
+    throw new Error('Account is not exist');
+  }
+
+  const passwordVal = await bcrypt.hashSync(password, bcrypt.genSaltSync(), null);
+  const result = await UsersModel.findOneAndUpdate({ _id: userId }, {
+    $set: {
+      // status: 1,
+      'password.code': '',
+      'password.counter': 0,
+      'password.value': passwordVal,
+      'password.updateAt': new Date(),
+    },
+  });
+
+  if (result) {
+    const mailObject = {
+      to: result.email.address,
+      subject: 'SNS-SERVICE: Đổi mật khẩu tài khoản thành công',
+      template: 'change_password',
+      lang: 'vi-vn',
+      data: {
+        username: result.username,
+        host: config.client,
+      },
+    };
+
+    await Mailer.sendMail(mailObject);
+  }
+
+  return result;
+}
+
+async function codePasswordValidator(code) {
+  // eslint-disable-next-line
+  // result code 0 => code is undefined
+  if (isUndefined(code)) {
+    return 0;
+  }
+
+  const user = await UsersModel.findOne({ 'password.code': code });
+  if (!user || isEmpty(user)) {
+    // result code -1 => code is mot exist
+    return -1;
+  }
+
+  const updatedAt = moment(user.password.updatedAt || new Date());
+  const duration = moment.duration(moment().diff(updatedAt));
+  const hours = duration.asHours();
+
+  if (hours > 24) {
+    // result code -2 => Code expired
+    return -2;
+  }
+
+  return 1;
+}
+
 export default {
   checkExistUser,
   createUser,
@@ -317,4 +433,7 @@ export default {
   rejectFriend,
   sendFriendRequest,
   updateProfile,
+  forgotPassword,
+  changePassword,
+  codePasswordValidator,
 };

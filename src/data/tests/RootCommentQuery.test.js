@@ -15,7 +15,7 @@ const postId = '58f9d6b62d4581000484b1a3';
 const messageId = '58f9dad44beb380004340bbe';
 const userData = {
   _id: userId,
-  emails: {
+  email: {
     address: 'muakhoc90@gmail.com',
     verified: true,
   },

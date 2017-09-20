@@ -116,6 +116,7 @@ type Query {
   announcement(_id: String!): Announcement,
   getBOMList(buildingId: String!): [User]
   getBuildingSettings(building: String!): BuildingSettingPayload
+  codePasswordValidator(code: String): Int
 }
 
 input SearchByResidentsInBuildingGroupByApartment {
@@ -137,7 +138,7 @@ input UpdateUserProfileInput {
   profile: ProfileInput
 }
 
-input EmailsInput {
+input EmailInput {
   address: String!
   verified: Boolean
 }
@@ -147,11 +148,18 @@ input PhoneInput {
   verified: Boolean
 }
 
+input PasswordInput {
+  value: String!
+  counter: Int
+  code: String
+  updateAt: Date
+}
+
 input CreateUserInput {
   apartments: [String!]
   building: String!
-  emails: EmailsInput!
-  password: String!
+  email: EmailInput!
+  password: PasswordInput!
   phone: PhoneInput!
   username: String!
   profile: ProfileInput!
@@ -1148,6 +1156,9 @@ const rootResolvers = {
       }
       return r;
     },
+    codePasswordValidator(root, { code }) {
+      return UsersService.codePasswordValidator(code);
+    },
   },
   Mutation: {
     acceptFriend({ request }, { _id }) {
@@ -1739,9 +1750,9 @@ const rootResolvers = {
       });
 
       // set user active
-      // if (userDocument.emails.verified) {
+      // if (userDocument.email.verified) {
       // }
-      await UsersModel.findByIdAndUpdate(record.user, { isActive: 1 });
+      await UsersModel.findByIdAndUpdate(record.user, { status: 1 });
 
       // Send email and notification to user status ACCEPTED
       // Get all BOMs
@@ -1761,8 +1772,8 @@ const rootResolvers = {
       }
 
       // Sending email
-      if (isObject(userDocument.emails) && isString(userDocument.emails.address)) {
-        await BuildingServices.notifywhenAcceptedForUserBelongsToBuilding(userDocument.emails.address, userDocument);
+      if (isObject(userDocument.email) && isString(userDocument.email.address)) {
+        await BuildingServices.notifywhenAcceptedForUserBelongsToBuilding(userDocument.email.address, userDocument);
       }
 
       return {
@@ -1825,7 +1836,7 @@ const rootResolvers = {
           });
 
           // set user active
-          await UsersModel.findByIdAndUpdate(record.user, { isActive: 1 });
+          await UsersModel.findByIdAndUpdate(record.user, { status: 1 });
         }
       }
 
@@ -1857,9 +1868,9 @@ const rootResolvers = {
       }
 
       // Sending email
-      if (isObject(userDocument.emails) && isString(userDocument.emails.address)) {
+      if (isObject(userDocument.email) && isString(userDocument.email.address)) {
         await BuildingServices.notifywhenRejectedForUserBelongsToBuilding(
-          userDocument.emails.address, {
+          userDocument.email.address, {
             ...userDocument.toObject(),
             message,
             building: buildingDoc.toObject(),

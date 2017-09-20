@@ -29,7 +29,7 @@ const buildingData = Object.assign({}, bd, {
 
 const userDataA = {
   _id: userIdA,
-  emails: {
+  email: {
     address: 'muakhoc90@gmail.com',
     verified: true,
   },
@@ -54,7 +54,7 @@ const userDataA = {
 
 const userDataB = {
   _id: userIdB,
-  emails: {
+  email: {
     address: 'particle4dev@gmail.com',
     verified: true,
   },
@@ -135,8 +135,8 @@ describe('RootRejectingUserToBuildingMutation', () => {
 
   test('should reject user to building ', async () => {
     const input = {
-      input: '{' +
-        'requestsToJoinBuildingId: "' + buildingMembersIdB + '",' +
+      input: `${'{' +
+        'requestsToJoinBuildingId: "'}${buildingMembersIdB}",` +
         'message: "Message",' +
       '},',
     };
@@ -173,8 +173,8 @@ describe('RootRejectingUserToBuildingMutation', () => {
 
   test('should throw error if not found the request ', async () => {
     const input = {
-      input: '{' +
-        'requestsToJoinBuildingId: "' + buildingMembersIdC + '",' +
+      input: `${'{' +
+        'requestsToJoinBuildingId: "'}${buildingMembersIdC}",` +
         'message: "Message",' +
       '},',
     };
@@ -205,8 +205,8 @@ describe('RootRejectingUserToBuildingMutation', () => {
 
   test('should throw error if you don\'t have permission to reject request', async () => {
     const input = {
-      input: '{' +
-        'requestsToJoinBuildingId: "' + buildingMembersIdB + '",' +
+      input: `${'{' +
+        'requestsToJoinBuildingId: "'}${buildingMembersIdB}",` +
         'message: "Message",' +
       '},',
     };
@@ -237,8 +237,8 @@ describe('RootRejectingUserToBuildingMutation', () => {
 
   test('should return record if user approved ', async () => {
     const input = {
-      input: '{' +
-        'requestsToJoinBuildingId: "' + buildingMembersIdD + '",' +
+      input: `${'{' +
+        'requestsToJoinBuildingId: "'}${buildingMembersIdD}",` +
         'message: "Message",' +
       '},',
     };

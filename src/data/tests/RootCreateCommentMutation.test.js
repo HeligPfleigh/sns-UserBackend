@@ -16,7 +16,7 @@ const messageData = 'messageData';
 const commentId = '58f9e69e4beb380004340bc4';
 const userData = {
   _id: userId,
-  emails: {
+  email: {
     address: 'muakhoc90@gmail.com',
     verified: true,
   },

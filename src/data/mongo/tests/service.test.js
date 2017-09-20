@@ -16,7 +16,7 @@ const userData = {
   // _id: userId,
   // createdAt: '2017-04-21T08:26:56.403Z',
   // updatedAt: '2017-04-21T08:26:56.403Z',
-  emails: {
+  email: {
     address: 'muakhoc90@gmail.com',
     verified: true,
   },
@@ -121,7 +121,7 @@ describe('server', () => {
         $select: {
           username: 1,
         },
-        'emails.address': 'muakhoc90@gmail.com',
+        'email.address': 'muakhoc90@gmail.com',
       },
     });
     let list = result.data.map(t => t.username);

@@ -28,7 +28,7 @@ const postData = {
 };
 const userDataA = {
   _id: userIdA,
-  emails: {
+  email: {
     address: 'muakhoc90@gmail.com',
     verified: true,
   },
