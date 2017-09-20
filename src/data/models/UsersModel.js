@@ -12,7 +12,7 @@ function rolesvalidator(v) {
   return v.every(val => !!~['user'].indexOf(val));
 }
 
-const EmailSchema = new Schema({
+const Emailchema = new Schema({
   address: {
     type: String,
     required: true,
@@ -23,16 +23,40 @@ const EmailSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  code: String,
+  updateAt: {
+    type: Date,
+    default: new Date(),
+  },
 }, {
   _id: false,
 });
 
 const PhoneSchema = new Schema({
   number: String,
-  code: String,
   verified: {
     type: Boolean,
     default: false,
+  },
+  code: String,
+  updateAt: {
+    type: Date,
+    default: new Date(),
+  },
+}, {
+  _id: false,
+});
+
+const PasswordSchema = new Schema({
+  value: String,
+  counter: {
+    type: Number,
+    default: 0,
+  },
+  code: String,
+  updateAt: {
+    type: Date,
+    default: new Date(),
   },
 }, {
   _id: false,
@@ -44,9 +68,9 @@ const UserSchema = new Schema({
     required: true,
     trim: true,
   },
-  password: String,
+  password: PasswordSchema,
   phone: PhoneSchema,
-  emails: EmailSchema,
+  email: Emailchema,
   profile: Schema.Types.Mixed,
   services: Schema.Types.Mixed,
   roles: {
@@ -63,8 +87,7 @@ const UserSchema = new Schema({
     type: String,
   },
   search: String,
-  activeCode: String,
-  isActive: {
+  status: {
     type: Number, // 0 - not active, 1 - activated, 2 - deactive, 3 - lock
     default: 0,
     required: true,
@@ -83,7 +106,7 @@ UserSchema.plugin(timestamps);
 UserSchema.methods.generateHash = password => bcrypt.hashSync(password, bcrypt.genSaltSync(), null);
 
 // checking if password is valid
-UserSchema.methods.validPassword = password => bcrypt.compareSync(password, this.password);
+UserSchema.methods.validPassword = password => bcrypt.compareSync(password, this.password.value);
 
 const UserModel = mongoose.model('User', UserSchema);
 
