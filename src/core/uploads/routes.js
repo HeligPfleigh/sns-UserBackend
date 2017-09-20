@@ -101,7 +101,7 @@ function validateData(data, { building, type }, callback) {
     errors[key] = [];
 
     const apartment = String(item['căn hộ']).trim();
-    let total = String(item['số tiền']).trim();
+    let total = String(item['số tiền']).trim().replace(/[^0-9\.-]+/g, '');
     const datetime = String(item['thời gian']).trim().split('/');
     const deadline = moment(item['hạn nộp'], ['DD/MM/YYYY', 'DD/MM/YY', 'DD MMM YYYY']).toDate();
     let month = datetime[0];
