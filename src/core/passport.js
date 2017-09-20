@@ -125,7 +125,7 @@ passport.use(new LocalStrategy({
       $or: [
         { username: usernameVal },
         { 'phone.number': usernameVal, 'phone.verified': true },
-        { 'emails.address': usernameVal, 'emails.verified': true },
+        { 'email.address': usernameVal, 'email.verified': true },
       ],
     };
 
@@ -138,8 +138,7 @@ passport.use(new LocalStrategy({
     }
 
     // check if a hashed user's password is equal to a value saved in the database
-    // return UsersModel.validPassword(user.password);
-    const validPassword = await bcrypt.compare(passwordVal, user.password);
+    const validPassword = await bcrypt.compare(passwordVal, user.password.value);
     if (!validPassword) {
       return done({
         name: 'IncorrectPasswordError',
@@ -163,24 +162,24 @@ passport.use(new LocalStrategy({
     }
 
     let chatToken = null;
-    const { emails, password, chatId } = user;
+    const { email, password, chatId } = user;
 
     if (chatId) {
       chatToken = await getChatToken({ chatId });
-    } else if ((emails && emails.address) && password) {
-      chatToken = await getChatToken({ email: emails.address, password: passwordVal });
+    } else if ((email && email.address) && (password && password.value)) {
+      chatToken = await getChatToken({ email: email.address, password: passwordVal });
     }
 
     return done(null, {
       id: user._id || '',
       profile: user.profile || {},
-      email: user.emails || {},
+      email: user.email || {},
       roles: user.roles || [],
       chatToken: (chatToken && chatToken.token) || '',
       chatExp: moment().add(1, 'hours').unix(),
       chatId: user && user.chatId,
       buildings: buildingsApprove || [],
-      isActive: user.isActive || 0,
+      status: user.status || 0,
       isAdmin,
     });
   };
@@ -216,7 +215,7 @@ passport.use(new FacebookTokenStrategy({
             },
           },
           buildings: [],
-          isActive: 0,
+          status: 0,
         };
 
         done(null, result);
@@ -255,13 +254,13 @@ passport.use(new FacebookTokenStrategy({
         done(null, {
           id: user._id,
           profile: user.profile,
-          email: user.emails || {},
+          email: user.email || {},
           roles: user.roles,
           chatToken: chatToken && chatToken.token,
           chatExp: moment().add(1, 'hours').unix(),
           chatId: user && user.chatId,
           buildings: buildingsApprove || [],
-          isActive: user.isActive || 0,
+          status: user.status || 0,
           isAdmin,
         });
       }
