@@ -56,7 +56,7 @@ export default async function (accessToken, profile, chatToken) {
 
   // email
   if (profile && profile._json && profile._json.email) {
-    u.emails = {
+    u.email = {
       address: profile._json.email,
       verified: true,
     };
@@ -69,26 +69,19 @@ export default async function (accessToken, profile, chatToken) {
     picture: `https://graph.facebook.com/${profile.id}/picture?type=large`,
   };
 
-  // NOTE: update search here
+  u.password = {
+    value: '',
+    counter: 0,
+    code: '',
+    updateAt: new Date(),
+  };
 
-  // u.password = UsersModel.generateHash();
-  u.password = await bcrypt.hashSync('12345678', bcrypt.genSaltSync(), null);
+  u.password.value = await bcrypt.hashSync('12345678', bcrypt.genSaltSync(), null);
+
+  // NOTE: update search here
   u.search = generateUserSearchField(u);
 
   const data = await UsersModel.create(u);
-
-  // ApartmentsModel.create({
-  //   number: '27',
-  //   building,
-  //   user: data._id,
-  //   isOwner: true,
-  // });
-  // BuildingMembersModel.create({
-  //   user: data.id,
-  //   building,
-  //   status: ACCEPTED,
-  //   type: MEMBER,
-  // });
 
   return data;
 }
