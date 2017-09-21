@@ -1,5 +1,6 @@
 import isUndefined from 'lodash/isUndefined';
 import isEmpty from 'lodash/isEmpty';
+import isEqual from 'lodash/isEqual';
 import bcrypt from 'bcrypt';
 import { ObjectId } from 'mongodb';
 import { generate as idRandom } from 'shortid';
@@ -206,7 +207,7 @@ async function createUser(params) {
     updateAt: new Date(),
   };
 
-  params.password.value = await bcrypt.hashSync(password, bcrypt.genSaltSync(), null);
+  params.password.value = await bcrypt.hashSync(password.value, bcrypt.genSaltSync(), null);
 
   // Connect user with account firebase
   const chatToken = await getChatToken({ email: emailAddress, password });
@@ -317,61 +318,65 @@ async function activeUser(params) {
 }
 
 async function forgotPassword(email) {
-  if (isUndefined(email)) {
-    throw new Error('email is undefined');
-  }
+  try {
+    if (isUndefined(email)) {
+      throw new Error('email is undefined');
+    }
 
-  const user = await UsersModel.findOne({ 'email.address': email });
-  if (!user) {
-    throw new Error('Account is not exist');
-  }
+    const user = await UsersModel.findOne({ 'email.address': email });
+    if (!user) {
+      throw new Error('Account is not exist');
+    }
 
-  const activeCode = idRandom();
+    const activeCode = idRandom();
 
-  const result = await UsersModel.findOneAndUpdate({ _id: user._id }, {
-    $set: {
-      // status: 1,
-      'password.code': activeCode,
-      'password.counter': 0,
-      'password.updateAt': new Date(),
-    },
-  });
-
-  if (result) {
-    const mailObject = {
-      to: email,
-      subject: 'SNS-SERVICE: Khôi phục mật khẩu',
-      template: 'forgot_pasword',
-      lang: 'vi-vn',
-      data: {
-        email,
-        activeCode,
-        username: result.username,
-        host: config.client,
+    const result = await UsersModel.findOneAndUpdate({ _id: user._id }, {
+      $set: {
+        // status: 1,
+        'password.code': activeCode,
+        'password.counter': 0,
+        'password.updateAt': new Date(),
       },
-    };
+    });
 
-    await Mailer.sendMail(mailObject);
+    if (result) {
+      const mailObject = {
+        to: email,
+        subject: 'SNS-SERVICE: Khôi phục mật khẩu',
+        template: 'forgot_password',
+        lang: 'vi-vn',
+        data: {
+          email,
+          activeCode,
+          username: result.username,
+          host: config.client,
+        },
+      };
+
+      await Mailer.sendMail(mailObject);
+    }
+
+    return true;
+  } catch (error) {
+    return false;
   }
-
-  return result;
 }
 
-async function changePassword({ userId, password }) {
-  if (isUndefined(userId)) {
-    throw new Error('userId is undefined');
+async function changePassword({ username, password }) {
+  if (isUndefined(username)) {
+    throw new Error('username is undefined');
   }
 
   if (isUndefined(password)) {
     throw new Error('password is undefined');
   }
 
-  if (!await UsersModel.findOne({ _id: userId })) {
+  if (!await UsersModel.findOne({ username })) {
     throw new Error('Account is not exist');
   }
 
   const passwordVal = await bcrypt.hashSync(password, bcrypt.genSaltSync(), null);
-  const result = await UsersModel.findOneAndUpdate({ _id: userId }, {
+  const result = await UsersModel.findOneAndUpdate({ username }, {
     $set: {
       // status: 1,
       'password.code': '',
@@ -399,17 +404,23 @@ async function changePassword({ userId, password }) {
   return result;
 }
 
-async function codePasswordValidator(code) {
+async function codePasswordValidator({ username, code }) {
   // eslint-disable-next-line
-  // result code 0 => code is undefined
-  if (isUndefined(code)) {
-    return 0;
+  if (isEmpty(username)) {
+    throw new Error('Bạn chưa cung cấp tên đăng nhập');
   }
 
-  const user = await UsersModel.findOne({ 'password.code': code });
+  if (isEmpty(code)) {
+    throw new Error('Bạn chưa cung cấp mã');
+  }
+
+  const user = await UsersModel.findOne({ username });
   if (!user || isEmpty(user)) {
-    // result code -1 => code is mot exist
-    return -1;
+    throw new Error('Tên đăng nhập không đúng');
+  }
+
+  if (!user.password.code || (!isEqual(user.password.code, code))) {
+    throw new Error('Mã kích hoạt không đúng');
   }
 
   const updatedAt = moment(user.password.updatedAt || new Date());
@@ -417,11 +428,10 @@ async function codePasswordValidator(code) {
   const hours = duration.asHours();
 
   if (hours > 24) {
-    // result code -2 => Code expired
-    return -2;
+    throw new Error('Mã kích hoạt đã hết hạn');
   }
 
-  return 1;
+  return true;
 }
 
 export default {
