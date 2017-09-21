@@ -116,7 +116,8 @@ type Query {
   announcement(_id: String!): Announcement,
   getBOMList(buildingId: String!): [User]
   getBuildingSettings(building: String!): BuildingSettingPayload
-  codePasswordValidator(code: String): Int
+  codePasswordValidator(username: String!, code: String!): Boolean
+  forgotPassword(email: String!): Boolean
 }
 
 input SearchByResidentsInBuildingGroupByApartment {
@@ -490,7 +491,7 @@ type Mutation {
     input: DeleteResidentInBuildingInput!
   ): User
   exportResidentsInBuildingGroupByApartment(
-    building: String!, 
+    building: String!,
     filters: SearchByResidentsInBuildingGroupByApartment
   ): ExportResidentsInBuildingGroupByApartmentPayload
   deleteAnnouncement(
@@ -506,6 +507,10 @@ type Mutation {
   cancelEvent(
     eventId: String!
   ): Event
+  changeUserPassword(
+    username: String!,
+    password: String!
+  ): Boolean
 }
 
 schema {
@@ -1156,8 +1161,11 @@ const rootResolvers = {
       }
       return r;
     },
-    codePasswordValidator(root, { code }) {
-      return UsersService.codePasswordValidator(code);
+    codePasswordValidator(root, params) {
+      return UsersService.codePasswordValidator(params);
+    },
+    forgotPassword(root, { email }) {
+      return UsersService.forgotPassword(email);
     },
   },
   Mutation: {
@@ -2399,7 +2407,7 @@ const rootResolvers = {
         $set: {
           ...input,
         },
-      }, { 
+      }, {
         upsert: true,
         returnNewDocument : true,
       });
@@ -2499,6 +2507,9 @@ const rootResolvers = {
       sendCancelledEventNotification(p.joins, p._id, request.user.id);
       p = await PostsModel.findOne({ _id: eventId });
       return p;
+    },
+    changeUserPassword({ request }, params) {
+      return UsersService.changePassword(params);
     },
   },
 };
