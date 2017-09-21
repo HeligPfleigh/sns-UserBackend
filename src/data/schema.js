@@ -103,7 +103,7 @@ type Query {
   notification(_id: String): Notification
   comment(_id: String): Comment
   notifications(limit: Int, cursor: String): NotificationsResult
-  search(keyword: String!, numberOfFriends: Int): [Friend]
+  search(keyword: String!, numberOfFriends: Int): [User]
   event(_id: String!): Event
   resident(_id: String): User
   requestsToJoinBuilding(_id: String): RequestsToJoinBuilding
