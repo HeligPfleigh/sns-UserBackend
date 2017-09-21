@@ -3,11 +3,13 @@
   <div class="content">
     <div><%= email.data.username %> thân mến,</div>
 
-    <div>Cảm ơn bạn đã đăng kí sử dụng dịch vụ của <a href="http://sns.mttjsc.com">Mạng xã hội Chung cư - SNS</a>!</div>
+    <div>Cảm ơn bạn đã đăng kí sử dụng dịch vụ của <a href="http://<%= email.data.host %>">Mạng xã hội Chung cư - SNS</a>!</div>
 
-    <div>Để hoàn tất đăng kí, xin vui lòng click chọn nút bên dưới xác nhận địa chỉ mail bạn đã đăng kí.</div></br>
+    <div>Mật khẩu của bạn đã được thay đổi thành công.</div></br>
 
-    <div><a class="btn-active" href="http://sns.mttjsc.com/active/<%= email.data.username %>">Xác nhận tài khoản</a></div></br>
+    <div>Vui lòng click "Đăng nhập" để tiếp tục sửa dụng ứng dụng.</div></br>
+
+    <div><a class="btn-active" href="http://<%= email.data.host %>/login">Đến trang đăng nhập</a></div></br>
 
     <div>Trân trọng!</div>
   </div>

@@ -25,7 +25,7 @@ export default {
   registration: RegistrationEmail,
   activated: ActivatedEmail,
   forgot_password: ForgotPasswordEmail,
-  change_pasword: ChangedPasswordEmail,
+  change_password: ChangedPasswordEmail,
   acceptedForUserBelongsToBuilding,
   rejectedForUserBelongsToBuilding,
 };
