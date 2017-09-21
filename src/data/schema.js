@@ -1328,12 +1328,12 @@ const rootResolvers = {
       return p;
     },
     async createUser(root, { user }) {
-      const r = await UsersService.newRegisteredUser(user);
-      return r;
+      const { user: newUser } = await UsersService.newRegisteredUser(user);
+      return newUser;
     },
     async addNewResident(root, { user }) {
-      const r = await UsersService.addNewResident(user);
-      return r;
+      const { user: newUser } = await UsersService.addNewResident(user);
+      return newUser;
     },
     updateProfile({ request }, { profile }) {
       return UsersService.updateProfile(request.user.id, profile);
@@ -1611,7 +1611,7 @@ const rootResolvers = {
       });
 
       if (!isAdmin) {
-        throw new Error('you don\'t have permission to approve request');
+        throw new Error('you don\'t have permission to create document');
       }
 
       return DocumentsService.create({
@@ -1627,7 +1627,7 @@ const rootResolvers = {
       });
 
       if (!isAdmin) {
-        throw new Error('you don\'t have permission to approve request');
+        throw new Error('you don\'t have permission to update document');
       }
 
       return DocumentsService.update({
@@ -1643,7 +1643,7 @@ const rootResolvers = {
       });
 
       if (!isAdmin) {
-        throw new Error('you don\'t have permission to approve request');
+        throw new Error('you don\'t have permission to delete document');
       }
 
       return DocumentsService.softDelete({
@@ -1658,7 +1658,7 @@ const rootResolvers = {
       });
 
       if (!isAdmin) {
-        throw new Error('you don\'t have permission to approve request');
+        throw new Error('you don\'t have permission to create FAQ');
       }
 
       return FAQsService.create({
@@ -1674,7 +1674,7 @@ const rootResolvers = {
       });
 
       if (!isAdmin) {
-        throw new Error('you don\'t have permission to approve request');
+        throw new Error('you don\'t have permission to update FAQ');
       }
 
       return FAQsService.update({
@@ -1690,7 +1690,7 @@ const rootResolvers = {
       });
 
       if (!isAdmin) {
-        throw new Error('you don\'t have permission to approve request');
+        throw new Error('you don\'t have permission to delete FAQ');
       }
 
       return FAQsService.softDelete({

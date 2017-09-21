@@ -5,12 +5,14 @@ import bcrypt from 'bcrypt';
 import { ObjectId } from 'mongodb';
 import { generate as idRandom } from 'shortid';
 import moment from 'moment';
+import uniqWith from 'lodash/uniqWith';
 import {
   UsersModel,
   FriendsRelationModel,
   BuildingMembersModel,
   BuildingsModel,
   NotificationsModel,
+  ApartmentsModel,
 } from '../models';
 import { MEMBER, PENDING, ACCEPTED, REJECTED, FRIEND_REQUEST } from '../../constants';
 import { getChatToken, createChatUserIfNotExits } from '../../core/passport';
@@ -218,47 +220,83 @@ async function createUser(params) {
   params.email.code = activeCode;
 
   const { apartments, services, ...userObj } = params;
-  const user = {
+  const data = {
     ...userObj,
     building,
     chatId: chatToken && chatToken.chatId,
     services: services && JSON.parse(services),
   };
-  user.search = generateUserSearchField(user);
+  data.search = generateUserSearchField(data);
 
-  createChatUserIfNotExits(user);
-  // NOTE: update search here
+  createChatUserIfNotExits(data);
 
-  const result = await UsersModel.create(user);
-  if (result) {
-    // create new a request register approve to building
-    await BuildingMembersModel.create({
-      user: result._id,
-      building,
-      status: PENDING,
-      type: MEMBER,
-      requestInformation: {
-        apartments,
+  const user = await UsersModel.create(data);
+
+  return {
+    user,
+    activeCode,
+  };
+}
+
+async function sendActivationEmail({ emailAddress, username, activeCode }) {
+  await Mailer.sendMail({
+    to: emailAddress,
+    subject: 'SNS-SERVICE: Kích hoạt tài khoản',
+    template: 'registration',
+    lang: 'vi-vn',
+    data: {
+      username,
+      email: emailAddress,
+      activeCode,
+      host: config.client,
+    },
+  });
+}
+
+async function createNewRequestJoinBuilding({ user, building, apartments }) {
+  const r = await BuildingMembersModel.create({
+    user,
+    building,
+    status: PENDING,
+    type: MEMBER,
+    requestInformation: {
+      apartments,
+    },
+  });
+
+  return r;
+}
+
+async function newRegisteredUser(params) {
+  const { user, activeCode } = await createUser(params);
+  let requestJoinBuilding;
+  if (user) {
+    const {
+      username,
+      email: {
+        address: emailAddress,
       },
+      building,
+    } = params;
+
+    // create new a request register approve to building
+    requestJoinBuilding = await createNewRequestJoinBuilding({
+      user: user._id,
+      building,
+      apartments: params.apartments,
     });
 
-    const mailObject = {
-      to: emailAddress,
-      subject: 'SNS-SERVICE: Kích hoạt tài khoản',
-      template: 'registration',
-      lang: 'vi-vn',
-      data: {
-        username,
-        email: emailAddress,
-        activeCode,
-        host: config.client,
-      },
-    };
-
-    await Mailer.sendMail(mailObject);
+    await sendActivationEmail({
+      emailAddress,
+      username,
+      activeCode,
+    });
   }
 
-  return result;
+  return {
+    user,
+    requestJoinBuilding,
+  };
 }
 
 async function activeUser(params) {
@@ -318,6 +356,41 @@ async function activeUser(params) {
   return result;
 }
 
+async function addNewResident(params) {
+  const { user, requestJoinBuilding } = await newRegisteredUser(params);
+
+  if (requestJoinBuilding) {
+    await BuildingMembersModel.update({
+      _id: requestJoinBuilding._id,
+    }, {
+      $set: {
+        status: ACCEPTED,
+      },
+    });
+    const { requestInformation } = requestJoinBuilding;
+    await (requestInformation.apartments || []).map(async (apartmentId) => {
+      const doc = await ApartmentsModel.findById(apartmentId);
+      if (doc) {
+        // if the first user register into apartment
+        doc.owner = doc.owner || user._id;
+
+        // and push new user into array value users field
+        (doc.users || []).push(user._id);
+        doc.users = uniqWith((doc.users || []), isEqual);
+
+        // Save update object
+        await doc.save();
+      }
+    });
+
+    await UsersModel.findByIdAndUpdate(user._id, { status: 1 });
+  }
+
+  return {
+    user,
+  };
+}
+
 async function forgotPassword(email) {
   try {
     if (isUndefined(email)) {
@@ -333,7 +406,6 @@ async function forgotPassword(email) {
 
     const result = await UsersModel.findOneAndUpdate({ _id: user._id }, {
       $set: {
-        // status: 1,
         'password.code': activeCode,
         'password.counter': 0,
         'password.updateAt': new Date(),
@@ -341,7 +413,7 @@ async function forgotPassword(email) {
     });
 
     if (result) {
-      const mailObject = {
+      await Mailer.sendMail({
         to: email,
         subject: 'SNS-SERVICE: Khôi phục mật khẩu',
         template: 'forgot_password',
@@ -352,9 +424,7 @@ async function forgotPassword(email) {
           username: result.username,
           host: config.client,
         },
-      };
-
-      await Mailer.sendMail(mailObject);
+      });
     }
 
     return true;
@@ -379,7 +449,6 @@ async function changePassword({ username, password }) {
   const passwordVal = await bcrypt.hashSync(password, bcrypt.genSaltSync(), null);
   const result = await UsersModel.findOneAndUpdate({ username }, {
     $set: {
-      // status: 1,
       'password.code': '',
       'password.counter': 0,
       'password.value': passwordVal,
@@ -464,7 +533,8 @@ async function cancelFriendRequested(userId, friendId) {
 
 export default {
   checkExistUser,
-  createUser,
+  newRegisteredUser,
+  addNewResident,
   activeUser,
   getUser,
   acceptFriend,
