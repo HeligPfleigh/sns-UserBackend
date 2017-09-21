@@ -39,6 +39,9 @@ import {
   ONLY_ADMIN_BUILDING,
   EVENT,
   BLOCKED,
+  STRANGER,
+  FRIEND_REQUESTED,
+  RESPOND_TO_FRIEND_REQUEST,
 } from '../../constants';
 import Service from '../mongo/service';
 
@@ -424,6 +427,7 @@ type NotificationsResult {
 
 ### User Type
 # Represents a user in system.
+
 type Email {
   address: String
   verified: Boolean
@@ -452,6 +456,7 @@ type User implements Node {
   totalNotification: Int
   isFriend: Boolean
   mutualFriends: Int
+  friendStatus: String
   createdAt: Date
   updatedAt: Date
 }
@@ -1472,6 +1477,36 @@ export const resolvers = {
     },
     building(data) {
       return AddressServices.getBuilding(data.building);
+    },
+    async friendStatus(data, _, { user }) {
+      const f = await FriendsRelationModel.findOne({
+        friend: data._id,
+        user: user.id,
+        status: ACCEPTED,
+      });
+      if (f) {
+        return FRIEND;
+      }
+
+      const fr = await FriendsRelationModel.findOne({
+        friend: data._id,
+        user: user.id,
+        status: PENDING,
+      });
+      if (fr) {
+        return FRIEND_REQUESTED;
+      }
+
+      const rp = await FriendsRelationModel.findOne({
+        user: data._id,
+        friend: user.id,
+        status: PENDING,
+      });
+
+      if (rp) {
+        return RESPOND_TO_FRIEND_REQUEST;
+      }
+      return STRANGER;
     },
   },
   // DocumentPayload: {
