@@ -1345,14 +1345,17 @@ export const resolvers = {
       });
     },
     async mutualFriends(data, _, { user }) {
-      let f = await FriendsRelationModel.find({ user: user.id, status: ACCEPTED });
+      let f = await FriendsRelationModel.find(
+        { user: user.id, status: ACCEPTED },
+        { friend: 1 },
+      );
       f = f.map(i => i.friend);
       const mf = await FriendsRelationModel.find({
         friend: { $in: f },
         user: data._id,
         status: ACCEPTED,
-      });
-      return mf.length;
+      }).count();
+      return mf;
     },
     @onlyMe()
     async friendSuggestions(data, { cursor = null, limit = 5 }) {
