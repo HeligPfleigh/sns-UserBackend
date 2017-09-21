@@ -10,8 +10,9 @@ import {
   FriendsRelationModel,
   BuildingMembersModel,
   BuildingsModel,
+  NotificationsModel,
 } from '../models';
-import { MEMBER, PENDING, ACCEPTED, REJECTED } from '../../constants';
+import { MEMBER, PENDING, ACCEPTED, REJECTED, FRIEND_REQUEST } from '../../constants';
 import { getChatToken, createChatUserIfNotExits } from '../../core/passport';
 import {
   sendAcceptFriendNotification,
@@ -434,6 +435,33 @@ async function codePasswordValidator({ username, code }) {
   return true;
 }
 
+async function cancelFriendRequested(userId, friendId) {
+  if (isUndefined(userId)) {
+    throw new Error('userId is undefined');
+  }
+  if (isUndefined(friendId)) {
+    throw new Error('friendId is undefined');
+  }
+  if (!await UsersModel.findOne({ _id: new ObjectId(userId) })) {
+    throw new Error('userId does not exist');
+  }
+  if (!await UsersModel.findOne({ _id: new ObjectId(friendId) })) {
+    throw new Error('friendId does not exist');
+  }
+  await FriendsRelationModel.remove({
+    user: userId,
+    friend: friendId,
+    status: PENDING,
+    isSubscribe: true,
+  });
+  await NotificationsModel.remove({
+    user: friendId,
+    actors: [userId],
+    type: FRIEND_REQUEST,
+  });
+  return UsersModel.findOne({ _id: friendId });
+}
+
 export default {
   checkExistUser,
   createUser,
@@ -446,4 +474,5 @@ export default {
   forgotPassword,
   changePassword,
   codePasswordValidator,
+  cancelFriendRequested,
 };

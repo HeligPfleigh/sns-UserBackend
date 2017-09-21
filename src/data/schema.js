@@ -361,7 +361,7 @@ type Mutation {
   ): Friend
   sendFriendRequest(
     _id: String!
-  ): Friend
+  ): User
   likePost(
     _id: String!
   ): Post
@@ -511,6 +511,9 @@ type Mutation {
     username: String!,
     password: String!
   ): Boolean
+  cancelFriendRequested(
+    _id: String!
+  ): User
 }
 
 schema {
@@ -2510,6 +2513,9 @@ const rootResolvers = {
     },
     changeUserPassword({ request }, params) {
       return UsersService.changePassword(params);
+    },
+    cancelFriendRequested({ request }, { _id }) {
+      return UsersService.cancelFriendRequested(request.user.id, _id);
     },
   },
 };
