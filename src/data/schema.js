@@ -396,6 +396,9 @@ type Mutation {
   createUser(
     user: CreateUserInput!
   ): Author
+  addNewResident(
+    user: CreateUserInput!
+  ): Author
   updateProfile(
     profile: ProfileInput!
   ): Author
@@ -1325,7 +1328,11 @@ const rootResolvers = {
       return p;
     },
     async createUser(root, { user }) {
-      const r = await UsersService.createUser(user);
+      const r = await UsersService.newRegisteredUser(user);
+      return r;
+    },
+    async addNewResident(root, { user }) {
+      const r = await UsersService.addNewResident(user);
       return r;
     },
     updateProfile({ request }, { profile }) {
