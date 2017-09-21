@@ -451,6 +451,7 @@ type User implements Node {
   totalFriends: Int
   totalNotification: Int
   isFriend: Boolean
+  mutualFriends: Int
   createdAt: Date
   updatedAt: Date
 }
@@ -1342,6 +1343,19 @@ export const resolvers = {
         user: data._id,
         status: ACCEPTED,
       });
+    },
+    async mutualFriends(data, _, { user }) {
+      let f = await FriendsRelationModel.find(
+        { user: user.id, status: ACCEPTED },
+        { friend: 1 },
+      );
+      f = f.map(i => i.friend);
+      const mf = await FriendsRelationModel.find({
+        friend: { $in: f },
+        user: data._id,
+        status: ACCEPTED,
+      }).count();
+      return mf;
     },
     @onlyMe()
     async friendSuggestions(data, { cursor = null, limit = 5 }) {
