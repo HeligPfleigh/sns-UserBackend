@@ -396,6 +396,9 @@ type Mutation {
   createUser(
     user: CreateUserInput!
   ): Author
+  addNewResident(
+    user: CreateUserInput!
+  ): Author
   updateProfile(
     profile: ProfileInput!
   ): Author
@@ -1328,8 +1331,12 @@ const rootResolvers = {
       return p;
     },
     async createUser(root, { user }) {
-      const r = await UsersService.createUser(user);
-      return r;
+      const { user: newUser } = await UsersService.newRegisteredUser(user);
+      return newUser;
+    },
+    async addNewResident(root, { user }) {
+      const { user: newUser } = await UsersService.addNewResident(user);
+      return newUser;
     },
     updateProfile({ request }, { profile }) {
       return UsersService.updateProfile(request.user.id, profile);
@@ -1607,7 +1614,7 @@ const rootResolvers = {
       });
 
       if (!isAdmin) {
-        throw new Error('you don\'t have permission to approve request');
+        throw new Error('you don\'t have permission to create document');
       }
 
       return DocumentsService.create({
@@ -1623,7 +1630,7 @@ const rootResolvers = {
       });
 
       if (!isAdmin) {
-        throw new Error('you don\'t have permission to approve request');
+        throw new Error('you don\'t have permission to update document');
       }
 
       return DocumentsService.update({
@@ -1639,7 +1646,7 @@ const rootResolvers = {
       });
 
       if (!isAdmin) {
-        throw new Error('you don\'t have permission to approve request');
+        throw new Error('you don\'t have permission to delete document');
       }
 
       return DocumentsService.softDelete({
@@ -1654,7 +1661,7 @@ const rootResolvers = {
       });
 
       if (!isAdmin) {
-        throw new Error('you don\'t have permission to approve request');
+        throw new Error('you don\'t have permission to create FAQ');
       }
 
       return FAQsService.create({
@@ -1670,7 +1677,7 @@ const rootResolvers = {
       });
 
       if (!isAdmin) {
-        throw new Error('you don\'t have permission to approve request');
+        throw new Error('you don\'t have permission to update FAQ');
       }
 
       return FAQsService.update({
@@ -1686,7 +1693,7 @@ const rootResolvers = {
       });
 
       if (!isAdmin) {
-        throw new Error('you don\'t have permission to approve request');
+        throw new Error('you don\'t have permission to delete FAQ');
       }
 
       return FAQsService.softDelete({
@@ -2210,7 +2217,7 @@ const rootResolvers = {
             row.residents.forEach(resident => {
               data.push({
                 residentName: [resident.profile.firstName, resident.profile.lastName].join(' '),
-                residentRole: resident._id === row.owner ? 'Chủ hộ' : 'Người thuê nhà',
+                residentRole: resident._id.equals(row.owner) ? 'Chủ hộ' : 'Người thuê nhà',
               });
             });
           }
@@ -2270,11 +2277,45 @@ const rootResolvers = {
         throw new Error('The building does not exists.');
       }
 
-      await ApartmentsModel.findByIdAndUpdate(apartment, {
+      const conditions = {
         $pull: {
           users: resident,
         },
+      };
+
+      if (apartmentDoc.owner && apartmentDoc.owner.toString() === resident) {
+        conditions.$unset = {
+          owner: 1,
+        };
+      }
+
+      await ApartmentsModel.findByIdAndUpdate(apartment, conditions);
+
+      // Determine whether the user still already exists in other apartment of this building.
+      const residentStillAlreadyExists = await ApartmentsModel.find({
+        $or: [
+          {
+            users: resident
+          },
+          {
+            owner: resident
+          }
+        ]
       });
+
+      // If not existing, the resident will be removed from this building.
+      if (residentStillAlreadyExists.length === 0) {
+        await BuildingMembersModel.remove({
+          user: resident,
+          building,
+        });
+
+        await UsersModel.findByIdAndUpdate(resident, {
+          $unset: {
+            building: 1,
+          },
+        });
+      }
 
       return userDoc;
     },
