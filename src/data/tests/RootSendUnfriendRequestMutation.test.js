@@ -70,12 +70,21 @@ const friendsRelationData = {
   _id: '59c3895b9a85302d66403c29',
   friend: userIdB,
   user: userIdA,
-  status: 'PENDING',
+  status: 'ACCEPTED',
   isSubscribe: true,
   __v: 0,
 };
 
-describe('RootCancelFriendRequestedMutation', () => {
+const friendsRelationDataB = {
+  _id: '59c48458e229ac1836eca63b',
+  friend: userIdA,
+  user: userIdB,
+  status: 'ACCEPTED',
+  isSubscribe: true,
+  __v: 0,
+};
+
+describe('RootSendUnfriendRequestMutation', () => {
   beforeEach(async () => {
     // setup db
     const userA = new UsersModel(userDataA);
@@ -85,12 +94,14 @@ describe('RootCancelFriendRequestedMutation', () => {
 
     const friendsRelation = new FriendsRelationModel(friendsRelationData);
     await friendsRelation.save();
+    const friendsRelationB = new FriendsRelationModel(friendsRelationDataB);
+    await friendsRelationB.save();
   });
 
-  test('should cancel friend requested', async () => {
+  test('should get friend data', async () => {
     const query = `
       mutation M { 
-        cancelFriendRequested(_id:"${userIdB}") {
+        sendUnfriendRequest(_id:"${userIdB}") {
           _id
           profile {
             picture
@@ -109,7 +120,7 @@ describe('RootCancelFriendRequestedMutation', () => {
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    expect(result.data.cancelFriendRequested).toEqual(Object.assign({}, {
+    expect(result.data.sendUnfriendRequest).toEqual(Object.assign({}, {
       _id: userDataB._id,
       profile: {
         picture: userDataB.profile.picture,
@@ -117,17 +128,14 @@ describe('RootCancelFriendRequestedMutation', () => {
         lastName: userDataB.profile.lastName,
       },
     }));
-    expect(await FriendsRelationModel.count({
-      user: userIdA,
-      friend: userIdB,
-    })).toEqual(0);
+    expect(await FriendsRelationModel.count()).toEqual(0);
     // await new Promise(resolve => setTimeout(resolve, 5000));
   });
 
   test('should check friendId undefined', async () => {
     const query = `
       mutation M {
-        cancelFriendRequested {
+        sendUnfriendRequest {
           _id
           profile {
             picture
@@ -145,13 +153,13 @@ describe('RootCancelFriendRequestedMutation', () => {
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
     expect(result.data).toEqual(undefined);
-    expect(result.errors[0].message).toEqual('Field "cancelFriendRequested" argument "_id" of type "String!" is required but not provided.');
+    expect(result.errors[0].message).toEqual('Field "sendUnfriendRequest" argument "_id" of type "String!" is required but not provided.');
   });
 
   test('should check userId undefind', async () => {
     const query = `
       mutation M {
-        cancelFriendRequested(_id:"${userIdB}") {
+        sendUnfriendRequest(_id:"${userIdB}") {
           _id
           profile {
             picture
@@ -168,14 +176,14 @@ describe('RootCancelFriendRequestedMutation', () => {
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    expect(result.data.cancelFriendRequested).toEqual(null);
+    expect(result.data.sendUnfriendRequest).toEqual(null);
     expect(result.errors[0].message).toEqual('userId is undefined');
   });
 
   test('should check userId not exist', async () => {
     const query = `
       mutation M { 
-        cancelFriendRequested(_id:"${userIdB}") {
+        sendUnfriendRequest(_id:"${userIdB}") {
           _id
           profile {
             picture
@@ -192,7 +200,7 @@ describe('RootCancelFriendRequestedMutation', () => {
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    expect(result.data.cancelFriendRequested).toEqual(null);
+    expect(result.data.sendUnfriendRequest).toEqual(null);
     expect(result.errors[0].message).toEqual('userId does not exist');
   });
 
@@ -200,7 +208,7 @@ describe('RootCancelFriendRequestedMutation', () => {
     const fakeId = '58f9ca042d4581000474b109';
     const query = `
       mutation M { 
-        cancelFriendRequested(_id:"${fakeId}") {
+        sendUnfriendRequest(_id:"${fakeId}") {
           _id
           profile {
             picture
@@ -217,7 +225,7 @@ describe('RootCancelFriendRequestedMutation', () => {
     };
     const context = getContext({});
     const result = await graphql(schema, query, rootValue, context);
-    expect(result.data.cancelFriendRequested).toEqual(null);
+    expect(result.data.sendUnfriendRequest).toEqual(null);
     expect(result.errors[0].message).toEqual('friendId does not exist');
   });
 

@@ -355,10 +355,10 @@ type Mutation {
   ): UploadMultiFileResponse!
   acceptFriend (
     _id: String!
-  ): Friend
+  ): User
   rejectFriend (
     _id: String!
-  ): Friend
+  ): User
   sendFriendRequest(
     _id: String!
   ): User
@@ -512,6 +512,9 @@ type Mutation {
     password: String!
   ): Boolean
   cancelFriendRequested(
+    _id: String!
+  ): User
+  sendUnfriendRequest(
     _id: String!
   ): User
 }
@@ -2516,6 +2519,9 @@ const rootResolvers = {
     },
     cancelFriendRequested({ request }, { _id }) {
       return UsersService.cancelFriendRequested(request.user.id, _id);
+    },
+    sendUnfriendRequest({ request }, { _id }) {
+      return UsersService.sendUnfriendRequest(request.user.id, _id);
     },
   },
 };
