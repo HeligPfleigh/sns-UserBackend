@@ -2214,7 +2214,7 @@ const rootResolvers = {
             row.residents.forEach(resident => {
               data.push({
                 residentName: [resident.profile.firstName, resident.profile.lastName].join(' '),
-                residentRole: resident._id === row.owner ? 'Chủ hộ' : 'Người thuê nhà',
+                residentRole: resident._id.equals(row.owner) ? 'Chủ hộ' : 'Người thuê nhà',
               });
             });
           }
@@ -2280,13 +2280,39 @@ const rootResolvers = {
         },
       };
 
-      if (apartmentDoc.owner.toString() === resident) {
+      if (apartmentDoc.owner && apartmentDoc.owner.toString() === resident) {
         conditions.$unset = {
           owner: 1,
         };
       }
 
       await ApartmentsModel.findByIdAndUpdate(apartment, conditions);
+
+      // Determine whether the user still already exists in other apartment of this building.
+      const residentStillAlreadyExists = await ApartmentsModel.find({
+        $or: [
+          {
+            users: resident
+          },
+          {
+            owner: resident
+          }
+        ]
+      });
+
+      // If not existing, the resident will be removed from this building.
+      if (residentStillAlreadyExists.length === 0) {
+        await BuildingMembersModel.remove({
+          user: resident,
+          building,
+        });
+
+        await UsersModel.findByIdAndUpdate(resident, {
+          $unset: {
+            building: 1,
+          },
+        });
+      }
 
       return userDoc;
     },
