@@ -531,6 +531,36 @@ async function cancelFriendRequested(userId, friendId) {
   return UsersModel.findOne({ _id: friendId });
 }
 
+async function sendUnfriendRequest(userId, friendId) {
+  if (isUndefined(userId)) {
+    throw new Error('userId is undefined');
+  }
+  if (isUndefined(friendId)) {
+    throw new Error('friendId is undefined');
+  }
+  if (!await UsersModel.findOne({ _id: new ObjectId(userId) })) {
+    throw new Error('userId does not exist');
+  }
+  if (!await UsersModel.findOne({ _id: new ObjectId(friendId) })) {
+    throw new Error('friendId does not exist');
+  }
+  await FriendsRelationModel.remove({
+    $or: [
+      {
+        user: userId,
+        friend: friendId,
+      },
+      {
+        user: friendId,
+        friend: userId,
+      },
+    ],
+    status: ACCEPTED,
+    isSubscribe: true,
+  });
+  return UsersModel.findOne({ _id: friendId });
+}
+
 export default {
   checkExistUser,
   newRegisteredUser,
@@ -545,4 +575,5 @@ export default {
   changePassword,
   codePasswordValidator,
   cancelFriendRequested,
+  sendUnfriendRequest,
 };

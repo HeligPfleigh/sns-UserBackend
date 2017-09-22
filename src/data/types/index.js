@@ -30,6 +30,7 @@ import toObjectId from '../../utils/toObjectId';
 import {
   ADMIN,
   ACCEPTED,
+  REJECTED,
   MEMBER,
   PENDING,
   PRIVATE,
@@ -42,6 +43,7 @@ import {
   STRANGER,
   FRIEND_REQUESTED,
   RESPOND_TO_FRIEND_REQUEST,
+  REJECTED_FRIEND,
 } from '../../constants';
 import Service from '../mongo/service';
 
@@ -310,7 +312,7 @@ type Me implements Node, Resident {
   building: Building
   buildings: [Building]
   apartments: [Apartment]
-  friendRequests: [Friend]
+  friendRequests: [User]
   friendSuggestions: [Friend]
   totalFriends: Int
   totalNotification: Int
@@ -1505,6 +1507,15 @@ export const resolvers = {
 
       if (rp) {
         return RESPOND_TO_FRIEND_REQUEST;
+      }
+
+      const rf = await FriendsRelationModel.findOne({
+        friend: data._id,
+        user: user.id,
+        status: REJECTED,
+      });
+      if (rf) {
+        return REJECTED_FRIEND;
       }
       return STRANGER;
     },
