@@ -172,6 +172,7 @@ passport.use(new LocalStrategy({
 
     return done(null, {
       id: user._id || '',
+      username: user.username || '',
       profile: user.profile || {},
       email: user.email || {},
       roles: user.roles || [],
@@ -253,6 +254,7 @@ passport.use(new FacebookTokenStrategy({
 
         done(null, {
           id: user._id,
+          username: user.username || '',
           profile: user.profile,
           email: user.email || {},
           roles: user.roles,

@@ -24,7 +24,7 @@ const Emailchema = new Schema({
     default: false,
   },
   code: String,
-  updateAt: {
+  updatedAt: {
     type: Date,
     default: new Date(),
   },
@@ -39,7 +39,7 @@ const PhoneSchema = new Schema({
     default: false,
   },
   code: String,
-  updateAt: {
+  updatedAt: {
     type: Date,
     default: new Date(),
   },
@@ -54,7 +54,7 @@ const PasswordSchema = new Schema({
     default: 0,
   },
   code: String,
-  updateAt: {
+  updatedAt: {
     type: Date,
     default: new Date(),
   },

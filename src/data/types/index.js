@@ -283,6 +283,8 @@ type Profile {
   firstName: String
   lastName: String
   gender: String
+  dob: Date
+  address: String
 }
 
 interface Resident {
