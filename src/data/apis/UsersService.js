@@ -32,18 +32,39 @@ async function getUser(userId) {
   return user;
 }
 
-async function checkExistUser(username) {
+async function checkExistUser({ userId, query }) {
+  // Case 1: Only check exist user by key
+  // -> use verify user with key
+  if (userId && !query) {
+    try {
+      const user = await UsersModel.findById(userId);
+      if (isEmpty(user)) {
+        return false;
+      }
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // Case 2: Check exist user by username
+  // -> use create new or update
   const options = {
     $or: [
-      { username },
-      { 'phone.number': username },
-      { 'email.address': username },
+      { username: query },
+      { 'phone.number': query },
+      { 'email.address': query },
     ],
   };
+
   const user = await UsersModel.findOne(options);
-  if (isEmpty(user)) {
+  if (
+    (isEmpty(user)) ||
+    (userId && isEqual(userId, user._id.toString()))
+  ) {
     return false;
   }
+
   return true;
 }
 
@@ -207,7 +228,7 @@ async function createUser(params) {
     value: '',
     counter: 0,
     code: '',
-    updateAt: new Date(),
+    updatedAt: new Date(),
   };
 
   params.password.value = await bcrypt.hashSync(password.value, bcrypt.genSaltSync(), null);
@@ -322,7 +343,7 @@ async function activeUser(params) {
     throw new Error('Code active incorrect');
   }
 
-  const updatedAt = moment(user.mail.updatedAt || new Date());
+  const updatedAt = moment(user.email.updatedAt || new Date());
   const duration = moment.duration(moment().diff(updatedAt));
   const hours = duration.asHours();
 
@@ -341,7 +362,7 @@ async function activeUser(params) {
   if (result) {
     const mailObject = {
       to: result.email.address,
-      subject: 'SNS-SERVICE: Kích hoạt tài khoản thành công',
+      subject: 'SNS-SERVICE: Kích hoạt email tài khoản thành công',
       template: 'activated',
       lang: 'vi-vn',
       data: {
@@ -408,14 +429,14 @@ async function forgotPassword(email) {
       $set: {
         'password.code': activeCode,
         'password.counter': 0,
-        'password.updateAt': new Date(),
+        'password.updatedAt': new Date(),
       },
     });
 
     if (result) {
       await Mailer.sendMail({
         to: email,
-        subject: 'SNS-SERVICE: Khôi phục mật khẩu',
+        subject: 'SNS-SERVICE: Thông báo khôi phục mật khẩu',
         template: 'forgot_password',
         lang: 'vi-vn',
         data: {
@@ -433,17 +454,25 @@ async function forgotPassword(email) {
   }
 }
 
-async function changePassword({ username, password }) {
+async function changePassword({ username, password, oldPassword }) {
   if (isUndefined(username)) {
-    throw new Error('username is undefined');
+    throw new Error('Bạn chưa cung cấp tên đăng nhập');
   }
 
   if (isUndefined(password)) {
-    throw new Error('password is undefined');
+    throw new Error('Bạn chưa cung cấp mật khẩu mới');
   }
 
-  if (!await UsersModel.findOne({ username })) {
-    throw new Error('Account is not exist');
+  const user = await UsersModel.findOne({ username });
+  if (isEmpty(user)) {
+    throw new Error('Tài khoản không tồn tại');
+  }
+
+  if (!isEmpty(oldPassword)) {
+    const validPassword = await bcrypt.compare(oldPassword, user.password.value);
+    if (!validPassword) {
+      throw new Error('Mật khẩu hiện tại không đúng');
+    }
   }
 
   const passwordVal = await bcrypt.hashSync(password, bcrypt.genSaltSync(), null);
@@ -452,7 +481,7 @@ async function changePassword({ username, password }) {
       'password.code': '',
       'password.counter': 0,
       'password.value': passwordVal,
-      'password.updateAt': new Date(),
+      'password.updatedAt': new Date(),
     },
   });
 

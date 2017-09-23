@@ -107,7 +107,7 @@ type Query {
   event(_id: String!): Event
   resident(_id: String): User
   requestsToJoinBuilding(_id: String): RequestsToJoinBuilding
-  checkExistUser(query: String): Boolean
+  checkExistUser(userId: String, query: String): Boolean
   documents(building: String!, limit: Int, page: Int): Documents
   FAQs(building: String!, limit: Int, page: Int): FAQs
   fee(_id: String!): Fee
@@ -134,11 +134,6 @@ input ProfileInput {
   address: String
 }
 
-input UpdateUserProfileInput {
-  userId: String!
-  profile: ProfileInput
-}
-
 input EmailInput {
   address: String!
   verified: Boolean
@@ -149,11 +144,22 @@ input PhoneInput {
   verified: Boolean
 }
 
+input UpdateUserInput {
+  phone: PhoneInput!
+  email: EmailInput!
+  profile: ProfileInput!
+}
+
+input UpdateUserInputRequest {
+  userId: String!
+  userData: UpdateUserInput!
+}
+
 input PasswordInput {
   value: String!
   counter: Int
   code: String
-  updateAt: Date
+  updatedAt: Date
 }
 
 input CreateUserInput {
@@ -448,7 +454,7 @@ type Mutation {
     eventId: String!
   ): Event
   updateUserProfile(
-    input: UpdateUserProfileInput!
+    input: UpdateUserInputRequest!
   ): UpdateUserProfilePayload
   createNewAnnouncement(
     input: CreateNewAnnouncementInput!
@@ -512,7 +518,8 @@ type Mutation {
   ): Event
   changeUserPassword(
     username: String!,
-    password: String!
+    password: String!,
+    oldPassword: String
   ): Boolean
   cancelFriendRequested(
     _id: String!
@@ -1142,11 +1149,8 @@ const rootResolvers = {
     requestsToJoinBuilding(root, { _id }) {
       return BuildingMembersModel.findOne({ _id });
     },
-    checkExistUser(root, { query }) {
-      if (isEmpty(query)) {
-        return false;
-      }
-      return UsersService.checkExistUser(query);
+    checkExistUser(root, params) {
+      return UsersService.checkExistUser(params);
     },
     async fee(root, { _id }) {
       const f = await FeeModel.findOne({ _id });
@@ -1425,26 +1429,18 @@ const rootResolvers = {
     async updateUserProfile({ request }, { input }) {
       const {
         userId,
-        profile,
+        userData,
       } = input;
+
       if (request.user.id !== userId) {
-        throw new Error('not author');
+        throw new Error('Người dùng chưa đăng nhập.');
       }
-      const update = {
-        $set: {},
-      };
-      if (profile.firstName) {
-        update.$set['profile.firstName'] = profile.firstName;
-      }
-      if (profile.gender) {
-        update.$set['profile.gender'] = profile.gender;
-      }
-      if (profile.lastName) {
-        update.$set['profile.lastName'] = profile.lastName;
-      }
+
       await UsersModel.update({
         _id: userId,
-      }, update);
+      }, {
+        $set: userData,
+      });
       return {
         user: await UsersModel.findOne({
           _id: userId,
