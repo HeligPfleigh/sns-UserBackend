@@ -503,6 +503,65 @@ async function changePassword({ username, password, oldPassword }) {
   return result;
 }
 
+async function updateUserProfile({ userId, userData }) {
+  if (isEmpty(userId) || isEmpty(userData)) {
+    throw new Error('Lỗi thiếu tham số');
+  }
+
+  const user = await UsersModel.findById(userId);
+  if (!user) {
+    throw new Error('Thông tin người dùng không tồn tại');
+  }
+
+  const { email, phone, profile } = user;
+  const data = {
+    email,
+    phone,
+    profile,
+  };
+
+  let isChangeEmail = false;
+  if (!isEqual(email && email.address, userData.email.address)) {
+    data.email = {
+      address: userData.email.address,
+      verified: false,
+      code: idRandom(),
+      updatedAt: new Date(),
+    };
+    isChangeEmail = true;
+  }
+
+  // let isChangePhone = false;
+  if (!isEqual(phone && phone.number, userData.phone.number)) {
+    data.phone = {
+      number: userData.phone.number,
+      verified: false,
+      code: idRandom(),
+      updatedAt: new Date(),
+    };
+    // isChangePhone = true;
+  }
+
+  data.profile = {
+    ...data.profile,
+    ...userData.profile,
+  };
+
+  await UsersModel.update({ _id: userId }, { $set: data });
+
+  const result = await UsersModel.findById(userId);
+
+  if (isChangeEmail) {
+    await sendActivationEmail({
+      emailAddress: result.email.address,
+      username: result.username,
+      activeCode: result.email.code,
+    });
+  }
+
+  return result;
+}
+
 async function codePasswordValidator({ username, code }) {
   // eslint-disable-next-line
   if (isEmpty(username)) {
@@ -602,6 +661,7 @@ export default {
   updateProfile,
   forgotPassword,
   changePassword,
+  updateUserProfile,
   codePasswordValidator,
   cancelFriendRequested,
   sendUnfriendRequest,

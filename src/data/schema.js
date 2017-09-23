@@ -1427,24 +1427,12 @@ const rootResolvers = {
       return r;
     },
     async updateUserProfile({ request }, { input }) {
-      const {
-        userId,
-        userData,
-      } = input;
-
+      const { userId } = input;
       if (request.user.id !== userId) {
         throw new Error('Người dùng chưa đăng nhập.');
       }
-
-      await UsersModel.update({
-        _id: userId,
-      }, {
-        $set: userData,
-      });
       return {
-        user: await UsersModel.findOne({
-          _id: userId,
-        }),
+        user: await UsersService.updateUserProfile(input),
       };
     },
     async createNewAnnouncement({ request }, { input }) {
