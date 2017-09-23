@@ -73,7 +73,7 @@ export default async function (accessToken, profile, chatToken) {
     value: '',
     counter: 0,
     code: '',
-    updateAt: new Date(),
+    updatedAt: new Date(),
   };
 
   u.password.value = await bcrypt.hashSync('12345678', bcrypt.genSaltSync(), null);
