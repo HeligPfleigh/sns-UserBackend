@@ -1429,7 +1429,7 @@ const rootResolvers = {
     async updateUserProfile({ request }, { input }) {
       const { userId } = input;
       if (request.user.id !== userId) {
-        throw new Error('Người dùng chưa đăng nhập.');
+        // throw new Error('Người dùng chưa đăng nhập.');
       }
       return {
         user: await UsersService.updateUserProfile(input),
@@ -1834,14 +1834,21 @@ const rootResolvers = {
         // update users joined apartments
         const { requestInformation: { apartments } } = record;
         if (!isEmpty(apartments)) {
+          let apartment = null;
           await (apartments || []).map(async (apartmentId) => {
-            await ApartmentsModel.findByIdAndUpdate(apartmentId, {
-              $pull: { users: record.user },
-            });
+            apartment = await ApartmentsModel.findById(apartmentId);
+            if (apartment) {
+              // clear owner
+              if (isEqual(apartment.owner.toString(), record.user.toString())) {
+                apartment.owner = null;
+              }
+              // clear userId in users field
+              if (apartment.users && !isEmpty(apartment.users)) {
+                apartment.users.remove(record.user);
+              }
+              await apartment.save();
+            }
           });
-
-          // set user active
-          await UsersModel.findByIdAndUpdate(record.user, { status: 1 });
         }
       }
 
