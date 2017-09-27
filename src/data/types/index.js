@@ -334,6 +334,7 @@ type Friend implements Node, Resident {
   building: Building
   apartments: [Apartment]
   friends: [Friend]
+  totalFriends: Int
   isFriend: Boolean
   requestInformation: UserRequestJoinBuildingInformation
   createdAt: Date
@@ -544,6 +545,7 @@ type Building implements Node {
   totalApartment: Int
   announcements(skip: Int, limit: Int): BuildingAnnouncementConnection!
   requests(cursor: String, limit: Int): UsersAwaitingApprovalConnection
+  members(cursor: String, limit: Int): UsersAwaitingApprovalConnection
   posts(cursor: String, limit: Int): BuildingPostsConnection
   createdAt: Date
   updatedAt: Date
@@ -661,6 +663,7 @@ export const resolvers = {
       try {
         automatedReminderAfterHowDays = parseInt(automatedReminderAfterHowDays, 10);
       } catch (e) {
+        return null;
       }
 
       return isNaN(automatedReminderAfterHowDays) ? null : automatedReminderAfterHowDays;
@@ -669,6 +672,7 @@ export const resolvers = {
       try {
         timeLimitationBetween2FeeNotifications = parseInt(timeLimitationBetween2FeeNotifications, 10);
       } catch (e) {
+        return null;
       }
 
       return isNaN(timeLimitationBetween2FeeNotifications) ? null : timeLimitationBetween2FeeNotifications;
@@ -803,6 +807,38 @@ export const resolvers = {
           building: data._id,
           type: MEMBER,
           status: PENDING,
+          $sort: {
+            createdAt: -1,
+          },
+          $limit: limit,
+        },
+      });
+
+      if (!r) {
+        return {
+          pageInfo: {
+
+          },
+          edges: [],
+        };
+      }
+      return {
+        pageInfo: r.paging,
+        edges: r.data,
+      };
+    },
+    async members(data, { cursor = null, limit = 10 }) {
+      const userIds = await UsersModel.find({
+        'email.verified': true,
+      }).lean().distinct('_id');
+
+      const r = await BuildingMembersService.find({
+        $cursor: cursor,
+        query: {
+          user: { $in: userIds },
+          building: data._id,
+          type: MEMBER,
+          status: ACCEPTED,
           $sort: {
             createdAt: -1,
           },
@@ -1067,7 +1103,7 @@ export const resolvers = {
       return users;
     },
     totalFriends(user) {
-      return FriendsRelationModel.count({ user: user._id });
+      return FriendsRelationModel.count({ user: user._id, status: ACCEPTED });
     },
     totalNotification(user) {
       return NotificationsModel.count({ user: user._id, seen: false });
@@ -1211,8 +1247,18 @@ export const resolvers = {
     apartments(data) {
       return ApartmentsModel.find({ user: data._id });
     },
-    friends(data) {
-      return FriendsRelationModel.find({ user: data._id, status: ACCEPTED });
+    async friends(data) {
+      let friendListByIds = await FriendsRelationModel.find({
+        user: data._id,
+        status: ACCEPTED,
+      }).select('friend _id');
+      friendListByIds = friendListByIds.map(v => v.friend);
+      return UsersModel.find({
+        _id: { $in: friendListByIds },
+      });
+    },
+    totalFriends(data) {
+      return FriendsRelationModel.count({ user: data._id, status: ACCEPTED });
     },
     async isFriend(data, _, { user }) {
       return !!await FriendsRelationModel.findOne({
