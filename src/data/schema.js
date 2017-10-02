@@ -1078,6 +1078,22 @@ const rootResolvers = {
       const u = await UsersModel.findOne({
         _id: userId,
       });
+
+      if (keyword.toLowerCase() === 'a') {
+        const r = await UsersModel.find({
+          _id: { $nin: [u._id] },
+          building: u.building,
+          $or: [{
+            'profile.firstName': new RegExp(keyword, 'i'),
+          }, {
+            'profile.lastName': new RegExp(keyword, 'i'),
+          }, {
+            search: new RegExp(keyword, 'i'),
+          }],
+        }).limit(numberOfFriends);
+        return r;
+      }
+
       const r = await UsersModel.find({
         _id: { $nin: [u._id] },
         building: u.building,
