@@ -3,6 +3,8 @@ import path from 'path';
 import isNumber from 'lodash/isNumber';
 import forEach from 'lodash/forEach';
 import isDate from 'lodash/isDate';
+import isEmpty from 'lodash/isEmpty';
+import difference from 'lodash/difference';
 import Constant from './constant';
 import ApartmentModel from '../../data/models/ApartmentsModel';
 import BuildingSettingsService from '../../data/apis/BuildingSettingsService';
@@ -10,9 +12,7 @@ import BuildingSettingsService from '../../data/apis/BuildingSettingsService';
 import {
   saveFeeForApartments,
 } from '../../data/apis/FeeServices';
-import {
-  FeeTypeModel,
-} from '../../data/models/FeeModel';
+// import { FeeTypeModel } from '../../data/models/FeeModel';
 
 const moment = require('moment');
 
@@ -86,10 +86,17 @@ router.post('/image', (req, res) => {
   }
 });
 
-
+const excelCols = ['căn hộ', 'loại phí', 'số tiền', 'thời gian', 'hạn nộp', 'trạng thái'];
+// eslint-disable-next-line
 function validateData(data, { building, type }, callback) {
-  if (data.length === 0) {
-    callback(new Error('Tập tin tải lên không có dữ liệu.'));
+  if (isEmpty(data)) {
+    callback({ error: 'Tập tin tải lên không có dữ liệu.' });
+    return;
+  }
+
+  const invalidCols = difference(excelCols, Object.keys(data[0]));
+  if (!isEmpty(invalidCols)) {
+    callback({ error: `Tập tin tải lên thiếu trường: ${invalidCols.join(', ')}.` });
     return;
   }
 
@@ -100,48 +107,19 @@ function validateData(data, { building, type }, callback) {
     const key = (idx + 2).toString();
     errors[key] = [];
 
-    const apartment = String(item['căn hộ']).trim();
-    let total = String(item['số tiền']).trim().replace(/[^0-9\.-]+/g, '');
-    const datetime = String(item['thời gian']).trim().split('/');
-    const deadline = moment(item['hạn nộp'], ['DD/MM/YYYY', 'DD/MM/YY', 'DD MMM YYYY']).toDate();
-    let month = datetime[0];
-    let year = datetime[1];
-
-    // Validate datetime
-    if (!(datetime.length === 2)) {
-      errors[key].push('Thời gian đóng phí chưa được nhập.');
-    } else {
-      // Month
-      month = parseInt(month, 10);
-      const mLength = String(month).trim().length;
-      if (!isNumber(month) || mLength < 1 || mLength > 2) {
-        errors[key].push('Giá trị tháng trong cột thời gian không đúng.');
-      }
-
-      // Year
-      year = parseInt(year, 10);
-      if (!isNumber(year) || !(String(year).trim().length === 4)) {
-        errors[key].push('Giá trị năm trong cột thời gian không đúng.');
-      }
-    }
-    // validate deadline
-    if (!isDate(deadline)) {
-      errors[key].push('Sai định dạng ngày tháng');
-    } else if (deadlines.indexOf(deadline) === -1) {
-      // Store deadline into building settings.
-      // From this setting, the app will automatically remind unfinished apartments to paid fee.
-      deadlines.push(deadline);
-    }
-
+    const apartment = String(item['căn hộ']);
     // validate apartment
-    if (apartment) {
+    if (!isEmpty(apartment)) {
       apartments.push({
         index: idx,
-        number: apartment,
+        number: apartment.trim(),
       });
     } else {
       errors[key].push('Tên căn hộ chưa được nhập.');
     }
+
+    // eslint-disable-next-line
+    let total = isEmpty(item['số tiền']) ? undefined : String(item['số tiền']).trim().replace(/[^0-9\.-]+/g, '');
 
     // validate total
     if (total) {
@@ -155,9 +133,44 @@ function validateData(data, { building, type }, callback) {
       errors[key].push('Số tiền phí chưa được nhập');
     }
 
+    /** Validate column thoi gian */
+    const datetime = isEmpty(item['thời gian']) ? undefined : String(item['thời gian']).trim().split('/');
+    let month = datetime[0];
+    let year = datetime[1];
+    const currentYear = new Date().getFullYear();
+
+    // Validate datetime
+    if (!datetime || !(datetime.length === 2)) {
+      errors[key].push('Thời gian đóng phí chưa được nhập.');
+    } else {
+      // Month
+      month = parseInt(month, 10);
+      const mLength = String(month).trim().length;
+      if (!isNumber(month) || mLength < 1 || mLength > 2) {
+        errors[key].push('Giá trị tháng trong cột thời gian không đúng.');
+      }
+
+      // Year
+      year = parseInt(year, 10);
+      if (!isNumber(year) || !(String(year).trim().length === 4) || year > currentYear) {
+        errors[key].push('Giá trị năm trong cột thời gian không đúng.');
+      }
+    }
+    // validate deadline
+    const dateFormats = ['DD/MM/YYYY', 'DD/MM/YY', 'DD MMM YYYY'];
+    const deadline = isEmpty(item['hạn nộp']) ? undefined : moment(item['hạn nộp'], dateFormats).toDate();
+    if (!deadline || !isDate(deadline)) {
+      errors[key].push('Sai định dạng ngày tháng');
+    } else if (deadlines.indexOf(deadline) === -1) {
+      // Store deadline into building settings.
+      // From this setting, the app will automatically remind unfinished apartments to paid fee.
+      deadlines.push(deadline);
+    }
+
+    const expectValues = ['đã nộp', 'đã thanh toán', 'paid'];
     return {
-      paid: ['đã nộp', 'đã thanh toán', 'paid'].indexOf(item['đã thanh toán'].toLowerCase()) > -1,
-      apartment_number: item['căn hộ'],
+      paid: !isEmpty(item['trạng thái']) ? expectValues.indexOf(item['trạng thái'].toLowerCase()) > -1 : false,
+      apartment_number: apartment.trim(),
       total,
       fee: item['loại phí'],
       time: {
@@ -238,7 +251,12 @@ router.post('/document', (req, res) => {
         return validateData(result, { building, type }, async (validationErrors, data, deadlines) => {
           validationErrors = Object.assign({}, validationErrors);
           let error = Object.keys(validationErrors).length > 0;
+
           let message = 'Không thể đọc được dữ liệu trong tập tin bạn tải lên.';
+          if (error && !isEmpty(validationErrors.error)) {
+            message = validationErrors.error;
+          }
+
           if (!error && save) {
             try {
               data = await saveFeeForApartments(data, building, type);
