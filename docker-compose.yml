@@ -3,15 +3,16 @@ services:
   mongo:
     image: mongo:3.2
     volumes:
-      - /var/mongodb/data:/data/db
+      - ./mongo:/data/db
     ports:
       - "28018:27017"
+
   server:
     build:
       context: .
       dockerfile: Dockerfile
     environment:
-      - DATABASE_URL=mongodb://mongo:27017/sns_test
+      - DATABASE_URL=mongodb://mongo/sns_test
     volumes:
       - ./logs:/usr/src/app/logs
       - ./public:/usr/src/app/public

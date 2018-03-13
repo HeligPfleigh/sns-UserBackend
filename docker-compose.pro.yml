@@ -6,14 +6,14 @@ services:
     ports:
       - 28018:27017
     volumes:
-      - /var/mongodb/data:/data/db
+      - ./mongo:/data/db
 
   server:
     build:
       context: .
       dockerfile: Dockerfile.pro
     environment:
-      - DATABASE_URL=mongodb://mongo:27017/sns
+      - DATABASE_URL=mongodb://mongo/sns
     ports:
       - 6868:8081
     depends_on:
