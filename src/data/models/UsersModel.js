@@ -109,10 +109,14 @@ UserSchema.plugin(timestamps);
 
 // methods ======================
 // generating a hash
-UserSchema.methods.generateHash = password => bcrypt.hashSync(password, bcrypt.genSaltSync(), null);
+UserSchema.methods.generateHash = function generateHash(password) {
+  return bcrypt.hashSync(password, bcrypt.genSaltSync(), null);
+};
 
 // checking if password is valid
-UserSchema.methods.validPassword = password => bcrypt.compareSync(password, this.password.value);
+UserSchema.methods.validPassword = function validPassword(password) {
+  return bcrypt.compareSync(password, this.password.value);
+};
 
 const getAllUserBuildings = async (userId) => {
   const approvedBuildings = await BuildingMembersModel.aggregate([
@@ -145,12 +149,9 @@ const hasRoleAdmin = async (userId) => {
 };
 
 // create token
-UserSchema.methods.createToken = async () => {
+UserSchema.methods.createToken = async function createToken() {
   const { auth } = config;
   const { _id: id, username, profile, email, roles, status } = this;
-
-  const buildingsApprove = await getAllUserBuildings(id);
-
   return jwt.sign({
     id,
     username,
@@ -158,8 +159,8 @@ UserSchema.methods.createToken = async () => {
     email,
     roles,
     status,
-    buildings: buildingsApprove || [],
-    isAdmin: hasRoleAdmin(id),
+    buildings: await getAllUserBuildings(id) || [],
+    isAdmin: await hasRoleAdmin(id),
   }, auth.jwt.secret);
 };
 
