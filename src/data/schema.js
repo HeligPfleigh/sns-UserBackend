@@ -79,6 +79,10 @@ type Test {
   hello: String
 }
 
+type Auth {
+  id_token: String!
+}
+
 enum ResponseType {
   RESOURCE_UPDATED_SUCCESSFULLY
   RESOURCE_UPDATED_FAILURE
@@ -353,6 +357,10 @@ input BuildingFeeSettingInput {
 }
 
 type Mutation {
+  login(
+    account: String!
+    password: String!
+  ): Auth!
   uploadSingleFile(
     file: Upload!
   ): UploadSingleFileResponse!
@@ -1198,6 +1206,9 @@ const rootResolvers = {
     },
   },
   Mutation: {
+    login(_, args) {
+      return UsersService.login(args);
+    },
     acceptFriend({ request }, { _id }) {
       return UsersService.acceptFriend(request.user.id, _id);
     },
@@ -2346,7 +2357,7 @@ const rootResolvers = {
         apartment,
         building,
       });
-      
+
       if (!feeDoc) {
         throw new Error('The fee does not exists.');
       }
@@ -2375,7 +2386,7 @@ const rootResolvers = {
       if (buildingSettings.fee && feeDoc.latestReminder) {
         const { automatedReminderAfterHowDays } = buildingSettings.fee;
         const latestReminder = moment(feeDoc.latestReminder);
-        if (automatedReminderAfterHowDays && now.clone().subtract(automatedReminderAfterHowDays, 'days') <= latestReminder){
+        if (automatedReminderAfterHowDays && now.clone().subtract(automatedReminderAfterHowDays, 'days') <= latestReminder) {
           throw new Error(`Lời nhắc nhở đã gửi tới căn hộ ${apartmentDoc.name} cách đây ${latestReminder.fromNow()}.`);
         }
       }
@@ -2385,12 +2396,12 @@ const rootResolvers = {
         apartment,
         building,
       }, {
-        $set : {
-          latestReminder: now.clone().endOf('day').toISOString(),
-        },
-      }, {
-        new: true
-      });
+          $set: {
+            latestReminder: now.clone().endOf('day').toISOString(),
+          },
+        }, {
+          new: true
+        });
 
       sendRemindFeeNotification({
         apartment: feeDoc.apartment,
@@ -2458,13 +2469,13 @@ const rootResolvers = {
       const buildingSettings = await BuildingSettingsService.Model.findOneAndUpdate({
         building,
       }, {
-        $set: {
-          ...input,
-        },
-      }, {
-        upsert: true,
-        returnNewDocument : true,
-      });
+          $set: {
+            ...input,
+          },
+        }, {
+          upsert: true,
+          returnNewDocument: true,
+        });
 
       return buildingSettings;
     },
@@ -2554,10 +2565,10 @@ const rootResolvers = {
         _id: eventId,
         author: request.user.id,
       }, {
-        $set: {
-          isCancelled: true,
-        },
-      });
+          $set: {
+            isCancelled: true,
+          },
+        });
       sendCancelledEventNotification(p.joins, p._id, request.user.id);
       p = await PostsModel.findOne({ _id: eventId });
       return p;

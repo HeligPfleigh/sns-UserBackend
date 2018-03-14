@@ -1,6 +1,12 @@
 import mongoose from 'mongoose';
 import timestamps from 'mongoose-timestamp';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import isEmpty from 'lodash/isEmpty';
+
+import config from '../../config';
+import { ADMIN, ACCEPTED } from '../../constants';
+import BuildingMembersModel from './BuildingMembersModel';
 
 // http://mongoosejs.com/docs/promises.html
 mongoose.Promise = global.Promise;
@@ -107,6 +113,55 @@ UserSchema.methods.generateHash = password => bcrypt.hashSync(password, bcrypt.g
 
 // checking if password is valid
 UserSchema.methods.validPassword = password => bcrypt.compareSync(password, this.password.value);
+
+const getAllUserBuildings = async (userId) => {
+  const approvedBuildings = await BuildingMembersModel.aggregate([
+    {
+      $match: {
+        user: userId,
+        status: ACCEPTED,
+      },
+    },
+  ]);
+
+  const data = [];
+  approvedBuildings.forEach((member) => {
+    data.push({
+      _id: member.building,
+    });
+  });
+
+  return data;
+};
+
+const hasRoleAdmin = async (userId) => {
+  const roles = await BuildingMembersModel.findOne({
+    user: userId,
+    type: ADMIN,
+    status: ACCEPTED,
+  });
+
+  return !isEmpty(roles);
+};
+
+// create token
+UserSchema.methods.createToken = async () => {
+  const { auth } = config;
+  const { _id: id, username, profile, email, roles, status } = this;
+
+  const buildingsApprove = await getAllUserBuildings(id);
+
+  return jwt.sign({
+    id,
+    username,
+    profile,
+    email,
+    roles,
+    status,
+    buildings: buildingsApprove || [],
+    isAdmin: hasRoleAdmin(id),
+  }, auth.jwt.secret);
+};
 
 const UserModel = mongoose.model('User', UserSchema);
 

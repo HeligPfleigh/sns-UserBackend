@@ -24,6 +24,36 @@ import { generateUserSearchField } from '../../utils/removeToneVN';
 import Mailer from '../../core/mailer';
 import config from '../../config';
 
+async function login({ account, password }) {
+  try {
+    if (!account || !password) {
+      throw new Error('Lỗi thiếu tham số');
+    }
+
+    const user = await UsersModel.findOne({
+      $or: [
+        { username: account.toLowerCase() },
+        { 'email.address': account.toLowerCase() },
+      ],
+    });
+
+    if (!user) {
+      throw new Error('Tài khoản không tồn tại');
+    }
+
+    if (!await bcrypt.compare(password, user.password.value)) {
+      throw new Error('Mật khẩu hiện tại không đúng');
+    }
+
+    return {
+      id_token: await user.createToken(),
+    };
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
 async function getUser(userId) {
   const user = await UsersModel.findOne({ _id: userId });
   if (!user) {
@@ -85,17 +115,21 @@ async function acceptFriend(userId, friendId) {
   await FriendsRelationModel.update({
     user: userId,
     friend: friendId,
-  }, { $set: {
-    status: ACCEPTED,
-    isSubscribe: true,
-  } }, { upsert: true });
+  }, {
+    $set: {
+      status: ACCEPTED,
+      isSubscribe: true,
+    },
+  }, { upsert: true });
   await FriendsRelationModel.update({
     user: friendId,
     friend: userId,
-  }, { $set: {
-    status: ACCEPTED,
-    isSubscribe: true,
-  } }, { upsert: true });
+  }, {
+    $set: {
+      status: ACCEPTED,
+      isSubscribe: true,
+    },
+  }, { upsert: true });
   sendAcceptFriendNotification(userId, friendId);
 
   return UsersModel.findOne({ _id: friendId });
@@ -120,10 +154,12 @@ async function rejectFriend(userId, friendId) {
     user: friendId,
     friend: userId,
     status: PENDING,
-  }, { $set: {
-    status: REJECTED,
-    isSubscribe: false,
-  } }, { upsert: true });
+  }, {
+    $set: {
+      status: REJECTED,
+      isSubscribe: false,
+    },
+  }, { upsert: true });
   return UsersModel.findOne({ _id: friendId });
 }
 
@@ -650,6 +686,7 @@ async function sendUnfriendRequest(userId, friendId) {
 }
 
 export default {
+  login,
   checkExistUser,
   newRegisteredUser,
   addNewResident,
