@@ -49,7 +49,6 @@ async function login({ account, password }) {
       id_token: await user.createToken(),
     };
   } catch (error) {
-    console.log(error);
     throw error;
   }
 }
