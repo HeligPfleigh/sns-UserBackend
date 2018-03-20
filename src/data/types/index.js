@@ -204,6 +204,7 @@ type Notification implements Node {
 type Comment implements Node {
   _id: ID!
   message: String
+  messagePlainText: String
   post: Post
 
   user: Author
@@ -1340,6 +1341,9 @@ export const resolvers = {
     },
   },
   Comment: {
+    messagePlainText({ message }) {
+      return (convertFromRaw(JSON.parse(message))).getPlainText('\u000A');
+    },
     post(data) {
       return PostsModel.findOne({ _id: data.post });
     },
