@@ -1,6 +1,7 @@
 import isEqual from 'lodash/isEqual';
 import isUndefined from 'lodash/isUndefined';
 import { ObjectId } from 'mongodb';
+import { ContentState, convertToRaw } from 'draft-js';
 import {
   UsersModel,
   PostsModel,
@@ -71,7 +72,7 @@ async function unlikePost(userId, postId) {
   }
   return PostsModel.findOne({ _id: postId });
 }
-async function createNewPost(author, message, userId, privacy, photos) {
+async function createNewPost(author, message, userId, privacy, photos, isMobile = false) {
   try {
     if (isUndefined(author)) {
       throw new Error('author is undefined');
@@ -85,14 +86,23 @@ async function createNewPost(author, message, userId, privacy, photos) {
     if (!photos) {
       photos = [];
     }
-    if (userId && !await FriendsRelationModel.findOne({
+    if (!isEqual(userId, author) && !await FriendsRelationModel.findOne({
       friend: author,
       user: userId,
       status: ACCEPTED,
     })) {
       throw new Error('You are not user friend');
     }
-    // JSON.parse(message);
+    if (isMobile) {
+      const content = ContentState.createFromText(message);
+      message = JSON.stringify(convertToRaw(content));
+    } else {
+      try {
+        JSON.parse(message);
+      } catch (error) {
+        throw new Error('Post message invalid');
+      }
+    }
     const r = await PostsModel.create({
       message,
       author,

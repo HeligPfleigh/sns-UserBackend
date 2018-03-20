@@ -1,5 +1,6 @@
 import isUndefined from 'lodash/isUndefined';
 import { ObjectId } from 'mongodb';
+import { ContentState, convertToRaw } from 'draft-js';
 import {
   UsersModel,
   CommentsModel,
@@ -9,7 +10,7 @@ import {
   sendCommentNotification,
 } from '../../utils/notifications';
 
-async function createNewComment(userId, postId, message, commentId) {
+async function createNewComment(userId, postId, message, commentId = 'none', isMobile = false) {
   if (isUndefined(userId)) {
     throw new Error('userId is undefined');
   }
@@ -25,11 +26,21 @@ async function createNewComment(userId, postId, message, commentId) {
   if (isUndefined(message)) {
     throw new Error('message is undefined');
   }
+  if (isMobile) {
+    const content = ContentState.createFromText(message);
+    message = JSON.stringify(convertToRaw(content));
+  } else {
+    try {
+      JSON.parse(message);
+    } catch (error) {
+      throw new Error('Post message invalid');
+    }
+  }
   const r = await CommentsModel.create({
     user: userId,
     post: postId,
     message,
-    reply: commentId || undefined,
+    reply: (commentId && commentId !== 'none') ? commentId : undefined,
   });
   sendCommentNotification(postId, userId);
 

@@ -386,12 +386,14 @@ type Mutation {
     _id:String!
     message: String!
     commentId: String
+    isMobile: Boolean
   ): Comment
   createNewPost (
     message: String!
     userId: String
     privacy: PrivacyType
     photos: [String]
+    isMobile: Boolean
   ): Post
   editPost (
     _id: String!
@@ -1312,16 +1314,16 @@ const rootResolvers = {
     unlikePost({ request }, { _id }) {
       return PostsService.unlikePost(request.user.id, _id);
     },
-    createNewComment({ request }, { _id, message, commentId }) {
-      return CommentService.createNewComment(request.user.id, _id, message, commentId);
+    createNewComment({ request }, { _id, message, commentId, isMobile }) {
+      return CommentService.createNewComment(request.user.id, _id, message, commentId, isMobile);
     },
-    createNewPost({ request }, { message, userId, privacy = PUBLIC, photos }) {
+    createNewPost({ request }, { message, userId, privacy = PUBLIC, photos, isMobile }) {
       // NOTE:
       // userId: post on friend wall
       if (!message.trim()) {
         throw new Error('you can not create a new post with empty message');
       }
-      return PostsService.createNewPost(request.user.id, message, userId, privacy, photos);
+      return PostsService.createNewPost(request.user.id, message, userId, privacy, photos, isMobile);
     },
     async deletePost({ request }, { _id }) {
       const p = await PostsModel.findOne({
