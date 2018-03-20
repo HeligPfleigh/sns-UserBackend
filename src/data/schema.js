@@ -1323,7 +1323,9 @@ const rootResolvers = {
       if (!message.trim()) {
         throw new Error('you can not create a new post with empty message');
       }
-      return PostsService.createNewPost(request.user.id, message, userId, privacy, photos, isMobile);
+      const author = request.user.id;
+      userId = userId || author;
+      return PostsService.createNewPost(author, message, userId, privacy, photos, isMobile);
     },
     async deletePost({ request }, { _id }) {
       const p = await PostsModel.findOne({
