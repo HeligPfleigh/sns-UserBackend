@@ -7,6 +7,8 @@ import without from 'lodash/without';
 import isEqual from 'lodash/isEqual';
 import kebabCase from 'lodash/kebabCase';
 import moment from 'moment';
+import { convertFromRaw } from 'draft-js';
+
 import DateScalarType from './DateScalarType';
 import {
   PostsModel,
@@ -216,6 +218,7 @@ type Comment implements Node {
 type Post implements Node {
   _id: ID!
   message: String
+  messagePlainText: String
   author: Author
   user: Friend
   building: Building
@@ -1116,6 +1119,9 @@ export const resolvers = {
     },
   },
   Post: {
+    messagePlainText({ message }) {
+      return (convertFromRaw(JSON.parse(message))).getPlainText('\u000A');
+    },
     user(data) {
       return UsersModel.findOne({ _id: data.user });
     },
