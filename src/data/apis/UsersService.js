@@ -6,6 +6,7 @@ import { ObjectId } from 'mongodb';
 import { generate as idRandom } from 'shortid';
 import moment from 'moment';
 import uniqWith from 'lodash/uniqWith';
+import axios from 'axios';
 import {
   UsersModel,
   FriendsRelationModel,
@@ -43,6 +44,36 @@ async function login({ account, password }) {
 
     if (!await bcrypt.compare(password, user.password.value)) {
       throw new Error('Mật khẩu hiện tại không đúng');
+    }
+
+    return {
+      id_token: await user.createToken(),
+    };
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function loginWithFacebook({ token }) {
+  try {
+    if (!token) {
+      throw new Error('Lỗi thiếu tham số');
+    }
+
+    const { data } = await axios.get(
+      `https://graph.facebook.com/me?fields=email&access_token=${token}`,
+    );
+
+    if (!data || !data.email) {
+      throw new Error('Không thể lấy dữ liệu từ fb');
+    }
+
+    const user = await UsersModel.findOne({
+      'email.address': data.email,
+    });
+
+    if (!user) {
+      throw new Error('Tài khoản không tồn tại');
     }
 
     return {
@@ -686,6 +717,7 @@ async function sendUnfriendRequest(userId, friendId) {
 
 export default {
   login,
+  loginWithFacebook,
   checkExistUser,
   newRegisteredUser,
   addNewResident,

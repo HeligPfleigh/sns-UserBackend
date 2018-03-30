@@ -361,6 +361,9 @@ type Mutation {
     account: String!
     password: String!
   ): Auth!
+  loginWithFacebook(
+    token: String!
+  ): Auth!
   uploadSingleFile(
     file: Upload!
   ): UploadSingleFileResponse!
@@ -1210,6 +1213,9 @@ const rootResolvers = {
   Mutation: {
     login(_, args) {
       return UsersService.login(args);
+    },
+    loginWithFacebook(_, args) {
+      return UsersService.loginWithFacebook(args);
     },
     acceptFriend({ request }, { _id }) {
       return UsersService.acceptFriend(request.user.id, _id);
