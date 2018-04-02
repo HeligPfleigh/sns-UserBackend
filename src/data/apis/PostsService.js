@@ -148,9 +148,40 @@ async function createNewPostOnBuilding(author, message, photos, buildingId, priv
   }
 }
 
+async function editPost(_id, message, photos, privacy, isDelPostSharing, isMobile) {
+  const p = await PostsModel.findOne({ _id });
+  if (!p) {
+    throw new Error('not found the post');
+  }
+  if (isMobile) {
+    const content = ContentState.createFromText(message);
+    message = JSON.stringify(convertToRaw(content));
+  } else {
+    try {
+      JSON.parse(message);
+    } catch (error) {
+      throw new Error('Post message invalid');
+    }
+  }
+  await PostsModel.update({
+    _id,
+  }, {
+    $set: {
+      message,
+      photos,
+      privacy,
+      sharing: isDelPostSharing ? p.sharing : null,
+    },
+  });
+  return PostsModel.findOne({
+    _id,
+  });
+}
+
 export default {
   getPost,
   feed,
+  editPost,
   likePost,
   unlikePost,
   createNewPost,

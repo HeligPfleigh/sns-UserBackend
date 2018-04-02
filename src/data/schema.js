@@ -402,6 +402,7 @@ type Mutation {
     _id: String!
     message: String!
     photos: [String]
+    isMobile: Boolean
     privacy: String
     isDelPostSharing: Boolean
   ): Post
@@ -1396,24 +1397,8 @@ const rootResolvers = {
       }
       return PostsService.createNewPostOnBuilding(request.user.id, message, photos, buildingId, privacy);
     },
-    async editPost(root, { _id, message, photos, privacy = PUBLIC, isDelPostSharing = true }) {
-      const p = await PostsModel.findOne({ _id });
-      if (!p) {
-        throw new Error('not found the post');
-      }
-      await PostsModel.update({
-        _id,
-      }, {
-        $set: {
-          message,
-          photos,
-          privacy,
-          sharing: isDelPostSharing ? p.sharing : null,
-        },
-      });
-      return PostsModel.findOne({
-        _id,
-      });
+    async editPost(root, { _id, message, photos, privacy = PUBLIC, isDelPostSharing = true, isMobile = false }) {
+      return PostsService.editPost(_id, message, photos, privacy, isDelPostSharing, isMobile);
     },
     async sharingPost({ request }, { _id, privacy = PUBLIC, message, friendId, userId }) {
       const author = request.user.id;
