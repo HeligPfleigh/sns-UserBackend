@@ -13,9 +13,16 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import expressJwt from 'express-jwt';
-import expressGraphQL from 'express-graphql';
+// import expressGraphQL from 'express-graphql';
 import mime from 'mime';
 import fs from 'fs';
+import { SubscriptionServer } from 'subscriptions-transport-ws';
+import { execute, subscribe } from 'graphql';
+import {
+  graphqlExpress,
+  graphiqlExpress,
+} from 'graphql-server-express';
+import { createServer } from 'http';
 
 import passport from './core/passport';
 import schema from './data/schema';
@@ -134,10 +141,11 @@ app.get('/download/:filename', (req, res) => {
   }
 });
 
+const subscriptionsEndpoint = `ws://localhost:${port}/subscriptions`;
 //
 // Register API middleware
 // -----------------------------------------------------------------------------
-const graphqlMiddleware = expressGraphQL(req => ({
+const graphqlMiddleware = graphqlExpress(req => ({
   schema,
   graphiql: __DEV__,
   rootValue: { request: req },
@@ -151,12 +159,18 @@ const graphqlMiddleware = expressGraphQL(req => ({
   context: {
     user: req.user,
   },
+  subscriptionsEndpoint,
 }));
 
 app.use('/graphql', apolloUploadExpress({
   // Optional, defaults to OS temp directory
   uploadDir: `${__dirname}/public/uploads`,
 }), graphqlMiddleware);
+
+app.use('/graphiql', graphiqlExpress({
+  endpointURL: '/graphql',
+  subscriptionsEndpoint,
+}));
 
 //
 // Register server-side rendering middleware
@@ -171,15 +185,29 @@ app.get('*', async (req, res) => {
 // Error handling
 // -----------------------------------------------------------------------------
 app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
+  /* eslint-disable no-console */
   console.log('Error handling');
   console.log(err);
 });
+
+// Wrap the express server so that we can attach the WebSocket for subscriptions
+const ws = createServer(app);
 
 //
 // Launch the server
 // -----------------------------------------------------------------------------
 /* eslint-disable no-console */
-app.listen(port, () => {
+ws.listen(port, () => {
   console.log(`The server is running at http://localhost:${port}/`);
+  // Set up the WebSocket for handling GraphQL subscriptions.
+  /* eslint-disable no-new */
+  new SubscriptionServer({
+    execute,
+    subscribe,
+    schema,
+  }, {
+    server: ws,
+    path: '/subscriptions',
+  });
 });
 /* eslint-enable no-console */

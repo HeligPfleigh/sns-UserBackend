@@ -22,6 +22,7 @@ import {
 } from 'graphql-tools';
 import XLSX from 'xlsx';
 import moment from 'moment';
+import { PubSub } from 'graphql-subscriptions';
 import {
   PostsModel,
   FriendsRelationModel as FriendsModel,
@@ -60,7 +61,10 @@ import {
   sendCancelledEventNotification,
 } from '../utils/notifications';
 import { schema as schemaType, resolvers as resolversType } from './types';
-import { ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, PRIVATE, FRIEND, ONLY_ME, EVENT, PAID, UNPAID, PARTIALLY_PAID } from '../constants';
+import {
+  ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, PRIVATE, FRIEND, ONLY_ME, EVENT, PAID, UNPAID, PARTIALLY_PAID,
+  POST_ADDED_SUBSCRIPTION, NOTIFICATION_ADDED_SUBSCRIPTION,
+} from '../constants';
 import toObjectId from '../utils/toObjectId';
 
 const { Types: { ObjectId } } = mongoose;
@@ -72,6 +76,7 @@ const { Types: { ObjectId } } = mongoose;
 //   can,
 //   onlyMe,
 // } from '../utils/authorization';
+export const pubsub = new PubSub();
 
 const rootSchema = [`
 
@@ -543,9 +548,21 @@ type Mutation {
   ): User
 }
 
+type CommentSubscription {
+  id: String
+  content: String
+}
+
+type Subscription {
+  commentAdded(repoFullName: String!): CommentSubscription
+  postAdded: Post
+  notificationAdded: Notification
+}
+
 schema {
   query: Query
   mutation: Mutation
+  subscription: Subscription
 }
 `];
 
@@ -1332,6 +1349,7 @@ const rootResolvers = {
       }
       const author = request.user.id;
       userId = userId || author;
+      // pubsub.publish('commentAdded', { commentAdded: { id: 1, content: 'Hello!' } });
       return PostsService.createNewPost(author, message, userId, privacy, photos, isMobile);
     },
     async deletePost({ request }, { _id }) {
@@ -2576,6 +2594,17 @@ const rootResolvers = {
     },
     sendUnfriendRequest({ request }, { _id }) {
       return UsersService.sendUnfriendRequest(request.user.id, _id);
+    },
+  },
+  Subscription: {
+    postAdded: {
+      subscribe: () => pubsub.asyncIterator(POST_ADDED_SUBSCRIPTION)
+    },
+    commentAdded: {
+      subscribe: () => pubsub.asyncIterator('commentAdded')
+    },
+    notificationAdded: {
+      subscribe: () => pubsub.asyncIterator(NOTIFICATION_ADDED_SUBSCRIPTION)
     },
   },
 };

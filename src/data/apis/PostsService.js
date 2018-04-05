@@ -11,7 +11,8 @@ import {
   sendPostNotification,
   sendLikeNotification,
 } from '../../utils/notifications';
-import { ACCEPTED } from '../../constants';
+import { ACCEPTED, POST_ADDED_SUBSCRIPTION } from '../../constants';
+import { pubsub } from '../schema';
 
 function getPost(postId) {
   return PostsModel.findOne({
@@ -110,6 +111,9 @@ async function createNewPost(author, message, userId, privacy, photos, isMobile 
       privacy,
       photos,
     });
+
+    // emit a subscription signal when create new post 
+    pubsub.publish(POST_ADDED_SUBSCRIPTION, { postAdded: r });
 
     if (userId && !isEqual(userId, author)) {
       sendPostNotification(r._id, author);
