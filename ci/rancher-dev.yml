@@ -1,7 +1,7 @@
 version: '2'
 services:
   backend:
-    image: registry.mttjsc.com/snsmobile/UserBackend:develop
+    image: registry.mttjsc.com/snsmobile/userbackend:develop
     environment:
       NODE_ENV: production
       VIRTUAL_HOST: api-sns.mttjsc.com
