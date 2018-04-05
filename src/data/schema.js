@@ -63,7 +63,7 @@ import {
 import { schema as schemaType, resolvers as resolversType } from './types';
 import {
   ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, PRIVATE, FRIEND, ONLY_ME, EVENT, PAID, UNPAID, PARTIALLY_PAID,
-  POST_ADDED_SUBSCRIPTION,
+  POST_ADDED_SUBSCRIPTION, NOTIFICATION_ADDED_SUBSCRIPTION,
 } from '../constants';
 import toObjectId from '../utils/toObjectId';
 
@@ -556,6 +556,7 @@ type CommentSubscription {
 type Subscription {
   commentAdded(repoFullName: String!): CommentSubscription
   postAdded: Post
+  notificationAdded: Notification
 }
 
 schema {
@@ -2601,7 +2602,10 @@ const rootResolvers = {
     },
     commentAdded: {
       subscribe: () => pubsub.asyncIterator('commentAdded')
-    }
+    },
+    notificationAdded: {
+      subscribe: () => pubsub.asyncIterator(NOTIFICATION_ADDED_SUBSCRIPTION)
+    },
   },
 };
 

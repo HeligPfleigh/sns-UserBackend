@@ -112,6 +112,7 @@ async function createNewPost(author, message, userId, privacy, photos, isMobile 
       photos,
     });
 
+    // emit a subscription signal when create new post 
     pubsub.publish(POST_ADDED_SUBSCRIPTION, { postAdded: r });
 
     if (userId && !isEqual(userId, author)) {
