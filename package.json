@@ -233,6 +233,7 @@
     "render": "babel-node tools/run render",
     "serve": "babel-node tools/run runServer",
     "start": "babel-node tools/run start",
+    "start:prod": "babel-node tools/run start -- --release",
     "validate": "npm ls"
   },
   "pre-commit": []
