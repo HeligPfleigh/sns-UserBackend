@@ -9,6 +9,8 @@ import {
 import {
   sendCommentNotification,
 } from '../../utils/notifications';
+import { pubsub } from '../schema';
+import { COMMENT_ADDED_SUBSCRIPTION } from '../../constants';
 
 async function createNewComment(userId, postId, message, commentId = 'none', isMobile = false) {
   if (isUndefined(userId)) {
@@ -43,6 +45,9 @@ async function createNewComment(userId, postId, message, commentId = 'none', isM
     reply: (commentId && commentId !== 'none') ? commentId : undefined,
   });
   sendCommentNotification(postId, userId);
+
+  // emit subscription when a comment is added
+  pubsub.publish(COMMENT_ADDED_SUBSCRIPTION, { commentAdded: r });
 
   return r;
 }

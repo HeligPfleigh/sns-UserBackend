@@ -22,7 +22,7 @@ import {
 } from 'graphql-tools';
 import XLSX from 'xlsx';
 import moment from 'moment';
-import { PubSub } from 'graphql-subscriptions';
+import { PubSub, withFilter } from 'graphql-subscriptions';
 import {
   PostsModel,
   FriendsRelationModel as FriendsModel,
@@ -63,7 +63,7 @@ import {
 import { schema as schemaType, resolvers as resolversType } from './types';
 import {
   ADMIN, PENDING, REJECTED, ACCEPTED, PUBLIC, PRIVATE, FRIEND, ONLY_ME, EVENT, PAID, UNPAID, PARTIALLY_PAID,
-  POST_ADDED_SUBSCRIPTION, NOTIFICATION_ADDED_SUBSCRIPTION,
+  POST_ADDED_SUBSCRIPTION, NOTIFICATION_ADDED_SUBSCRIPTION, COMMENT_ADDED_SUBSCRIPTION,
 } from '../constants';
 import toObjectId from '../utils/toObjectId';
 
@@ -548,13 +548,8 @@ type Mutation {
   ): User
 }
 
-type CommentSubscription {
-  id: String
-  content: String
-}
-
 type Subscription {
-  commentAdded(repoFullName: String!): CommentSubscription
+  commentAdded(postID: String!, commentID: String): Comment
   postAdded: Post
   notificationAdded: Notification
 }
@@ -2601,7 +2596,18 @@ const rootResolvers = {
       subscribe: () => pubsub.asyncIterator(POST_ADDED_SUBSCRIPTION)
     },
     commentAdded: {
-      subscribe: () => pubsub.asyncIterator('commentAdded')
+      subscribe: withFilter(() => pubsub.asyncIterator(COMMENT_ADDED_SUBSCRIPTION),
+        (payload, variables) => {
+          // if it is reply of a comment
+          if(payload.commentAdded.reply != null){
+            return (
+              (payload.commentAdded.post == variables.postID) &&
+              (payload.commentAdded.reply == variables.commentID)
+            )
+          }
+          return payload.commentAdded.post == variables.postID;
+        }
+      )
     },
     notificationAdded: {
       subscribe: () => pubsub.asyncIterator(NOTIFICATION_ADDED_SUBSCRIPTION)
