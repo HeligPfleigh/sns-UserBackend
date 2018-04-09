@@ -7,7 +7,7 @@ import { UNPAID } from '../../constants';
 import { sendRemindFeeNotification } from '../../utils/notifications';
 
 const getBuildingFeeSettings = async (building) => {
-  const settings = BuildingSettingsService.Model.aggregate([
+  const settings = await BuildingSettingsService.Model.aggregate([
     {
       $match: {
         building,
@@ -30,7 +30,7 @@ const getBuildingFeeSettings = async (building) => {
         as: 'feeType',
       },
     },
-  ]).cursor().exec();
+  ]).cursor({ async: true }).exec();
   return settings;
 };
 

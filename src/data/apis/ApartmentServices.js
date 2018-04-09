@@ -199,7 +199,7 @@ async function residentsInBuildingGroupByApartmentQuery({ building, apartment, r
   });
 
   // Get number of apartments and number of residents
-  let queryStats = ApartmentsModel.aggregate([
+  let queryStats = await ApartmentsModel.aggregate([
     ...aggregate,
     {
       $group: {
@@ -242,7 +242,7 @@ async function residentsInBuildingGroupByApartmentQuery({ building, apartment, r
         },
       },
     },
-  ]).cursor().exec();
+  ]).cursor({ async: true }).exec();
 
   if (queryStats.length > 0) {
     queryStats = queryStats.shift();

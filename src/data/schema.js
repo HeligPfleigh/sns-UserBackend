@@ -786,7 +786,7 @@ const rootResolvers = {
         });
       }
 
-      const count = (await FeeModel.aggregate([...options])).length;
+      const count = (await FeeModel.aggregate([...options]).cursor({ async: true }).exec()).length;
 
       const result = await FeeModel.aggregate([
         ...options,
@@ -916,7 +916,7 @@ const rootResolvers = {
           },
         },
         { $limit: 3 },
-      ]);
+      ]).cursor({ async: true }).exec();
 
       const data = await Promise.all((result || []).map(async (item) => {
         const detail = await FeeModel.find({
@@ -958,7 +958,7 @@ const rootResolvers = {
 
         // If remaining data is empty, ignore query below
         if (remainingData > 0) {
-          queryTable = ApartmentsModel.aggregate([
+          queryTable = await ApartmentsModel.aggregate([
             ...aggregate,
             {
               $unwind: '$residents',
@@ -983,7 +983,7 @@ const rootResolvers = {
             {
               $limit: limit,
             },
-          ]).cursor().exec();
+          ]).cursor({ async: true }).exec();
         }
       }
 
@@ -1028,7 +1028,7 @@ const rootResolvers = {
 
         // If remaining data is empty, ignore query below
         if (remainingData > 0) {
-          queryTable = ApartmentsModel.aggregate([
+          queryTable = await ApartmentsModel.aggregate([
             ...aggregate,
             {
               $skip,
@@ -1036,7 +1036,7 @@ const rootResolvers = {
             {
               $limit: limit,
             },
-          ]).cursor().exec();
+          ]).cursor({ async: true }).exec();
         }
       }
 
@@ -1499,7 +1499,7 @@ const rootResolvers = {
         apartments: apts,
       };
       const r = await AnnouncementsModel.create(announcement);
-      let us = ApartmentsModel.aggregate([
+      let us = await ApartmentsModel.aggregate([
         {
           $match: {
             _id: {
@@ -1515,7 +1515,7 @@ const rootResolvers = {
             users: 1,
           },
         },
-      ]).cursor().exec();
+      ]).cursor({ async: true }).exec();
       us = us.map(i => i.users);
       if (apts.length > 0) {
         sendNewAnnouncementNotification(us, r.id);
@@ -2231,7 +2231,7 @@ const rootResolvers = {
           'Danh sách cư dân trong các căn hộ'
         ], []);
 
-        const queryTable = ApartmentsModel.aggregate(aggregate).cursor().exec();
+        const queryTable = await ApartmentsModel.aggregate(aggregate).cursor({ async: true }).exec();
         queryTable.forEach(row => {
           const numberOfResidents = Array.isArray(row.residents) ? row.residents.length : 0;
           data.push({
@@ -2535,7 +2535,7 @@ const rootResolvers = {
         });
       }
       if (privacy === PRIVATE && apts.length > 0) {
-        let us = ApartmentsModel.aggregate([
+        let us = await ApartmentsModel.aggregate([
           {
             $match: {
               _id: {
@@ -2551,7 +2551,7 @@ const rootResolvers = {
               users: 1,
             },
           },
-        ]).cursor().exec();
+        ]).cursor({ async: true }).exec();
         us = us.map(i => i.users);
         sendNewAnnouncementNotification(us, _id);
       }
