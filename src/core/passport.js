@@ -95,14 +95,14 @@ passport.deserializeUser((id, done) => {
 });
 
 const getAllUserBuildings = async ({ user: { _id } }) => {
-  const approvedBuildings = await BuildingMembersModel.aggregate([
+  const approvedBuildings = BuildingMembersModel.aggregate([
     {
       $match: {
         user: _id,
         status: ACCEPTED,
       },
     },
-  ]);
+  ]).cursor().exec();
 
   const data = [];
   approvedBuildings.forEach((member) => {

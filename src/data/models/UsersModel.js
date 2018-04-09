@@ -119,14 +119,14 @@ UserSchema.methods.validPassword = function validPassword(password) {
 };
 
 const getAllUserBuildings = async (userId) => {
-  const approvedBuildings = await BuildingMembersModel.aggregate([
+  const approvedBuildings = BuildingMembersModel.aggregate([
     {
       $match: {
         user: userId,
         status: ACCEPTED,
       },
     },
-  ]);
+  ]).cursor().exec();
 
   const data = [];
   approvedBuildings.forEach((member) => {

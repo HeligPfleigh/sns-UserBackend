@@ -958,7 +958,7 @@ const rootResolvers = {
 
         // If remaining data is empty, ignore query below
         if (remainingData > 0) {
-          queryTable = await ApartmentsModel.aggregate([
+          queryTable = ApartmentsModel.aggregate([
             ...aggregate,
             {
               $unwind: '$residents',
@@ -983,7 +983,7 @@ const rootResolvers = {
             {
               $limit: limit,
             },
-          ]);
+          ]).cursor().exec();
         }
       }
 
@@ -1028,7 +1028,7 @@ const rootResolvers = {
 
         // If remaining data is empty, ignore query below
         if (remainingData > 0) {
-          queryTable = await ApartmentsModel.aggregate([
+          queryTable = ApartmentsModel.aggregate([
             ...aggregate,
             {
               $skip,
@@ -1036,7 +1036,7 @@ const rootResolvers = {
             {
               $limit: limit,
             },
-          ]);
+          ]).cursor().exec();
         }
       }
 
@@ -1499,7 +1499,7 @@ const rootResolvers = {
         apartments: apts,
       };
       const r = await AnnouncementsModel.create(announcement);
-      let us = await ApartmentsModel.aggregate([
+      let us = ApartmentsModel.aggregate([
         {
           $match: {
             _id: {
@@ -1515,7 +1515,7 @@ const rootResolvers = {
             users: 1,
           },
         },
-      ]);
+      ]).cursor().exec();
       us = us.map(i => i.users);
       if (apts.length > 0) {
         sendNewAnnouncementNotification(us, r.id);
@@ -2231,7 +2231,7 @@ const rootResolvers = {
           'Danh sách cư dân trong các căn hộ'
         ], []);
 
-        const queryTable = await ApartmentsModel.aggregate(aggregate);
+        const queryTable = ApartmentsModel.aggregate(aggregate).cursor().exec();
         queryTable.forEach(row => {
           const numberOfResidents = Array.isArray(row.residents) ? row.residents.length : 0;
           data.push({
@@ -2535,7 +2535,7 @@ const rootResolvers = {
         });
       }
       if (privacy === PRIVATE && apts.length > 0) {
-        let us = await ApartmentsModel.aggregate([
+        let us = ApartmentsModel.aggregate([
           {
             $match: {
               _id: {
@@ -2551,7 +2551,7 @@ const rootResolvers = {
               users: 1,
             },
           },
-        ]);
+        ]).cursor().exec();
         us = us.map(i => i.users);
         sendNewAnnouncementNotification(us, _id);
       }
