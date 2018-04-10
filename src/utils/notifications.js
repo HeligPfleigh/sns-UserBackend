@@ -23,7 +23,9 @@ import {
   NEW_FEE_APARTMENT,
   NEW_ANNOUNCEMENT,
   REMIND_FEE,
+  NOTIFICATION_ADDED_SUBSCRIPTION,
 } from '../constants';
+import { pubsub } from '../data/schema';
 
 const getUserFollow = async (postId, userId, status) => {
   const post = await PostsModel.findById(postId).select('likes user author');
@@ -45,10 +47,11 @@ const getUserFollow = async (postId, userId, status) => {
     const notify = await NotificationsModel.findOne(options);
 
     if (!notify) {
-      await NotificationsModel.create({
+      const r = await NotificationsModel.create({
         ...options,
         actors: [userId],
       });
+      pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
     } else if (!_.some(notify.actors, item => item.equals(userId))) {
       notify.actors.unshift(userId);
       await notify.save();
@@ -81,10 +84,11 @@ function sendEventInviteNotification(author, eventId, usersId) {
     const notify = await NotificationsModel.findOne(options);
 
     if (!notify) {
-      await NotificationsModel.create({
+      const r = await NotificationsModel.create({
         ...options,
         actors: [author],
       });
+      pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
     } else if (!_.some(notify.actors, item => item.equals(author))) {
       notify.actors.unshift(author);
       await notify.save();
@@ -103,10 +107,11 @@ async function sendJoinEventNotification(author, userJoin, eventId, type) {
   const notify = await NotificationsModel.findOne(options);
 
   if (!notify) {
-    await NotificationsModel.create({
+    const r = await NotificationsModel.create({
       ...options,
       actors: [userJoin],
     });
+    pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
   } else if (!_.some(notify.actors, item => item.equals(userJoin))) {
     notify.actors.unshift(userJoin);
     await notify.save();
@@ -119,6 +124,7 @@ async function sendAcceptFriendNotification(userIDA, userIDR) {
     actors: [userIDA],
     type: ACCEPTED_FRIEND,
   });
+  pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
   return r;
 }
 
@@ -128,6 +134,7 @@ async function sendFriendRequestNotification(userIDA, userIDR) {
     actors: [userIDA],
     type: FRIEND_REQUEST,
   });
+  pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
   return r;
 }
 
@@ -143,10 +150,11 @@ async function sendDeletedEventNotification(usersid, eventId, actor) {
     const notify = await NotificationsModel.findOne(options);
 
     if (!notify) {
-      await NotificationsModel.create({
+      const r = await NotificationsModel.create({
         ...options,
         actors: [actor],
       });
+      pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
     } else if (!_.some(notify.actors, item => item.equals(actor))) {
       notify.actors.unshift(actor);
       await notify.save();
@@ -166,10 +174,11 @@ async function sendCancelledEventNotification(usersid, eventId, actor) {
     const notify = await NotificationsModel.findOne(options);
 
     if (!notify) {
-      await NotificationsModel.create({
+      const r = await NotificationsModel.create({
         ...options,
         actors: [actor],
       });
+      pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
     } else if (!_.some(notify.actors, item => item.equals(actor))) {
       notify.actors.unshift(actor);
       await notify.save();
@@ -182,11 +191,12 @@ async function acceptedUserBelongsToBuildingNotification(sender, receivers) {
     return;
   }
   receivers.map(async (receiver) => {
-    await NotificationsModel.create({
+    const r = await NotificationsModel.create({
       user: receiver,
       actors: [sender],
       type: ACCEPTED_JOIN_BUILDING,
     });
+    pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
   });
 }
 
@@ -195,11 +205,12 @@ async function rejectedUserBelongsToBuildingNotification(sender, receivers) {
     return;
   }
   receivers.map(async (receiver) => {
-    await NotificationsModel.create({
+    const r = await NotificationsModel.create({
       user: receiver,
       actors: [sender],
       type: REJECTED_JOIN_BUILDING,
     });
+    pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
   });
 }
 
@@ -211,12 +222,13 @@ async function sendSharingPostNotification(sender, receiver, postId) {
   if (!await UsersModel.findOne({ _id: receiver })) {
     return;
   }
-  await NotificationsModel.create({
+  const r = await NotificationsModel.create({
     user: receiver,
     actors: [sender],
     type: SHARING_POST,
     subject: postId,
   });
+  pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
 }
 
 async function sendInterestEventNotification(author, userJoin, eventId) {
@@ -230,10 +242,11 @@ async function sendInterestEventNotification(author, userJoin, eventId) {
   const notify = await NotificationsModel.findOne(options);
 
   if (!notify) {
-    await NotificationsModel.create({
+    const r = await NotificationsModel.create({
       ...options,
       actors: [userJoin],
     });
+    pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
   } else if (!_.some(notify.actors, item => item.equals(userJoin))) {
     notify.actors.unshift(userJoin);
     await notify.save();
@@ -251,10 +264,11 @@ async function sendDisInterestEventNotification(author, userJoin, eventId) {
   const notify = await NotificationsModel.findOne(options);
 
   if (!notify) {
-    await NotificationsModel.create({
+    const r = await NotificationsModel.create({
       ...options,
       actors: [userJoin],
     });
+    pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
   } else if (!_.some(notify.actors, item => item.equals(userJoin))) {
     notify.actors.unshift(userJoin);
     await notify.save();
@@ -275,24 +289,26 @@ async function sendNewFeeForApartmentNotification(data) {
   const notify = await NotificationsModel.findOne(options);
 
   if (!notify) {
-    await NotificationsModel.create({
+    const r = await NotificationsModel.create({
       user: apartment.owner,
       seen: false,
       type: NEW_FEE_APARTMENT,
       data,
     });
+    pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
   }
 }
 
 async function sendRemindFeeNotification(data) {
   const apartment = await ApartmentsModel.findOne({ _id: data.apartment });
 
-  await NotificationsModel.create({
+  const r = await NotificationsModel.create({
     user: apartment.owner,
     seen: false,
     type: REMIND_FEE,
     data,
   });
+  pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
 }
 
 async function sendNewAnnouncementNotification(users, announcementID) {

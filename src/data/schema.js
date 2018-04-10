@@ -551,7 +551,7 @@ type Mutation {
 type Subscription {
   commentAdded(postID: String!, commentID: String): Comment
   postAdded: Post
-  notificationAdded: Notification
+  notificationAdded(userID: String!): Notification
 }
 
 schema {
@@ -2610,7 +2610,11 @@ const rootResolvers = {
       )
     },
     notificationAdded: {
-      subscribe: () => pubsub.asyncIterator(NOTIFICATION_ADDED_SUBSCRIPTION)
+      subscribe: withFilter(() => pubsub.asyncIterator(NOTIFICATION_ADDED_SUBSCRIPTION),
+        (payload, variables) => {
+          return payload.notificationAdded.user == variables.userID;
+        }
+      )
     },
   },
 };
