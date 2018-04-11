@@ -4,7 +4,7 @@ MAINTAINER Hoang Nam "particle4dev@gmail.com"
 ENV DEBIAN_FRONTEND noninteractive
 
 #install build-dependencies
-RUN apk add build-dependencies
+RUN apk add --virtual build-dependencies
 # use changes to package.json to force Docker not to use the cache
 # when we change our application's nodejs dependencies:
 ADD package.json yarn.lock /tmp/
