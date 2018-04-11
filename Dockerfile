@@ -3,12 +3,8 @@ MAINTAINER Hoang Nam "particle4dev@gmail.com"
 
 ENV DEBIAN_FRONTEND noninteractive
 
-#install python 2.7
-RUN apk add --no-cache python && \
-    python -m ensurepip && \
-    rm -r /usr/lib/python*/ensurepip && \
-    pip install --upgrade pip setuptools && \
-    rm -r /root/.cache
+#install build-dependencies
+RUN apk add build-dependencies
 # use changes to package.json to force Docker not to use the cache
 # when we change our application's nodejs dependencies:
 ADD package.json yarn.lock /tmp/
