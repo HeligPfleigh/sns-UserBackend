@@ -4,7 +4,8 @@ MAINTAINER Hoang Nam "particle4dev@gmail.com"
 ENV DEBIAN_FRONTEND noninteractive
 
 #install build-dependencies
-RUN apk add --virtual build-dependencies
+RUN apk --no-cache add g++ gcc libgcc libstdc++ linux-headers make python
+RUN npm install --quiet node-gyp -g
 # use changes to package.json to force Docker not to use the cache
 # when we change our application's nodejs dependencies:
 ADD package.json yarn.lock /tmp/
