@@ -322,6 +322,7 @@ type Me implements Node, Resident {
   friendSuggestions: [Friend]
   totalFriends: Int
   totalNotification: Int
+  totalUnreadNotification: Int
   createdAt: Date
   updatedAt: Date
 }
@@ -1111,6 +1112,9 @@ export const resolvers = {
     },
     totalNotification(user) {
       return NotificationsModel.count({ user: user._id, seen: false });
+    },
+    totalUnreadNotification(user) {
+      return NotificationsModel.count({ user: user._id, isRead: false });
     },
     createdAt(data) {
       return new Date(data.createdAt);

@@ -44,18 +44,19 @@ const getUserFollow = async (postId, userId, status) => {
       type: status,
     };
 
-    const notify = await NotificationsModel.findOne(options);
+    let notify = await NotificationsModel.findOne(options);
 
     if (!notify) {
-      const r = await NotificationsModel.create({
+      notify = await NotificationsModel.create({
         ...options,
         actors: [userId],
       });
-      pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
     } else if (!_.some(notify.actors, item => item.equals(userId))) {
       notify.actors.unshift(userId);
-      await notify.save();
+      notify = await notify.save();
     }
+
+    pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: notify });
   });
   return null;
 };
@@ -81,18 +82,18 @@ function sendEventInviteNotification(author, eventId, usersId) {
       type: EVENT_INVITE,
     };
 
-    const notify = await NotificationsModel.findOne(options);
+    let notify = await NotificationsModel.findOne(options);
 
     if (!notify) {
-      const r = await NotificationsModel.create({
+      notify = await NotificationsModel.create({
         ...options,
         actors: [author],
       });
-      pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
     } else if (!_.some(notify.actors, item => item.equals(author))) {
       notify.actors.unshift(author);
-      await notify.save();
+      notify = await notify.save();
     }
+    pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: notify });
   });
 }
 
@@ -104,18 +105,18 @@ async function sendJoinEventNotification(author, userJoin, eventId, type) {
     type,
   };
 
-  const notify = await NotificationsModel.findOne(options);
+  let notify = await NotificationsModel.findOne(options);
 
   if (!notify) {
-    const r = await NotificationsModel.create({
+    notify = await NotificationsModel.create({
       ...options,
       actors: [userJoin],
     });
-    pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
   } else if (!_.some(notify.actors, item => item.equals(userJoin))) {
     notify.actors.unshift(userJoin);
-    await notify.save();
+    notify = await notify.save();
   }
+  pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: notify });
 }
 
 async function sendAcceptFriendNotification(userIDA, userIDR) {
@@ -147,18 +148,18 @@ async function sendDeletedEventNotification(usersid, eventId, actor) {
       type: EVENT_DELETED,
     };
 
-    const notify = await NotificationsModel.findOne(options);
+    let notify = await NotificationsModel.findOne(options);
 
     if (!notify) {
-      const r = await NotificationsModel.create({
+      notify = await NotificationsModel.create({
         ...options,
         actors: [actor],
       });
-      pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
     } else if (!_.some(notify.actors, item => item.equals(actor))) {
       notify.actors.unshift(actor);
-      await notify.save();
+      notify = await notify.save();
     }
+    pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: notify });
   });
 }
 
@@ -171,18 +172,18 @@ async function sendCancelledEventNotification(usersid, eventId, actor) {
       type: EVENT_CANCELLED,
     };
 
-    const notify = await NotificationsModel.findOne(options);
+    let notify = await NotificationsModel.findOne(options);
 
     if (!notify) {
-      const r = await NotificationsModel.create({
+      notify = await NotificationsModel.create({
         ...options,
         actors: [actor],
       });
-      pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
     } else if (!_.some(notify.actors, item => item.equals(actor))) {
       notify.actors.unshift(actor);
-      await notify.save();
+      notify = await notify.save();
     }
+    pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: notify });
   });
 }
 
@@ -239,18 +240,18 @@ async function sendInterestEventNotification(author, userJoin, eventId) {
     type: INTEREST_EVENT,
   };
 
-  const notify = await NotificationsModel.findOne(options);
+  let notify = await NotificationsModel.findOne(options);
 
   if (!notify) {
-    const r = await NotificationsModel.create({
+    notify = await NotificationsModel.create({
       ...options,
       actors: [userJoin],
     });
-    pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
   } else if (!_.some(notify.actors, item => item.equals(userJoin))) {
     notify.actors.unshift(userJoin);
-    await notify.save();
+    notify = await notify.save();
   }
+  pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: notify });
 }
 
 async function sendDisInterestEventNotification(author, userJoin, eventId) {
@@ -261,18 +262,18 @@ async function sendDisInterestEventNotification(author, userJoin, eventId) {
     type: DISINTEREST_EVENT,
   };
 
-  const notify = await NotificationsModel.findOne(options);
+  let notify = await NotificationsModel.findOne(options);
 
   if (!notify) {
-    const r = await NotificationsModel.create({
+    notify = await NotificationsModel.create({
       ...options,
       actors: [userJoin],
     });
-    pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: r });
   } else if (!_.some(notify.actors, item => item.equals(userJoin))) {
     notify.actors.unshift(userJoin);
-    await notify.save();
+    notify = await notify.save();
   }
+  pubsub.publish(NOTIFICATION_ADDED_SUBSCRIPTION, { notificationAdded: notify });
 }
 
 async function sendNewFeeForApartmentNotification(data) {

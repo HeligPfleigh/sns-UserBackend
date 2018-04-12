@@ -549,8 +549,11 @@ type Mutation {
 }
 
 type Subscription {
+  # Emit if comment or reply added
   commentAdded(postID: String!, commentID: String): Comment
+  # Emit if a post added
   postAdded: Post
+  # Emit in case new noti or noti content change 
   notificationAdded(userID: String!): Notification
 }
 
@@ -2615,7 +2618,7 @@ const rootResolvers = {
           return payload.notificationAdded.user == variables.userID;
         }
       )
-    },
+    }
   },
 };
 
