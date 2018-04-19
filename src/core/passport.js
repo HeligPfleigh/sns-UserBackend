@@ -1,7 +1,7 @@
 import moment from 'moment';
 import jwt from 'jsonwebtoken';
 import passport from 'passport';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { Strategy as LocalStrategy } from 'passport-local';
 import FacebookTokenStrategy from 'passport-facebook-token';
 import * as admin from 'firebase-admin';

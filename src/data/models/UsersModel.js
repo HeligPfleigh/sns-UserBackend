@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import timestamps from 'mongoose-timestamp';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import isEmpty from 'lodash/isEmpty';
 

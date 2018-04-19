@@ -1,7 +1,7 @@
 import isUndefined from 'lodash/isUndefined';
 import isEmpty from 'lodash/isEmpty';
 import isEqual from 'lodash/isEqual';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { ObjectId } from 'mongodb';
 import { generate as idRandom } from 'shortid';
 import moment from 'moment';
