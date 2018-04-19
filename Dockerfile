@@ -9,7 +9,7 @@ RUN npm install --quiet node-gyp -g
 # use changes to package.json to force Docker not to use the cache
 # when we change our application's nodejs dependencies:
 ADD package.json yarn.lock /tmp/
-RUN cd /tmp && yarn install --frozen-lockfile
+RUN cd /tmp && yarn install
 
 # Create app directory
 RUN mkdir -p /usr/src/app
