@@ -649,10 +649,7 @@ async function changeUserImages({ userId, images }) {
     },
   };
 
-  console.log({ data });
-
   const result = await UsersModel.findByIdAndUpdate(userId, { $set: data }, { new: true });
-  console.log({ result });
   return result;
 }
 
