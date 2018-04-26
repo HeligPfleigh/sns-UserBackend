@@ -427,6 +427,12 @@ type Mutation {
   updateProfile(
     profile: ProfileInput!
   ): Author
+  changeAvatar(
+    picture: String!
+  ): User
+  changeBannerImage(
+    banner: String!
+  ): User
   updateSeen: responsePayload
   updateRead(
     _id: String!
@@ -553,7 +559,7 @@ type Subscription {
   commentAdded(postID: String!, commentID: String): Comment
   # Emit if a post added
   postAdded: Post
-  # Emit in case new noti or noti content change 
+  # Emit in case new noti or noti content change
   notificationAdded(userID: String!): Notification
 }
 
@@ -1398,6 +1404,12 @@ const rootResolvers = {
     },
     updateProfile({ request }, { profile }) {
       return UsersService.updateProfile(request.user.id, profile);
+    },
+    changeAvatar({ request }, args) {
+      return UsersService.changeUserImages({ userId: request.user.id, images: args });
+    },
+    changeBannerImage({ request }, args) {
+      return UsersService.changeUserImages({ userId: request.user.id, images: args });
     },
     updateSeen({ request }) {
       return NotificationsService.updateSeen(request.user.id);
@@ -2602,7 +2614,7 @@ const rootResolvers = {
       subscribe: withFilter(() => pubsub.asyncIterator(COMMENT_ADDED_SUBSCRIPTION),
         (payload, variables) => {
           // if it is reply of a comment
-          if(payload.commentAdded.reply != null){
+          if (payload.commentAdded.reply != null) {
             return (
               (payload.commentAdded.post == variables.postID) &&
               (payload.commentAdded.reply == variables.commentID)

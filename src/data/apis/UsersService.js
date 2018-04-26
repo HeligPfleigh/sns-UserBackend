@@ -628,6 +628,34 @@ async function updateUserProfile({ userId, userData }) {
   return result;
 }
 
+async function changeUserImages({ userId, images }) {
+  if (isEmpty(userId) || isEmpty(images)) {
+    throw new Error('Lỗi thiếu tham số');
+  }
+
+  const user = await UsersModel.findById(userId);
+  if (!user) {
+    throw new Error('Thông tin người dùng không tồn tại');
+  }
+
+  if (isEmpty(user.profile)) {
+    user.profile = {};
+  }
+
+  const data = {
+    profile: {
+      ...user.profile,
+      ...images,
+    },
+  };
+
+  console.log({ data });
+
+  const result = await UsersModel.findByIdAndUpdate(userId, { $set: data }, { new: true });
+  console.log({ result });
+  return result;
+}
+
 async function codePasswordValidator({ username, code }) {
   // eslint-disable-next-line
   if (isEmpty(username)) {
@@ -730,6 +758,7 @@ export default {
   forgotPassword,
   changePassword,
   updateUserProfile,
+  changeUserImages,
   codePasswordValidator,
   cancelFriendRequested,
   sendUnfriendRequest,

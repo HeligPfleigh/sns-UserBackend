@@ -284,6 +284,7 @@ type FAQ implements FAQPayload, Node {
 type Profile {
   fullName: String
   picture: String
+  banner: String
   firstName: String
   lastName: String
   gender: String
