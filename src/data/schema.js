@@ -23,6 +23,8 @@ import {
 import XLSX from 'xlsx';
 import moment from 'moment';
 import { PubSub, withFilter } from 'graphql-subscriptions';
+import { ContentState, convertToRaw } from 'draft-js';
+
 import {
   PostsModel,
   FriendsRelationModel as FriendsModel,
@@ -449,6 +451,7 @@ type Mutation {
     privacy: String!
     friendId: String
     userId: String
+    isMobile: Boolean
   ): Post
   createNewEvent(
     input: CreateEventInput!
@@ -1428,7 +1431,7 @@ const rootResolvers = {
     async editPost(root, { _id, message, photos, privacy = PUBLIC, isDelPostSharing = true, isMobile = false }) {
       return PostsService.editPost(_id, message, photos, privacy, isDelPostSharing, isMobile);
     },
-    async sharingPost({ request }, { _id, privacy = PUBLIC, message, friendId, userId }) {
+    async sharingPost({ request }, { _id, privacy = PUBLIC, message, friendId, userId, isMobile = false }) {
       const author = request.user.id;
 
       if (isUndefined(author)) {
@@ -1453,6 +1456,18 @@ const rootResolvers = {
       }
       const sharingId = p.sharing;
       let r = null;
+
+      if (isMobile) {
+        const content = ContentState.createFromText(message);
+        message = JSON.stringify(convertToRaw(content));
+      } else {
+        try {
+          JSON.parse(message);
+        } catch (error) {
+          throw new Error('Post message invalid');
+        }
+      }
+
       if (!sharingId) {
         r = await PostsModel.create({
           author,
