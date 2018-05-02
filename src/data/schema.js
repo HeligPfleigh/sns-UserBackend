@@ -2626,8 +2626,15 @@ const rootResolvers = {
   Subscription: {
     postAdded: {
       subscribe: withFilter(() => pubsub.asyncIterator(POST_ADDED_SUBSCRIPTION),
-        (payload, variables) => {
-          return true;
+        async (payload, variables, context) => {
+          // if user is author or author's friend
+          if(context.user.id == payload.postAdded.author) return true;
+          const isFriend = !!await FriendsModel.findOne({
+            friend: context.user.id,
+            user: payload.postAdded.author,
+            status: ACCEPTED,
+          });
+          return isFriend;
         }
       )
     },

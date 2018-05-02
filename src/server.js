@@ -13,6 +13,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import expressJwt from 'express-jwt';
+import jsonwebtoken from 'jsonwebtoken';
 // import expressGraphQL from 'express-graphql';
 import mime from 'mime';
 import fs from 'fs';
@@ -205,6 +206,21 @@ ws.listen(port, () => {
     execute,
     subscribe,
     schema,
+    onConnect: async (connectionParams) => {
+      if (connectionParams.token) {
+        const userPromise = new Promise((resolve, reject) => {
+          jsonwebtoken.verify(connectionParams.token, auth.jwt.secret, (err, decoded) => {
+            if (err) { reject('Invalid Token'); }
+            resolve(decoded);
+          });
+        });
+        const result = await userPromise;
+        return {
+          user: result,
+        };
+      }
+      return null;
+    },
   }, {
     server: ws,
     path: '/subscriptions',
