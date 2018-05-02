@@ -145,6 +145,8 @@ async function createNewPostOnBuilding(author, message, photos, buildingId, priv
       photos,
     });
 
+    pubsub.publish(POST_ADDED_SUBSCRIPTION, { postAdded: r });
+
     r.isLiked = false;
     return r;
   } catch (e) {

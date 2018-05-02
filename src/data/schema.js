@@ -1356,7 +1356,6 @@ const rootResolvers = {
       }
       const author = request.user.id;
       userId = userId || author;
-      // pubsub.publish('commentAdded', { commentAdded: { id: 1, content: 'Hello!' } });
       return PostsService.createNewPost(author, message, userId, privacy, photos, isMobile);
     },
     async deletePost({ request }, { _id }) {
@@ -1489,6 +1488,9 @@ const rootResolvers = {
         sendSharingPostNotification(author, p.author, r._id);
       }
       r.isLiked = false;
+
+      pubsub.publish(POST_ADDED_SUBSCRIPTION, { postAdded: r });
+
       return r;
     },
     async updateUserProfile({ request }, { input }) {
@@ -2623,7 +2625,11 @@ const rootResolvers = {
   },
   Subscription: {
     postAdded: {
-      subscribe: () => pubsub.asyncIterator(POST_ADDED_SUBSCRIPTION)
+      subscribe: withFilter(() => pubsub.asyncIterator(POST_ADDED_SUBSCRIPTION),
+        (payload, variables) => {
+          return true;
+        }
+      )
     },
     commentAdded: {
       subscribe: withFilter(() => pubsub.asyncIterator(COMMENT_ADDED_SUBSCRIPTION),
