@@ -342,6 +342,7 @@ type Friend implements Node, Resident {
   friends: [Friend]
   totalFriends: Int
   isFriend: Boolean
+  friendStatus: String
   requestInformation: UserRequestJoinBuildingInformation
   createdAt: Date
   updatedAt: Date
@@ -656,6 +657,46 @@ const AnnouncementsServiceWithSkip = Service({
 //   },
 //   cursor: true,
 // });
+
+const friendStatus = async (data, _, { user }) => {
+  const f = await FriendsRelationModel.findOne({
+    friend: data._id,
+    user: user.id,
+    status: ACCEPTED,
+  });
+  if (f) {
+    return FRIEND;
+  }
+
+  const fr = await FriendsRelationModel.findOne({
+    friend: data._id,
+    user: user.id,
+    status: PENDING,
+  });
+  if (fr) {
+    return FRIEND_REQUESTED;
+  }
+
+  const rp = await FriendsRelationModel.findOne({
+    user: data._id,
+    friend: user.id,
+    status: PENDING,
+  });
+
+  if (rp) {
+    return RESPOND_TO_FRIEND_REQUEST;
+  }
+
+  const rf = await FriendsRelationModel.findOne({
+    friend: data._id,
+    user: user.id,
+    status: REJECTED,
+  });
+  if (rf) {
+    return REJECTED_FRIEND;
+  }
+  return STRANGER;
+};
 
 export const resolvers = {
   Date: DateScalarType,
@@ -1054,8 +1095,9 @@ export const resolvers = {
       return ApartmentsModel.find({
         $or: [
           { owner: data._id },
-          { users:
-            { $in: [data._id] },
+          {
+            users:
+              { $in: [data._id] },
           },
         ],
       });
@@ -1279,6 +1321,7 @@ export const resolvers = {
         status: ACCEPTED,
       });
     },
+    friendStatus,
     createdAt(data) {
       return new Date(data.createdAt);
     },
@@ -1543,45 +1586,7 @@ export const resolvers = {
     building(data) {
       return AddressServices.getBuilding(data.building);
     },
-    async friendStatus(data, _, { user }) {
-      const f = await FriendsRelationModel.findOne({
-        friend: data._id,
-        user: user.id,
-        status: ACCEPTED,
-      });
-      if (f) {
-        return FRIEND;
-      }
-
-      const fr = await FriendsRelationModel.findOne({
-        friend: data._id,
-        user: user.id,
-        status: PENDING,
-      });
-      if (fr) {
-        return FRIEND_REQUESTED;
-      }
-
-      const rp = await FriendsRelationModel.findOne({
-        user: data._id,
-        friend: user.id,
-        status: PENDING,
-      });
-
-      if (rp) {
-        return RESPOND_TO_FRIEND_REQUEST;
-      }
-
-      const rf = await FriendsRelationModel.findOne({
-        friend: data._id,
-        user: user.id,
-        status: REJECTED,
-      });
-      if (rf) {
-        return REJECTED_FRIEND;
-      }
-      return STRANGER;
-    },
+    friendStatus,
   },
   // DocumentPayload: {
   //   building(data) {
