@@ -197,6 +197,7 @@ type Notification implements Node {
   subject: Post
   actors: [Author]
   data: DataNotification
+  totalUnreadNotification: Int
   createdAt: Date
   updatedAt: Date
 }

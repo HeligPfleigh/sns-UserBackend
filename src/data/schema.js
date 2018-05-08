@@ -2628,7 +2628,7 @@ const rootResolvers = {
       subscribe: withFilter(() => pubsub.asyncIterator(POST_ADDED_SUBSCRIPTION),
         async (payload, variables, context) => {
           // if user is author or author's friend
-          if(context.user.id == payload.postAdded.author) return true;
+          if (context.user.id == payload.postAdded.author) return true;
           const isFriend = !!await FriendsModel.findOne({
             friend: context.user.id,
             user: payload.postAdded.author,
@@ -2653,9 +2653,13 @@ const rootResolvers = {
       )
     },
     notificationAdded: {
+      resolve: async ({ notificationAdded }, variables, { user }) => ({
+        ...notificationAdded._doc,
+        totalUnreadNotification: await NotificationsModel.count({ user: user.id, isRead: false })
+      }),
       subscribe: withFilter(() => pubsub.asyncIterator(NOTIFICATION_ADDED_SUBSCRIPTION),
-        (payload, variables) => {
-          return payload.notificationAdded.user == variables.userID;
+        (payload, variables, { user }) => {
+          return payload.notificationAdded.user == user.id;
         }
       )
     }
