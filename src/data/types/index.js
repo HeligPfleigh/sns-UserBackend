@@ -168,6 +168,7 @@ type Event implements Node {
   start: Date!
   end: Date!
   message: String!
+  messagePlainText: String
   invites: [Friend]
   interests: [Friend]
   joins: [Friend]
@@ -996,6 +997,9 @@ export const resolvers = {
     },
   },
   Event: {
+    messagePlainText({ message }) {
+      return (convertFromRaw(JSON.parse(message))).getPlainText('\u000A');
+    },
     author(data) {
       return UsersModel.findOne({ _id: data.author });
     },
