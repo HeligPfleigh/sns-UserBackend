@@ -227,6 +227,7 @@ input CreateEventInput {
   end: Date!
   message: String!
   invites: [String]
+  isMobile: Boolean
 }
 
 input EditEventInput {
@@ -240,6 +241,7 @@ input EditEventInput {
   end: Date!
   message: String!
   invites: [String]
+  isMobile: Boolean
 }
 
 input CreateNewAnnouncementInput {
@@ -1251,6 +1253,9 @@ const rootResolvers = {
     sendFriendRequest({ request }, { _id }) {
       return UsersService.sendFriendRequest(request.user.id, _id);
     },
+    async createNewEvent({ request: { user } }, { input }) {
+      return EventService.createEvent({ ...input, author: user.id });
+    },
     async editEvent(_, { input: { _id, ...data } }) {
       const p = await PostsModel.findOne({ _id });
       if (!p) {
@@ -1269,10 +1274,6 @@ const rootResolvers = {
         ...data,
       });
       return r;
-    },
-    async createNewEvent({ request: { user } }, { input }) {
-      const { building, privacy, photos, name, location, start, end, message, invites } = input;
-      return EventService.createEvent({ building, privacy, author: user.id, photos, name, location, start, end, message, invites });
     },
     async interestEvent({ request }, { eventId }) {
       return EventService.interestEvent(request.user.id, eventId);
@@ -1345,10 +1346,10 @@ const rootResolvers = {
     unlikePost({ request }, { _id }) {
       return PostsService.unlikePost(request.user.id, _id);
     },
-    createNewComment({ request }, { _id, message, commentId, isMobile }) {
+    createNewComment({ request }, { _id, message, commentId, isMobile = false }) {
       return CommentService.createNewComment(request.user.id, _id, message, commentId, isMobile);
     },
-    createNewPost({ request }, { message, userId, privacy = PUBLIC, photos, isMobile }) {
+    createNewPost({ request }, { message, userId, privacy = PUBLIC, photos, isMobile = false }) {
       // NOTE:
       // userId: post on friend wall
       if (!message.trim()) {
