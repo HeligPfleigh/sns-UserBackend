@@ -1,7 +1,4 @@
-import {
-  PostsModel,
-  BuildingMembersModel,
-} from '../models';
+import { PostsModel } from '../models';
 
 import {
   sendEventInviteNotification,
@@ -107,7 +104,11 @@ async function interestEvent(userId, eventId) {
   }, {
     new: true,
   });
-  sendInterestEventNotification(event.author, userId, eventId);
+
+  if (event.author !== userId) {
+    sendInterestEventNotification(event.author, userId, eventId);
+  }
+
   return event;
 }
 
@@ -121,7 +122,10 @@ async function disInterestEvent(userId, eventId) {
   }, {
     new: true,
   });
-  sendDisInterestEventNotification(event.author, userId, eventId);
+
+  if (event.author !== userId) {
+    sendDisInterestEventNotification(event.author, userId, eventId);
+  }
   return event;
 }
 
